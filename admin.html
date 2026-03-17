@@ -21,10 +21,11 @@
         body { 
             font-family: 'Pretendard Variable', sans-serif; 
             background-color: var(--bg-color); 
-            padding: 30px; 
+            padding: 24px; 
             margin: 0;
             color: var(--text-main);
-            line-height: 1.5;
+            line-height: 1.6;
+            letter-spacing: -0.5px; /* 단정한 자간 적용 */
         }
 
         .container {
@@ -33,6 +34,8 @@
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
             padding: 30px;
             min-height: 800px;
+            max-width: 1600px; /* 너무 퍼지지 않게 최대폭 제한 */
+            margin: 0 auto;
         }
 
         /* 헤더 영역 */
@@ -40,16 +43,15 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
             border-bottom: 2px solid #333;
-            padding-bottom: 15px;
+            padding-bottom: 14px;
         }
 
         .header-title h2 {
             margin: 0;
             font-size: 24px;
             font-weight: 800;
-            letter-spacing: -0.5px;
         }
 
         .header-stats {
@@ -57,200 +59,150 @@
             color: var(--text-sub);
         }
 
-        /* 경고 문구 박스 */
-        .notice-box {
-            background-color: #fff5f5;
-            border: 1px solid #ffcfcf;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 25px;
-            color: #d9534f;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        /* 검색/필터 영역 (시원한 디자인) */
+        /* 검색/필터 영역 */
         .filter-section {
-            background-color: #f0f4fc;
-            padding: 25px;
-            border-radius: 10px;
-            margin-bottom: 30px;
+            background-color: #f8faff;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid #eef2f8;
         }
 
         .filter-row {
             display: flex;
             flex-wrap: wrap;
-            gap: 15px;
+            gap: 24px;
             align-items: center;
-        }
-
-        .filter-group {
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .filter-group label {
             font-weight: 700;
             font-size: 14px;
-            color: #444;
-            white-space: nowrap;
+            color: #333;
         }
 
-        input[type="text"], select, input[type="date"] {
+        input[type="text"], select {
             padding: 10px 14px;
             border: 1px solid var(--border-color);
             border-radius: 6px;
             font-size: 14px;
             outline: none;
-            transition: border-color 0.2s;
         }
-
-        input[type="text"]:focus { border-color: var(--primary-color); }
 
         .search-btn {
             background-color: #333;
             color: white;
             border: none;
-            padding: 10px 25px;
+            padding: 10px 24px;
             border-radius: 6px;
             cursor: pointer;
             font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            font-size: 14px;
         }
 
-        .reset-btn {
-            background-color: #fff;
-            color: var(--text-sub);
-            border: 1px solid var(--border-color);
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        /* 액션 버튼 그룹 */
+        /* 액션 바 */
         .action-bar {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 15px;
+            margin-bottom: 16px;
+            align-items: center;
         }
-
-        .btn-group { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px;
+            padding: 8px 14px;
             font-size: 13px;
             font-weight: 600;
-            border-radius: 5px;
-            cursor: pointer;
-            border: 1px solid var(--border-color);
-            background: white;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            border-radius: 6px;
+            gap: 6px;
         }
 
-        .btn-primary { background: var(--primary-color); color: white; border: none; font-size: 14px; padding: 10px 20px; }
-        .btn-danger { color: var(--danger); border-color: var(--danger); }
-        .btn-excel { background: #27ae60; color: white; border: none; }
+        .btn-primary { 
+            background: #ff9f1c; 
+            color: white; 
+            font-size: 14px; 
+            padding: 11px 22px; 
+            box-shadow: 0 4px 10px rgba(255, 159, 28, 0.2);
+        }
 
-        /* 테이블 디자인 (와이드하고 시원하게) */
+        /* 테이블 고도화 */
         .table-wrapper {
             overflow-x: auto;
-            border-top: 1px solid #333;
+            border-top: 1px solid #111;
+            background: #fff;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 14px;
-            min-width: 1200px;
+            table-layout: fixed;
         }
 
         th {
-            background-color: #fcfcfc;
+            background-color: #fafafa;
             border-bottom: 1px solid var(--border-color);
-            padding: 15px 10px;
+            padding: 16px 10px;
             font-weight: 700;
-            color: #444;
-            text-align: center;
+            color: #333;
         }
 
         td {
-            padding: 15px 10px;
-            border-bottom: 1px solid #eee;
-            text-align: center;
-            vertical-align: middle;
+            padding: 18px 10px;
+            border-bottom: 1px solid #f1f1f1;
+            line-height: 1.5;
         }
 
-        tbody tr:hover { background-color: #f9fafb; }
-
-        /* 매물 속성 배지/텍스트 스타일 */
-        .type-badge {
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 700;
-            background: #eee;
-        }
-        .rent { background: #e3f2fd; color: #1976d2; }
-        .sale { background: #fff3e0; color: #e65100; }
-
+        /* 매물 정보 텍스트 */
         .price-text {
             font-weight: 800;
-            color: var(--danger);
-            font-size: 15px;
+            color: #e74c3c;
+            font-size: 16px;
+            letter-spacing: -0.3px;
         }
 
-        .addr-text {
-            text-align: left;
-            font-weight: 500;
+        .addr-text strong {
+            font-size: 15px;
+            color: #111;
+            display: block;
+            margin-bottom: 4px;
         }
 
         .spec-info {
-            font-size: 13px;
-            color: var(--text-sub);
+            font-size: 14px;
+            color: #444;
         }
+
+        .spec-info b { font-weight: 700; color: #111; }
 
         /* 페이지네이션 */
         .pagination {
             display: flex;
             justify-content: center;
-            margin-top: 40px;
-            gap: 5px;
+            margin-top: 30px;
+            gap: 4px;
         }
 
         .page-item {
-            width: 35px;
-            height: 35px;
+            width: 30px;
+            height: 30px;
             display: flex;
             justify-content: center;
             align-items: center;
             border: 1px solid var(--border-color);
-            border-radius: 6px;
+            border-radius: 4px;
             cursor: pointer;
-            font-weight: 600;
+            font-size: 13px;
             color: var(--text-sub);
         }
 
         .page-item.active {
-            background-color: var(--primary-color);
+            background-color: #ff9f1c;
             color: white;
-            border-color: var(--primary-color);
+            border-color: #ff9f1c;
         }
 
-        /* 체크박스 커스텀 */
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--primary-color);
-        }
-
+        /* 체크박스 정렬 */
+        .chk-col { width: 40px; }
     </style>
 </head>
 <body>
@@ -269,7 +221,7 @@
         <!-- 알림 문구 -->
         <div class="notice-box">
             <span>📢</span>
-            <strong>중복매물등록을 중지해 주십시오...</strong> 중복매물등록은 타인에게 피해를 줄 수 있으며 신뢰도를 저하시킵니다.
+            <strong>중복매물등록을 중지해 주십시오...</strong> 타인에게 피해를 줄 수 있으며 신뢰도를 저하시킵니다.
         </div>
 
         <!-- 검색 필터 -->
@@ -277,15 +229,15 @@
             <div class="filter-row">
                 <div class="filter-group">
                     <label>매물번호</label>
-                    <input type="text" placeholder="번호 입력" style="width:120px;">
+                    <input type="text" placeholder="번호 입력" style="width:100px;">
                 </div>
                 <div class="filter-group">
                     <label>구분</label>
-                    <div style="display:flex; gap:10px; font-size:14px;">
-                        <label><input type="checkbox"> 급매물</label>
-                        <label><input type="checkbox"> 추천매물</label>
-                        <label><input type="checkbox"> 중개보수지급</label>
-                        <label><input type="checkbox"> 즉시입주</label>
+                    <div style="display:flex; gap:12px; font-size:13px;">
+                        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"> 급매물</label>
+                        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"> 추천매물</label>
+                        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"> 중개보수</label>
+                        <label style="display:flex; align-items:center; gap:4px; cursor:pointer;"><input type="checkbox"> 공실</label>
                     </div>
                 </div>
                 <div class="filter-group" style="margin-left: auto;">
@@ -295,7 +247,7 @@
                         <option>아파트</option>
                         <option>상가/사무실</option>
                     </select>
-                    <input type="text" placeholder="주소, 매물명 검색" style="width:250px;">
+                    <input type="text" placeholder="주소, 매물명 검색" style="width:200px;">
                     <button class="search-btn">🔍 검색하기</button>
                     <button class="reset-btn">초기화</button>
                 </div>
@@ -305,38 +257,49 @@
         <!-- 액션 바 -->
         <div class="action-bar">
             <div class="btn-group">
-                <button class="btn"><span class="icon">🔄</span> 광고순위갱신</button>
-                <button class="btn"><span class="icon">📅</span> 광고종료연장</button>
-                <button class="btn btn-danger"><span class="icon">🗑</span> 선택삭제</button>
-                <button class="btn"><span class="icon">🖨</span> 인쇄</button>
-                <button class="btn btn-excel"><span class="icon">📊</span> 엑셀다운로드</button>
+                <button class="btn">🔄 광고순위갱신</button>
+                <button class="btn">📅 광고종료연장</button>
+                <button class="btn btn-danger">🗑 선택삭제</button>
+                <button class="btn">🖨 인쇄</button>
+                <button class="btn btn-excel">📊 엑셀다운로드</button>
             </div>
-            <button class="btn btn-primary" onclick="alert('매물등록 페이지로 이동합니다.')">＋ 신규매물등록</button>
+            <button class="btn btn-primary" onclick="alert('신규매물등록 페이지로 이동')">＋ 신규매물등록</button>
         </div>
 
         <!-- 매물 리스트 테이블 -->
         <div class="table-wrapper">
             <table>
+                <colgroup>
+                    <col style="width: 40px;">
+                    <col style="width: 100px;">
+                    <col style="width: 100px;">
+                    <col style="width: 90px;">
+                    <col> <!-- 주소 (유동적) -->
+                    <col style="width: 130px;">
+                    <col style="width: 180px;">
+                    <col style="width: 80px;">
+                    <col style="width: 80px;">
+                    <col style="width: 110px;">
+                </colgroup>
                 <thead>
                     <tr>
-                        <th width="40"><input type="checkbox"></th>
-                        <th width="100">번호/거래</th>
-                        <th width="100">광고구분</th>
-                        <th width="100">매물종류</th>
+                        <th class="chk-col"><input type="checkbox"></th>
+                        <th>번호/거래</th>
+                        <th>광고구분</th>
+                        <th>매물종류</th>
                         <th>주소</th>
-                        <th width="180">방수 / 면적 / 층</th>
-                        <th width="180">금액</th>
-                        <th width="100">순위갱신</th>
-                        <th width="100">최초등록</th>
-                        <th width="120">관리</th>
+                        <th>방수/면적/층</th>
+                        <th>금액</th>
+                        <th>순위갱신</th>
+                        <th>최초등록</th>
+                        <th>관리</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <!-- 샘플 데이터 1 -->
                     <tr>
                         <td><input type="checkbox"></td>
                         <td>
-                            <div style="font-size:12px; color:#888;">72189911</div>
+                            <div style="font-size:11px; color:#888;">72189911</div>
                             <span class="type-badge rent">월세</span>
                         </td>
                         <td>
@@ -349,28 +312,26 @@
                             <span style="font-size:12px; color:#888;">전화: 010-6890-6589</span>
                         </td>
                         <td>
-                            <div class="spec-info">
-                                <b>4</b> / <b>215</b>(65) / 1층
-                            </div>
+                            <div><b>4</b> / <b>215</b>(65)</div>
+                            <div style="color:#888; font-size:11px;">1층</div>
                         </td>
                         <td>
-                            <div class="price-text">월 35,000 / 250 / 10</div>
+                            <div class="price-text">월 35,000/250/10</div>
                             <div style="font-size:11px; color:#999;">(보증금/월세/관리비)</div>
                         </td>
                         <td>02.25</td>
                         <td>02.25</td>
                         <td>
                             <div class="btn-group" style="justify-content: center;">
-                                <button class="btn" style="padding:4px 8px; font-size:11px;">수정</button>
-                                <button class="btn" style="padding:4px 8px; font-size:11px;">복사</button>
+                                <button class="btn" style="padding:2px 6px;">수정</button>
+                                <button class="btn" style="padding:2px 6px;">복사</button>
                             </div>
                         </td>
                     </tr>
-                    <!-- 샘플 데이터 2 -->
                     <tr>
                         <td><input type="checkbox"></td>
                         <td>
-                            <div style="font-size:12px; color:#888;">72189905</div>
+                            <div style="font-size:11px; color:#888;">72189905</div>
                             <span class="type-badge sale">매매</span>
                         </td>
                         <td>
@@ -382,9 +343,8 @@
                             <span style="font-size:12px; color:#888;">전화: 010-1234-5678</span>
                         </td>
                         <td>
-                            <div class="spec-info">
-                                <b>3</b> / <b>84</b>(25) / 15층
-                            </div>
+                            <div><b>3</b> / <b>84</b>(25)</div>
+                            <div style="color:#888; font-size:11px;">15층</div>
                         </td>
                         <td>
                             <div class="price-text">매매 185,000</div>
@@ -394,8 +354,8 @@
                         <td>01.10</td>
                         <td>
                             <div class="btn-group" style="justify-content: center;">
-                                <button class="btn" style="padding:4px 8px; font-size:11px;">수정</button>
-                                <button class="btn" style="padding:4px 8px; font-size:11px;">복사</button>
+                                <button class="btn" style="padding:2px 6px;">수정</button>
+                                <button class="btn" style="padding:2px 6px;">복사</button>
                             </div>
                         </td>
                     </tr>
