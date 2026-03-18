@@ -250,6 +250,58 @@
         .page-link.active { background-color: var(--dark-btn-bg); color: #fff; border-color: var(--dark-btn-bg); }
 
         input[type="checkbox"] { width: 15px; height: 15px; accent-color: #4285f4; cursor: pointer; }
+
+        /* ── 모달 스타일 ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            -webkit-backdrop-filter: blur(2px);
+            backdrop-filter: blur(2px);
+        }
+
+        .modal-content {
+            background: #fff;
+            width: 90%;
+            max-width: 700px;
+            height: 90%;
+            border-radius: 12px;
+            position: relative;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            animation: modalFadeIn 0.3s ease-out;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f9fafb;
+        }
+
+        .modal-title { font-size: 18px; font-weight: 700; color: #111; }
+
+        .btn-close-modal {
+            background: none; border: none; font-size: 24px; color: #9ca3af;
+            cursor: pointer; transition: color 0.15s;
+        }
+        .btn-close-modal:hover { color: #374151; }
+
+        .modal-body { flex: 1; position: relative; }
+        .modal-iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
@@ -551,6 +603,19 @@
 
 </div>
 
+<!-- 매물등록 모달 -->
+<div class="modal-overlay" id="registerModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="modal-title">매물 등록</span>
+            <button class="btn-close-modal" id="btnCloseModal">&times;</button>
+        </div>
+        <div class="modal-body">
+            <iframe src="about:blank" class="modal-iframe" id="registerIframe"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
     function toggleAd(btn) {
         if (btn.classList.contains('state-on')) {
@@ -568,8 +633,39 @@
         document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
     });
 
-    document.getElementById('btn-add-property').addEventListener('click', () => {
-        window.location.href = 'register.html';
+    // 모달 제어
+    const modal = document.getElementById('registerModal');
+    const iframe = document.getElementById('registerIframe');
+    const btnAdd = document.getElementById('btn-add-property');
+    const btnClose = document.getElementById('btnCloseModal');
+
+    btnAdd.addEventListener('click', () => {
+        modal.style.display = 'flex';
+        // 매번 새로 고침하여 깨끗한 폼 유지
+        iframe.src = 'register.html?v=' + Date.now();
+    });
+
+    btnClose.addEventListener('click', () => {
+        modal.style.display = 'none';
+        iframe.src = 'about:blank';
+    });
+
+    // 배경 클릭 시 닫기
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.style.display = 'none';
+            iframe.src = 'about:blank';
+        }
+    });
+
+    // iframe 내부에서 등록 성공 시 모달을 닫기 위한 통신
+    window.addEventListener('message', (event) => {
+        if (event.data === 'closeModal') {
+            modal.style.display = 'none';
+            iframe.src = 'about:blank';
+            // 등록 완료 후 목록 갱신이 필요하다면 아래 주석 해제
+            // location.reload();
+        }
     });
 </script>
 </body>
