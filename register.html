@@ -148,16 +148,16 @@
 
             <div class="form-group">
                 <label class="form-label">매물종류 <span>*</span></label>
-                <select class="form-control" id="propertyType" required onchange="updatePropertyFields()">
-                    <option value="" disabled selected>선택해주세요</option>
-                    <option value="아파트">아파트</option>
-                    <option value="오피스텔">오피스텔</option>
-                    <option value="원룸">원룸</option>
-                    <option value="빌라/주택">빌라/주택</option>
-                    <option value="사무실/상가">사무실/상가</option>
-                    <option value="빌딩/건물">빌딩/건물</option>
-                    <option value="토지/공장/기타">토지/공장/기타</option>
-                </select>
+                <input type="hidden" id="propertyType" required>
+                <div class="trade-btn-group" style="flex-wrap: wrap;">
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('아파트', this)">아파트</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('오피스텔', this)">오피스텔</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('원룸', this)">원룸</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('빌라/주택', this)">빌라/주택</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('사무실/상가', this)">사무실/상가</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('빌딩/건물', this)">빌딩/건물</button>
+                    <button type="button" class="trade-btn" onclick="selectPropertyType('토지/공장/기타', this)">토지/공장/기타</button>
+                </div>
             </div>
 
             <div class="form-group">
@@ -484,6 +484,23 @@
             
             // 가격 필드 업데이트 호출
             updatePriceFields();
+        }
+
+        // 매물 종류 버튼 선택 처리
+        window.selectPropertyType = function(type, btn) {
+            // hidden input 값 업데이트
+            document.getElementById('propertyType').value = type;
+            
+            // 버튼들 스타일 초기화 (해당 그룹 내 버튼만)
+            const parent = btn.parentElement;
+            const btns = parent.querySelectorAll('.trade-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            
+            // 현재 클릭된 버튼 활성화
+            btn.classList.add('active');
+            
+            // 필드 노출 업데이트 호출
+            updatePropertyFields();
         }
 
         // 매물 종류에 따른 동적 필드 표시
