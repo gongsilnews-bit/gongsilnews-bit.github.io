@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>매물관리 - 공실뉴스 Admin</title>
-    <!-- Pretendard 폰트 적용 -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
     <style>
-        /* 회원관리 페이지(admin_members_list.html)의 디자인 스타일을 그대로 계승 */
         :root {
-            --primary-color: #ff9f1c; /* 포인트 컬러 */
+            --primary-color: #ff9f1c;
             --bg-body: #f4f5f7;
             --bg-card: #ffffff;
             --border-color: #e1e4e8;
@@ -17,127 +15,171 @@
             --text-sub: #666666;
             --blue-filter-bg: #f0f4fc;
             --dark-btn-bg: #4b5563;
+
+            /* 거래 구분 컬러 */
+            --color-sale: #e53e3e;         /* 매매 - 빨강 */
+            --color-jeonse: #2b6cb0;       /* 전세 - 파랑 */
+            --color-monthly: #6b46c1;      /* 월세 - 보라 */
+            --color-short: #b7791f;        /* 단기 - 황금 */
+
+            /* 회원 유형 컬러 */
+            --color-realtor: #2b6cb0;      /* 부동산 - 파랑 */
+            --color-general: #276749;      /* 일반인 - 초록 */
+            --color-admin: #c05621;        /* 관리자 - 주황 */
         }
 
-        body { 
-            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif; 
-            background-color: var(--bg-body); 
-            padding: 24px; 
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px;
             margin: 0;
             color: var(--text-main);
             line-height: 1.5;
         }
 
-        /* 전체 컨테이너를 카드 스타일로 */
+        /* ── 전체 카드 ── */
         .admin-card {
             background-color: var(--bg-card);
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
             padding: 32px;
             min-height: 800px;
         }
 
-        /* 헤더 타이틀 */
+        /* ── 헤더 ── */
         .card-header {
-            margin-bottom: 30px;
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 24px;
         }
-
         .card-header h2 {
             margin: 0;
             font-size: 1.25rem;
             font-weight: 700;
             color: #111;
         }
+        .card-header .count-info {
+            font-size: 13px;
+            color: #666;
+        }
+        .card-header .count-info .ad-count { color: var(--primary-color); font-weight: 700; }
+        .card-header .count-info .total-count { color: #333; font-weight: 700; }
 
-        /* 필터 섹션 (회원관리와 동일하게) */
+        /* ── 검색 필터 ── */
         .filter-container {
             background-color: var(--blue-filter-bg);
-            border-radius: 4px;
-            padding: 24px;
-            margin-bottom: 24px;
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
-            justify-content: flex-end; /* 오른쪽 정렬 스타일 */
         }
 
         .filter-group {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
         }
-
         .filter-label {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
-            color: #444;
+            color: #555;
+            white-space: nowrap;
         }
 
-        select, input[type="text"] {
-            padding: 8px 12px;
-            border: 1px solid #ddd;
+        .filter-input {
+            padding: 7px 10px;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
             background-color: #fff;
             outline: none;
+            font-family: inherit;
+            color: var(--text-main);
+        }
+        .filter-input:focus { border-color: #4285f4; }
+
+        select.filter-input { cursor: pointer; }
+
+        .filter-divider {
+            width: 1px;
+            height: 24px;
+            background-color: #d1d5db;
+            margin: 0 4px;
         }
 
-        .search-btn {
+        .btn-search {
             background-color: var(--dark-btn-bg);
             color: white;
             border: none;
-            padding: 8px 16px;
+            padding: 7px 14px;
             border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
             cursor: pointer;
-            font-weight: 500;
             display: flex;
             align-items: center;
             gap: 4px;
+            font-family: inherit;
+            transition: background 0.15s;
         }
+        .btn-search:hover { background-color: #374151; }
 
-        .reset-btn {
+        .btn-reset {
             background-color: #fff;
             color: #666;
-            border: 1px solid #ddd;
-            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            padding: 7px 14px;
             border-radius: 4px;
-            font-size: 14px;
+            font-size: 13px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: background 0.15s;
         }
+        .btn-reset:hover { background-color: #f9fafb; }
 
-        /* 액션 버튼 바 */
+        /* ── 액션 바 ── */
         .action-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 12px;
         }
-
-        .left-actions { display: flex; gap: 8px; }
+        .left-actions { display: flex; gap: 6px; }
 
         .btn {
             padding: 6px 12px;
             font-size: 13px;
             font-weight: 500;
             border-radius: 4px;
-            border: 1px solid #ddd;
+            border: 1px solid #d1d5db;
             background: #fff;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 4px;
             color: #333;
+            font-family: inherit;
+            transition: background 0.15s;
         }
+        .btn:hover { background-color: #f3f4f6; }
 
         .btn-register {
             background-color: #4285f4;
             color: white;
             border: none;
-            padding: 8px 16px;
-            font-weight: 600;
+            padding: 8px 18px;
+            font-weight: 700;
+            font-size: 13px;
         }
+        .btn-register:hover { background-color: #3367d6; }
 
-        /* 테이블 스타일링 */
+        /* ── 테이블 ── */
         .table-container {
             width: 100%;
             overflow-x: auto;
@@ -147,204 +189,667 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
-            min-width: 1200px;
+            font-size: 13px;
+            min-width: 1100px;
         }
 
         th {
-            background-color: #ffffff;
-            border-bottom: 1px solid #eee;
-            padding: 14px 10px;
+            background-color: #fafafa;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 8px;
             font-weight: 700;
             color: #333;
             text-align: center;
-            text-transform: none;
+            white-space: nowrap;
         }
 
         td {
-            padding: 16px 10px;
-            border-bottom: 1px solid #f1f1f1;
+            padding: 14px 8px;
+            border-bottom: 1px solid #f1f3f5;
             text-align: center;
             vertical-align: middle;
             color: #444;
         }
 
-        tr:hover { background-color: #fafafa; }
+        tr:hover td { background-color: #fafcff; }
 
-        /* 세부 텍스트 스타일 */
-        .price-text {
-            color: #d9534f;
-            font-weight: 700;
-            font-size: 14px;
+        /* ── 번호 셀 ── */
+        .cell-num {
+            font-size: 11px;
+            color: #aaa;
+            margin-bottom: 2px;
         }
 
-        .addr-text {
-            text-align: left;
-            font-weight: 400;
-            line-height: 1.4;
-        }
-        
-        .addr-text b { color: #111; font-weight: 700; }
-
-        /* 배지 스타일 (회원관리와 동일 톤) */
-        .badge {
-            padding: 2px 6px;
+        /* ── 거래 구분 배지 ── */
+        .badge-deal {
+            display: inline-block;
+            padding: 2px 8px;
             border-radius: 3px;
             font-size: 11px;
-            font-weight: 600;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
         }
-        .badge-orange { color: #ff9f1c; border: 1px solid #ff9f1c; }
-        .badge-blue { color: #4285f4; border: 1px solid #4285f4; }
+        .badge-sale    { background-color: var(--color-sale); }
+        .badge-jeonse  { background-color: var(--color-jeonse); }
+        .badge-monthly { background-color: var(--color-monthly); }
+        .badge-short   { background-color: var(--color-short); }
 
-        /* 페이지네이션 (회원관리 스타일) */
+        /* ── 광고 구분 배지 ── */
+        .badge-ad {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+        .badge-ad-on  { background-color: #4285f4; color: #fff; }
+        .badge-ad-off { background-color: #e5e7eb; color: #666; }
+
+        /* ── 매물종류 + 광고상태 셀 ── */
+        .cell-type {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .type-name {
+            font-size: 12px;
+            font-weight: 600;
+            color: #333;
+        }
+        .ad-date {
+            font-size: 10px;
+            color: #aaa;
+        }
+
+        /* ── 주소/연락처 셀 ── */
+        .cell-addr {
+            text-align: left;
+            min-width: 160px;
+        }
+        .addr-main {
+            font-weight: 700;
+            font-size: 13px;
+            color: #111;
+            margin-bottom: 2px;
+        }
+        .contact-row {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-top: 2px;
+        }
+        .contact-badge {
+            font-size: 9px;
+            font-weight: 700;
+            padding: 1px 4px;
+            border-radius: 2px;
+            white-space: nowrap;
+        }
+        .contact-landlord { background-color: #fef3c7; color: #92400e; }
+        .contact-reg      { background-color: #e0f2fe; color: #0369a1; }
+        .contact-num {
+            font-size: 11px;
+            color: #666;
+            letter-spacing: 0.02em;
+        }
+
+        /* ── 방수/면적 ── */
+        .cell-spec {
+            font-size: 12px;
+            color: #555;
+            white-space: nowrap;
+        }
+
+        /* ── 금액 셀 ── */
+        .cell-price {
+            text-align: left;
+            min-width: 140px;
+        }
+        .price-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 3px;
+        }
+        .price-deal-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+        }
+        .price-amount {
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* 거래 구분별 금액 색상 */
+        .price-amount-sale    { color: var(--color-sale); }
+        .price-amount-jeonse  { color: var(--color-jeonse); }
+        .price-amount-monthly { color: var(--color-monthly); }
+        .price-amount-short   { color: var(--color-short); }
+
+        /* ── 갱신/등록 날짜 ── */
+        .date-text {
+            font-size: 12px;
+            color: #888;
+        }
+
+        /* ── 등록자 셀 ── */
+        .cell-registrar {
+            text-align: left;
+            min-width: 130px;
+        }
+
+        /* 회원 유형 배지 */
+        .member-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-bottom: 3px;
+        }
+        .mbadge-realtor { background-color: #dbeafe; color: var(--color-realtor); }
+        .mbadge-general { background-color: #dcfce7; color: #166534; }
+        .mbadge-admin   { background-color: #ffedd5; color: var(--color-admin); }
+
+        .registrar-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 2px;
+        }
+        .registrar-phone {
+            font-size: 11px;
+            color: #888;
+        }
+
+        /* ── 관리 버튼 ── */
+        .cell-actions {
+            display: flex;
+            gap: 4px;
+            justify-content: center;
+        }
+        .btn-edit {
+            padding: 4px 9px;
+            font-size: 11px;
+            border-radius: 3px;
+            border: 1px solid #d1d5db;
+            background: #fff;
+            cursor: pointer;
+            color: #333;
+            font-family: inherit;
+            font-weight: 500;
+            transition: background 0.1s;
+        }
+        .btn-edit:hover { background: #f3f4f6; }
+        .btn-delete {
+            padding: 4px 9px;
+            font-size: 11px;
+            border-radius: 3px;
+            border: 1px solid #fecaca;
+            background: #fff;
+            cursor: pointer;
+            color: #dc2626;
+            font-family: inherit;
+            font-weight: 500;
+            transition: background 0.1s;
+        }
+        .btn-delete:hover { background: #fef2f2; }
+
+        /* ── 페이지네이션 ── */
         .pagination {
             display: flex;
             justify-content: center;
             margin-top: 32px;
             gap: 4px;
         }
-
         .page-link {
             width: 32px;
             height: 32px;
             display: flex;
             justify-content: center;
             align-items: center;
-            border: 1px solid #ddd;
+            border: 1px solid #d1d5db;
             border-radius: 4px;
             font-size: 13px;
             color: #666;
             text-decoration: none;
             background: #fff;
+            cursor: pointer;
+            transition: background 0.12s;
         }
-
+        .page-link:hover { background-color: #f3f4f6; }
         .page-link.active {
-            background-color: #4b5563;
+            background-color: var(--dark-btn-bg);
             color: #fff;
-            border-color: #4b5563;
+            border-color: var(--dark-btn-bg);
         }
 
         /* 체크박스 */
         input[type="checkbox"] {
-            width: 16px;
-            height: 16px;
+            width: 15px;
+            height: 15px;
             accent-color: #4285f4;
+            cursor: pointer;
         }
 
+        /* ── 빈 결과 ── */
+        .empty-row td {
+            padding: 60px 0;
+            color: #bbb;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
 
-    <div class="admin-card">
-        <!-- 헤더 구역 -->
-        <div class="card-header">
-            <h2>회원목록</h2> <!-- 디자인 일관성을 위해 일단 회원목록 제목 스타일 적용 -->
-        </div>
+<div class="admin-card">
 
-        <!-- 필터 구역 (회원관리 대시보드와 동일 구성) -->
-        <section class="filter-container">
-            <select>
-                <option>전체</option>
-                <option>월세</option>
-                <option>전세</option>
-                <option>매매</option>
-            </select>
-            <select>
-                <option>가입일순</option>
-                <option>최근갱신순</option>
-            </select>
-            <select>
-                <option>매물종류</option>
-            </select>
-            <input type="text" placeholder="검색어를 입력하세요." style="width: 250px;">
-            <button class="search-btn">
-                🔍
-            </button>
-            <button class="reset-btn">초기화</button>
-        </section>
-
-        <!-- 액션 바 (신규 매물 등록 버튼 등) -->
-        <div class="action-bar">
-            <div class="left-actions">
-                <button class="btn">광고순위갱신</button>
-                <button class="btn">광고종료연장</button>
-                <button class="btn">선택삭제</button>
-            </div>
-            <button class="btn btn-register">등록 (사전등록)</button>
-        </div>
-
-        <!-- 매물 테이블 -->
-        <div class="table-container">
-            <table>
-                <colgroup>
-                    <col style="width: 50px;">
-                    <col style="width: 120px;">
-                    <col style="width: 100px;">
-                    <col style="width: 100px;">
-                    <col>
-                    <col style="width: 150px;">
-                    <col style="width: 180px;">
-                    <col style="width: 100px;">
-                    <col style="width: 100px;">
-                    <col style="width: 120px;">
-                </colgroup>
-                <thead>
-                    <tr>
-                        <th><input type="checkbox"></th>
-                        <th>번호/거래</th>
-                        <th>광고구분</th>
-                        <th>매물종류</th>
-                        <th>주소</th>
-                        <th>방수/면적/층</th>
-                        <th>금액</th>
-                        <th>순위갱신</th>
-                        <th>최초등록</th>
-                        <th>관리</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- 행 데이터 1 -->
-                    <tr>
-                        <td><input type="checkbox"></td>
-                        <td>
-                            <div style="font-size:12px; color:#999;">72189911</div>
-                            <span style="color:#4285f4; font-weight:600;">월세</span>
-                        </td>
-                        <td>
-                            <div style="color:#4285f4; font-weight:700;">광고</div>
-                            <div style="font-size:11px; color:#999;">23일전</div>
-                        </td>
-                        <td>빌라/주택</td>
-                        <td class="addr-text">
-                            <b>논현동 177</b><br>
-                            <span style="font-size:12px; color:#999;">전화: 010-6890-6589</span>
-                        </td>
-                        <td>4 / 215(65) / 1층</td>
-                        <td>
-                            <span class="price-text">월 35,000 / 250 / 10</span>
-                        </td>
-                        <td>02.25</td>
-                        <td>02.25</td>
-                        <td>
-                            <div style="display:flex; gap:4px; justify-content:center;">
-                                <button class="btn" style="padding: 4px 8px; font-size:12px;">수정</button>
-                                <button class="btn" style="padding: 4px 8px; font-size:12px;">삭제</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 페이지네이션 -->
-        <div class="pagination">
-            <a href="#" class="page-link active">1</a>
-            <a href="#" class="page-link">2</a>
-            <a href="#" class="page-link">3</a>
-            <a href="#" class="page-link">4</a>
-            <a href="#" class="page-link">5</a>
-        </div>
+    <!-- ① 헤더 -->
+    <div class="card-header">
+        <h2>매물관리</h2>
+        <span class="count-info">
+            (<span class="ad-count">광고 10건</span> / <span class="total-count">전체 20건</span>)
+        </span>
     </div>
+
+    <!-- ② 검색 필터 -->
+    <section class="filter-container">
+        <!-- 매물번호 -->
+        <div class="filter-group">
+            <span class="filter-label">매물번호</span>
+            <input type="text" class="filter-input" id="search-num" placeholder="매물번호 입력" style="width:130px;">
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- 매물종류 -->
+        <div class="filter-group">
+            <span class="filter-label">매물종류</span>
+            <select class="filter-input" id="search-type">
+                <option value="">전체</option>
+                <option>아파트</option>
+                <option>빌라/주택</option>
+                <option>오피스텔</option>
+                <option>상가/사무실</option>
+                <option>토지</option>
+            </select>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- 매물구분 (거래유형) -->
+        <div class="filter-group">
+            <span class="filter-label">매물구분</span>
+            <select class="filter-input" id="search-deal">
+                <option value="">전체</option>
+                <option>매매</option>
+                <option>전세</option>
+                <option>월세</option>
+                <option>단기</option>
+            </select>
+        </div>
+
+        <div class="filter-divider"></div>
+
+        <!-- 키워드 검색 -->
+        <div class="filter-group">
+            <input type="text" class="filter-input" id="search-keyword" placeholder="검색어를 입력하세요." style="width:220px;">
+        </div>
+
+        <button class="btn-search" id="btn-do-search">🔍&nbsp;검색</button>
+        <button class="btn-reset" id="btn-reset">초기화</button>
+    </section>
+
+    <!-- ③ 액션 바 -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <button class="btn" id="btn-rank-refresh">⬆ 광고순위갱신</button>
+            <button class="btn" id="btn-bulk-delete">🗑 선택삭제</button>
+        </div>
+        <button class="btn btn-register" id="btn-add-property">+ 물건등록</button>
+    </div>
+
+    <!-- ④ 매물 테이블 -->
+    <div class="table-container">
+        <table>
+            <colgroup>
+                <col style="width:44px;">
+                <col style="width:100px;">
+                <col style="width:110px;">
+                <col style="width:90px;">
+                <col><!-- 주소/연락처 -->
+                <col style="width:120px;">
+                <col style="width:160px;"><!-- 금액 -->
+                <col style="width:72px;">
+                <col style="width:72px;">
+                <col style="width:150px;"><!-- 등록자 -->
+                <col style="width:90px;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="chk-all"></th>
+                    <th>번호</th>
+                    <th>광고설정<br><span style="font-weight:400;font-size:11px;color:#888;">생성일</span></th>
+                    <th>매물종류</th>
+                    <th>주소 / 임대인연락처</th>
+                    <th>방수/면적(㎡)/층</th>
+                    <th>금액</th>
+                    <th>최초등록</th>
+                    <th>순위갱신</th>
+                    <th>등록자 / 연락처</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                <!-- ═══ 샘플 행 1 : 매매 / 부동산회원 ═══ -->
+                <tr>
+                    <td><input type="checkbox"></td>
+
+                    <!-- 번호 -->
+                    <td>
+                        <div class="cell-num">72189911</div>
+                        <span class="badge-deal badge-sale">매매</span>
+                    </td>
+
+                    <!-- 광고설정/생성일 -->
+                    <td>
+                        <div class="cell-type">
+                            <span class="badge-ad badge-ad-on">광고중</span>
+                            <span class="ad-date">03.02</span>
+                        </div>
+                    </td>
+
+                    <!-- 매물종류 -->
+                    <td>아파트</td>
+
+                    <!-- 주소 / 임대인 연락처 -->
+                    <td class="cell-addr">
+                        <div class="addr-main">논현동 177</div>
+                        <div class="contact-row">
+                            <span class="contact-badge contact-landlord">임대인</span>
+                            <span class="contact-num">010-1234-5678</span>
+                        </div>
+                    </td>
+
+                    <!-- 방수/면적/층 -->
+                    <td class="cell-spec">3 / 84.97(25) / 12층</td>
+
+                    <!-- 금액 (매매) -->
+                    <td class="cell-price">
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-sale">매매</span>
+                            <span class="price-amount price-amount-sale">32억</span>
+                        </div>
+                    </td>
+
+                    <!-- 최초등록 -->
+                    <td class="date-text">02.23</td>
+                    <!-- 순위갱신 -->
+                    <td class="date-text">02.25</td>
+
+                    <!-- 등록자 / 연락처 (부동산회원) -->
+                    <td class="cell-registrar">
+                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
+                        <div class="registrar-name">진흥부동산</div>
+                        <div class="registrar-phone">010-6890-6589</div>
+                    </td>
+
+                    <!-- 관리 -->
+                    <td>
+                        <div class="cell-actions">
+                            <button class="btn-edit">수정</button>
+                            <button class="btn-delete">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- ═══ 샘플 행 2 : 전세 / 일반인회원 ═══ -->
+                <tr>
+                    <td><input type="checkbox"></td>
+
+                    <td>
+                        <div class="cell-num">72189045</div>
+                        <span class="badge-deal badge-jeonse">전세</span>
+                    </td>
+
+                    <td>
+                        <div class="cell-type">
+                            <span class="badge-ad badge-ad-off">일반</span>
+                            <span class="ad-date">03.05</span>
+                        </div>
+                    </td>
+
+                    <td>빌라/주택</td>
+
+                    <td class="cell-addr">
+                        <div class="addr-main">은평구 신사동 384</div>
+                        <div class="contact-row">
+                            <span class="contact-badge contact-landlord">임대인</span>
+                            <span class="contact-num">010-9876-5432</span>
+                        </div>
+                    </td>
+
+                    <td class="cell-spec">2 / 49.5(15) / 2층</td>
+
+                    <td class="cell-price">
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-jeonse">전세</span>
+                            <span class="price-amount price-amount-jeonse">6억 100/10</span>
+                        </div>
+                    </td>
+
+                    <td class="date-text">03.05</td>
+                    <td class="date-text">03.10</td>
+
+                    <!-- 등록자 (일반인) -->
+                    <td class="cell-registrar">
+                        <div><span class="member-badge mbadge-general">일반인</span></div>
+                        <div class="registrar-name">김민수</div>
+                        <div class="registrar-phone">010-9876-5432</div>
+                    </td>
+
+                    <td>
+                        <div class="cell-actions">
+                            <button class="btn-edit">수정</button>
+                            <button class="btn-delete">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- ═══ 샘플 행 3 : 월세 / 부동산회원 ═══ -->
+                <tr>
+                    <td><input type="checkbox"></td>
+
+                    <td>
+                        <div class="cell-num">72188712</div>
+                        <span class="badge-deal badge-monthly">월세</span>
+                    </td>
+
+                    <td>
+                        <div class="cell-type">
+                            <span class="badge-ad badge-ad-on">광고중</span>
+                            <span class="ad-date">03.07</span>
+                        </div>
+                    </td>
+
+                    <td>오피스텔</td>
+
+                    <td class="cell-addr">
+                        <div class="addr-main">강남구 역삼동 815</div>
+                        <div class="contact-row">
+                            <span class="contact-badge contact-landlord">임대인</span>
+                            <span class="contact-num">010-5555-3344</span>
+                        </div>
+                    </td>
+
+                    <td class="cell-spec">1 / 33.0(10) / 7층</td>
+
+                    <td class="cell-price">
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-monthly">월세</span>
+                            <span class="price-amount price-amount-monthly">7천/10</span>
+                        </div>
+                    </td>
+
+                    <td class="date-text">03.07</td>
+                    <td class="date-text">03.11</td>
+
+                    <td class="cell-registrar">
+                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
+                        <div class="registrar-name">한강공인중개</div>
+                        <div class="registrar-phone">010-5555-3344</div>
+                    </td>
+
+                    <td>
+                        <div class="cell-actions">
+                            <button class="btn-edit">수정</button>
+                            <button class="btn-delete">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- ═══ 샘플 행 4 : 단기 / 관리자 ═══ -->
+                <tr>
+                    <td><input type="checkbox"></td>
+
+                    <td>
+                        <div class="cell-num">72187003</div>
+                        <span class="badge-deal badge-short">단기</span>
+                    </td>
+
+                    <td>
+                        <div class="cell-type">
+                            <span class="badge-ad badge-ad-on">광고중</span>
+                            <span class="ad-date">03.09</span>
+                        </div>
+                    </td>
+
+                    <td>상가/사무실</td>
+
+                    <td class="cell-addr">
+                        <div class="addr-main">서초구 방배동 122-3</div>
+                        <div class="contact-row">
+                            <span class="contact-badge contact-landlord">임대인</span>
+                            <span class="contact-num">010-7700-2211</span>
+                        </div>
+                    </td>
+
+                    <td class="cell-spec">- / 66.1(20) / 1층</td>
+
+                    <td class="cell-price">
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-short">단기</span>
+                            <span class="price-amount price-amount-short">300/100/10</span>
+                        </div>
+                    </td>
+
+                    <td class="date-text">03.09</td>
+                    <td class="date-text">03.12</td>
+
+                    <!-- 등록자 (관리자) -->
+                    <td class="cell-registrar">
+                        <div><span class="member-badge mbadge-admin">관리자</span></div>
+                        <div class="registrar-name">admin</div>
+                        <div class="registrar-phone">010-0000-0000</div>
+                    </td>
+
+                    <td>
+                        <div class="cell-actions">
+                            <button class="btn-edit">수정</button>
+                            <button class="btn-delete">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+
+                <!-- ═══ 샘플 행 5 : 매매+전세+월세+단기 복합 / 부동산회원 ═══ -->
+                <tr>
+                    <td><input type="checkbox"></td>
+
+                    <td>
+                        <div class="cell-num">72186500</div>
+                        <span class="badge-deal badge-sale">매매</span>
+                    </td>
+
+                    <td>
+                        <div class="cell-type">
+                            <span class="badge-ad badge-ad-off">일반</span>
+                            <span class="ad-date">02.22</span>
+                        </div>
+                    </td>
+
+                    <td>빌라/주택</td>
+
+                    <td class="cell-addr">
+                        <div class="addr-main">논현동 177</div>
+                        <div class="contact-row">
+                            <span class="contact-badge contact-landlord">임대인</span>
+                            <span class="contact-num">010-6890-6589</span>
+                        </div>
+                    </td>
+
+                    <td class="cell-spec">4 / 215(65) / 1층</td>
+
+                    <!-- 금액 복합 -->
+                    <td class="cell-price">
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-sale">매매</span>
+                            <span class="price-amount price-amount-sale">32억</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-jeonse">전세</span>
+                            <span class="price-amount price-amount-jeonse">6억 100/10</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-monthly">월세</span>
+                            <span class="price-amount price-amount-monthly">7천/10</span>
+                        </div>
+                        <div class="price-row">
+                            <span class="price-deal-badge badge-short">단기</span>
+                            <span class="price-amount price-amount-short">300/100/10</span>
+                        </div>
+                    </td>
+
+                    <td class="date-text">02.23</td>
+                    <td class="date-text">02.25</td>
+
+                    <td class="cell-registrar">
+                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
+                        <div class="registrar-name">공실뉴스공인</div>
+                        <div class="registrar-phone">010-6890-6589</div>
+                    </td>
+
+                    <td>
+                        <div class="cell-actions">
+                            <button class="btn-edit">수정</button>
+                            <button class="btn-delete">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ⑤ 페이지네이션 -->
+    <div class="pagination">
+        <a href="#" class="page-link active">1</a>
+        <a href="#" class="page-link">2</a>
+        <a href="#" class="page-link">3</a>
+        <a href="#" class="page-link">4</a>
+        <a href="#" class="page-link">5</a>
+    </div>
+
+</div>
 
 </body>
 </html>
