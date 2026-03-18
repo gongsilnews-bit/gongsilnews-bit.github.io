@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>정보수정 - 공실뉴스 Admin</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
     <style>
         :root {
             --primary-color: #4285f4;
@@ -181,7 +182,7 @@
                 <input type="email" id="userEmail" class="input-text" disabled>
             </div>
             <div class="form-group">
-                <label class="label">이름 <span class="required">*</span></label>
+                <label class="label">가입자명 <span class="required">*</span></label>
                 <input type="text" id="userName" class="input-text" placeholder="본명 또는 닉네임을 입력하세요." required>
             </div>
             <div class="form-group">
@@ -207,8 +208,31 @@
                     <input type="text" id="ceoName" class="input-text" placeholder="대표이사 성함">
                 </div>
                 <div class="form-group">
-                    <label class="label">사업장 소재지</label>
-                    <input type="text" id="address" class="input-text" placeholder="상세 주소를 입력하세요.">
+                    <label class="label">사업자등록번호</label>
+                    <input type="text" id="bizRegNo" class="input-text" placeholder="000-00-00000">
+                </div>
+                <div class="form-group">
+                    <label class="label">일반번호</label>
+                    <input type="tel" id="telNum" class="input-text" placeholder="02-000-0000">
+                </div>
+                <div class="form-group">
+                    <label class="label">휴대번호</label>
+                    <input type="tel" id="cellNum" class="input-text" placeholder="010-0000-0000">
+                </div>
+                
+                <div class="form-group full">
+                    <label class="label">부동산주소 <span class="required">*</span></label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="zipcode" class="input-text" placeholder="우편번호" style="width: 120px;" readonly>
+                        <button type="button" class="btn-action" style="padding: 0 16px; font-size: 13px; height: 38px;" onclick="execDaumPostcode()">주소찾기</button>
+                    </div>
+                    <input type="text" id="address" class="input-text" placeholder="기본 주소" style="margin-bottom: 8px;" readonly>
+                    <input type="text" id="addressDetail" class="input-text" placeholder="상세 주소를 입력하세요.">
+                </div>
+
+                <div class="form-group full">
+                    <label class="label">업체상세소개</label>
+                    <textarea id="companyIntro" class="input-text" rows="5" style="resize: vertical; height: auto;" placeholder="업체에 대한 상세한 설명을 입력해 주세요. (예: 공실 전문 부동산, OO동 전문 등)"></textarea>
                 </div>
             </div>
         </div>
@@ -221,9 +245,27 @@
     </form>
 </div>
 
-<!-- API SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="supabase_gongsi_config.js"></script>
+
+<script>
+    // 다음 우편번호 서비스 함수를 글로벌하게 정의 (onclick에서 접근 가능하도록)
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = ''; 
+                if (data.userSelectedType === 'R') { 
+                    addr = data.roadAddress;
+                } else { 
+                    addr = data.jibunAddress;
+                }
+                document.getElementById('zipcode').value = data.zonecode;
+                document.getElementById("address").value = addr;
+                document.getElementById("addressDetail").focus();
+            }
+        }).open();
+    }
+</script>
 
 <script type="module">
     const supabase = window.gongsiClient;
@@ -260,10 +302,18 @@
                 document.getElementById('companyName').value = profile.company_name || '';
                 document.getElementById('companyRegNo').value = profile.company_reg_no || '';
                 document.getElementById('ceoName').value = profile.ceo_name || '';
+                document.getElementById('bizRegNo').value = profile.biz_reg_no || '';
+                document.getElementById('telNum').value = profile.tel_num || '';
+                document.getElementById('cellNum').value = profile.cell_num || '';
+                document.getElementById('zipcode').value = profile.zipcode || '';
                 document.getElementById('address').value = profile.address || '';
+                document.getElementById('addressDetail').value = profile.address_detail || '';
+                document.getElementById('companyIntro').value = profile.company_intro || '';
                 
                 // 필수 체크
                 document.getElementById('companyName').required = true;
+                document.getElementById('zipcode').required = true;
+                document.getElementById('address').required = true;
             } else if (profile.role === 'admin') {
                 document.getElementById('pageTitle').textContent = '관리자 정보 수정';
             } else {
@@ -288,7 +338,13 @@
             updateData.company_name = document.getElementById('companyName').value;
             updateData.company_reg_no = document.getElementById('companyRegNo').value;
             updateData.ceo_name = document.getElementById('ceoName').value;
+            updateData.biz_reg_no = document.getElementById('bizRegNo').value;
+            updateData.tel_num = document.getElementById('telNum').value;
+            updateData.cell_num = document.getElementById('cellNum').value;
+            updateData.zipcode = document.getElementById('zipcode').value;
             updateData.address = document.getElementById('address').value;
+            updateData.address_detail = document.getElementById('addressDetail').value;
+            updateData.company_intro = document.getElementById('companyIntro').value;
         }
 
         try {
