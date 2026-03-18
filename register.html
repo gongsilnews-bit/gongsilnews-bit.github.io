@@ -226,10 +226,7 @@
             <div class="row">
                 <div class="col form-group">
                     <label class="form-label">시/도 <span>*</span></label>
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">시/도 <span>*</span></label>
-                    <input type="text" class="form-control" id="sido" list="sidoList" placeholder="선택 또는 입력" required onchange="updateSigunguList()">
+                    <input type="text" class="form-control" id="sido" list="sidoList" placeholder="선택 또는 입력" required onchange="updateSigunguList(); updateFullAddress()" onfocus="this.value=''" onmousedown="this.value=''">
                     <datalist id="sidoList">
                         <option value="서울특별시">서울특별시</option>
                         <option value="부산광역시">부산광역시</option>
@@ -252,7 +249,7 @@
                 </div>
                 <div class="col form-group">
                     <label class="form-label">시/군/구 <span>*</span></label>
-                    <input type="text" class="form-control" id="sigungu" list="sigunguList" placeholder="선택 또는 입력" required>
+                    <input type="text" class="form-control" id="sigungu" list="sigunguList" placeholder="선택 또는 입력" required onchange="updateFullAddress()" onfocus="updateSigunguList()" onmousedown="updateSigunguList()">
                     <datalist id="sigunguList">
                         <!-- JS로 채워짐 -->
                     </datalist>
@@ -262,23 +259,28 @@
             <div class="row">
                 <div class="col form-group">
                     <label class="form-label">읍/면/동 <span>*</span></label>
-                    <input type="text" class="form-control" id="dong" placeholder="예: 역삼동" required>
+                    <input type="text" class="form-control" id="dong" placeholder="예: 역삼동" required oninput="updateFullAddress()">
                 </div>
                 <div class="col form-group">
                     <label class="form-label">나머지 주소</label>
-                    <input type="text" class="form-control" id="detailAddress" placeholder="예: 테헤란로 123">
+                    <input type="text" class="form-control" id="detailAddress" placeholder="예: 테헤란로 123" oninput="updateFullAddress()">
                 </div>
             </div>
 
             <div class="row">
                 <div class="col form-group">
                     <label class="form-label">건물명</label>
-                    <input type="text" class="form-control" id="buildingName" placeholder="예: 행복빌라">
+                    <input type="text" class="form-control" id="buildingName" placeholder="예: 행복빌라" oninput="updateFullAddress()">
                 </div>
                 <div class="col form-group">
                     <label class="form-label">호수 (비공개)</label>
-                    <input type="text" class="form-control" id="roomNumber" placeholder="예: 101호">
+                    <input type="text" class="form-control" id="roomNumber" placeholder="예: 101호" oninput="updateFullAddress()">
                 </div>
+            </div>
+
+            <!-- 실시간 전체 주소 표시 -->
+            <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 13px; color: #3b82f6; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                <strong>확인 주소:</strong> <span id="fullAddressText">주소를 입력해주세요.</span>
             </div>
 
             <div class="form-group">
@@ -554,8 +556,26 @@
                     
                     document.getElementById('detailAddress').value = fullAddr;
                     document.getElementById('detailAddress').focus();
+                    
+                    updateFullAddress(); // 전체 주소 갱신
                 }
             }).open();
+        }
+
+        // 전체 주소 합치기 및 표시
+        window.updateFullAddress = function() {
+            const sido = document.getElementById('sido').value;
+            const sigungu = document.getElementById('sigungu').value;
+            const dong = document.getElementById('dong').value;
+            const detail = document.getElementById('detailAddress').value;
+            const building = document.getElementById('buildingName').value;
+            const room = document.getElementById('roomNumber').value;
+            
+            let addrStr = `${sido} ${sigungu} ${dong} ${detail}`.trim();
+            if (building) addrStr += ` (${building})`;
+            if (room) addrStr += ` ${room}`;
+            
+            document.getElementById('fullAddressText').innerText = addrStr || "주소를 입력해주세요.";
         }
 
         // 페이지 로드 시 상태 초기화
