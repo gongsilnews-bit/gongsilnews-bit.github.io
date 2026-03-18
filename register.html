@@ -398,11 +398,20 @@
 
             <div class="row">
                 <div class="col form-group">
-                    <label class="form-label">건물명</label>
+                    <label id="buildingLabel" class="form-label">건물명</label>
                     <input type="text" class="form-control" id="buildingName" placeholder="예: 행복빌라" oninput="updateFullAddress()">
                 </div>
+                <div class="col form-group" id="dongDiv" style="display: none;">
+                    <label class="form-label">동</label>
+                    <input type="text" class="form-control" id="dongNumber" placeholder="예: 101동" oninput="updateFullAddress()">
+                </div>
                 <div class="col form-group">
-                    <label class="form-label">호수 (비공개)</label>
+                    <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+                        호수 
+                        <span style="font-weight: normal; font-size: 11px; color: #666; display: flex; align-items: center; gap: 3px;">
+                            <input type="checkbox" id="isRoomPrivate" style="width: auto;" onchange="updateFullAddress()"> 비공개
+                        </span>
+                    </label>
                     <input type="text" class="form-control" id="roomNumber" placeholder="예: 101호" oninput="updateFullAddress()">
                 </div>
             </div>
@@ -500,7 +509,9 @@
                 dong: document.getElementById('dong').value,
                 detail_address: document.getElementById('detailAddress').value,
                 building_name: document.getElementById('buildingName').value,
+                dong: document.getElementById('dongNumber').value, // 동 정보 추가
                 room_number: document.getElementById('roomNumber').value,
+                is_room_private: document.getElementById('isRoomPrivate').checked, // 호수 비공개 여부
                 description: document.getElementById('description').value,
                 author_name: document.getElementById('authorName').value,
                 author_phone: document.getElementById('authorPhone').value,
@@ -625,13 +636,22 @@
             const propertyType = document.getElementById('propertyType').value;
             const residentialFields = document.getElementById('residentialFields');
             const commercialFields = document.getElementById('commercialFields');
+            const buildingLabel = document.getElementById('buildingLabel');
+            const dongDiv = document.getElementById('dongDiv');
             
             // 초기화
             residentialFields.style.display = 'none';
             commercialFields.style.display = 'none';
+            dongDiv.style.display = 'none';
+            buildingLabel.innerText = "건물명";
             
             if (['아파트', '오피스텔', '원룸', '빌라/주택'].includes(propertyType)) {
                 residentialFields.style.display = 'block';
+                // 아파트, 오피스텔인 경우 '단지명'으로 라벨 변경 및 '동' 필드 노출
+                if (['아파트', '오피스텔'].includes(propertyType)) {
+                    buildingLabel.innerText = "단지명";
+                    dongDiv.style.display = 'block';
+                }
             } else if (['사무실/상가', '빌딩/건물'].includes(propertyType)) {
                 commercialFields.style.display = 'block';
             }
@@ -821,11 +841,20 @@
             const dong = document.getElementById('dong').value;
             const detail = document.getElementById('detailAddress').value;
             const building = document.getElementById('buildingName').value;
+            const dongNum = document.getElementById('dongNumber').value;
             const room = document.getElementById('roomNumber').value;
+            const isPrivate = document.getElementById('isRoomPrivate').checked;
             
             let addrStr = `${sido} ${sigungu} ${dong} ${detail}`.trim();
-            if (building) addrStr += ` (${building})`;
-            if (room) addrStr += ` ${room}`;
+            if (building) {
+                const label = document.getElementById('buildingLabel').innerText;
+                addrStr += ` (${building})`;
+            }
+            if (dongNum) addrStr += ` ${dongNum}`;
+            if (room) {
+                addrStr += ` ${room}`;
+                if (isPrivate) addrStr += ` (비공개)`;
+            }
             
             document.getElementById('fullAddressText').innerText = addrStr || "주소를 입력해주세요.";
         }
