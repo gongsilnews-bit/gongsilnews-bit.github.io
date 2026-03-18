@@ -161,6 +161,18 @@
 
             <div class="row">
                 <div class="col form-group">
+                    <label class="form-label">관리비 <span id="mFeeKorean" class="korean-amount"></span></label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="maintenanceFee" placeholder="예: 10" oninput="updateKoreanAmount('maintenanceFee', 'mFeeKorean')">
+                        <span class="input-unit">만원</span>
+                    </div>
+                </div>
+                <div class="col form-group">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col form-group">
                     <label class="form-label">방 개수</label>
                     <select class="form-control" id="roomCount">
                         <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4개 이상</option>
@@ -171,18 +183,6 @@
                     <select class="form-control" id="bathroomCount">
                         <option value="1">1</option><option value="2">2</option><option value="3+">3개 이상</option>
                     </select>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">관리비 <span id="mFeeKorean" class="korean-amount"></span></label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="maintenanceFee" placeholder="예: 10" oninput="updateKoreanAmount('maintenanceFee', 'mFeeKorean')">
-                        <span class="input-unit">만원</span>
-                    </div>
-                </div>
-                <div class="col form-group">
                 </div>
             </div>
 
@@ -410,7 +410,7 @@
             updateKoreanAmount('monthlyRent', 'rentKorean');
         }
 
-        // 금액 한글 변환 함수
+        // 금액 한글 변환 함수 (4억 5천 스타일)
         window.updateKoreanAmount = function(inputId, displayId) {
             const input = document.getElementById(inputId);
             const display = document.getElementById(displayId);
@@ -423,12 +423,18 @@
             }
 
             const eok = Math.floor(val / 10000);
-            const man = val % 10000;
+            const remain = val % 10000;
             
             let result = "";
             if (eok > 0) result += eok + "억 ";
-            if (man > 0) result += man.toLocaleString() + "만";
-            if (result) result += "원";
+            
+            if (remain > 0) {
+                if (remain % 1000 === 0) {
+                    result += (remain / 1000) + "천";
+                } else {
+                    result += remain.toLocaleString();
+                }
+            }
             
             display.innerText = result;
         }
