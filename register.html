@@ -149,6 +149,59 @@
             border-color: #343a40;
         }
 
+        /* 옵션 선택 버튼 스타일 */
+        .option-group {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8faff;
+            border-radius: 8px;
+            border: 1px solid #e1e7f0;
+        }
+        .option-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .option-btns {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+        }
+        .option-btn {
+            padding: 10px 6px;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .option-btn:hover {
+            border-color: #3b82f6;
+            background: #f1f7ff;
+        }
+        .option-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3);
+        }
+        .option-btn .icon {
+            font-size: 18px;
+        }
+
     </style>
     <!-- 카카오 우편번호 서비스 SDK -->
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -302,6 +355,15 @@
                 </div>
             </div>
 
+            <!-- 옵션 선택 섹션 -->
+            <div id="optionSection" class="form-group option-group" style="display: none;">
+                <div class="option-title">✨ 선택 옵션 (물건별 추천)</div>
+                <div id="optionContainer" class="option-btns">
+                    <!-- JS에서 동적 생성 -->
+                </div>
+                <input type="hidden" id="selectedOptions" value="">
+            </div>
+
             <hr style="border:0; border-top:1px dashed #ddd; margin: 30px 0;">
 
             <!-- 섹션 2: 위치/주소 -->
@@ -432,6 +494,7 @@
                 bathroom_count: document.getElementById('bathroomCount').value,
                 supply_area: parseFloat(document.getElementById('supplyArea').value) || 0,
                 area: parseFloat(document.getElementById('dedicatedArea').value) || 0, // ID 변경 반영
+                options: document.getElementById('selectedOptions').value, // 추가된 옵션 정보
                 sido: document.getElementById('sido').value,
                 sigungu: document.getElementById('sigungu').value,
                 dong: document.getElementById('dong').value,
@@ -573,6 +636,90 @@
                 commercialFields.style.display = 'block';
             }
             // 토지/공장/기타 등은 어느 필드도 표시하지 않음
+
+            // 옵션 영역 렌더링 호출
+            renderOptions();
+        }
+
+        // --- 추가: 옵션 렌더링 로직 ---
+        const OPTION_DATA = {
+            '아파트': [
+                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' }, 
+                { name: '신발장', icon: '👟' }, { name: '붙박이장', icon: '🚪' }, { name: '싱크대', icon: '🚰' }, 
+                { name: '비데', icon: '🚽' }, { name: '엘리베이터', icon: '🛗' }, { name: '보안시스템', icon: '🛡️' }
+            ],
+            '오피스텔': [
+                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
+                { name: '전자레인지', icon: '🍲' }, { name: '인덕션', icon: '⚡' }, { name: '책상', icon: '💻' },
+                { name: '침대', icon: '🛏️' }, { name: '옷장', icon: '👔' }, { name: 'TV', icon: '📺' },
+                { name: '엘리베이터', icon: '🛗' }, { name: '무인택배함', icon: '📦' }
+            ],
+            '원룸': [
+                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
+                { name: '전자레인지', icon: '🍲' }, { name: '인덕션', icon: '⚡' }, { name: '책상', icon: '💻' },
+                { name: '침대', icon: '🛏️' }, { name: '옷장', icon: '👔' }, { name: 'TV', icon: '📺' },
+                { name: '전자도어락', icon: '🔢' }
+            ],
+            '빌라/주택': [
+                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
+                { name: '가스레인지', icon: '🔥' }, { name: '붙박이장', icon: '🚪' }, { name: '신발장', icon: '👟' },
+                { name: '주차가능', icon: '🚗' }, { name: 'CCTV', icon: '📹' }
+            ],
+            '사무실/상가': [
+                { name: '엘리베이터', icon: '🛗' }, { name: '개별냉난방', icon: '🌡️' }, { name: '중앙냉난방', icon: '❄️' },
+                { name: '내부화장실', icon: '🚻' }, { name: '주차가능', icon: '🚗' }, { name: '창고공간', icon: '📦' },
+                { name: '탕비실', icon: '🍵' }, { name: '전면통유리', icon: '🪟' }
+            ],
+            '빌딩/건물': [
+                { name: '엘리베이터', icon: '🛗' }, { name: '주차공간', icon: '🅿️' }, { name: '화물승강기', icon: '🏗️' },
+                { name: '옥상정원', icon: '🌿' }, { name: '보안시스템', icon: '🛡️' }, { name: '주차타워', icon: '🏢' }
+            ],
+            '토지/공장/기타': [
+                { name: '층고높음', icon: '⬆️' }, { name: '마당있음', icon: '🏡' }, { name: '대형차진입', icon: '🚛' },
+                { name: '호이스트', icon: '🏗️' }, { name: '사무공간있음', icon: '🖥️' }, { name: '크레인설비', icon: '⚙️' }
+            ]
+        };
+
+        let selectedOptionsSet = new Set();
+
+        window.renderOptions = function() {
+            const propertyType = document.getElementById('propertyType').value;
+            const section = document.getElementById('optionSection');
+            const container = document.getElementById('optionContainer');
+            
+            if (!propertyType || !OPTION_DATA[propertyType]) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            container.innerHTML = '';
+            selectedOptionsSet.clear();
+            updateSelectedOptionsInput();
+
+            OPTION_DATA[propertyType].forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'option-btn';
+                btn.innerHTML = `<span class="icon">${opt.icon}</span><span>${opt.name}</span>`;
+                btn.onclick = () => toggleOption(opt.name, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        window.toggleOption = function(name, btn) {
+            if (selectedOptionsSet.has(name)) {
+                selectedOptionsSet.delete(name);
+                btn.classList.remove('active');
+            } else {
+                selectedOptionsSet.add(name);
+                btn.classList.add('active');
+            }
+            updateSelectedOptionsInput();
+        }
+
+        window.updateSelectedOptionsInput = function() {
+            document.getElementById('selectedOptions').value = Array.from(selectedOptionsSet).join(',');
         }
 
         // 금액 한글 변환 함수 (4억 5천 스타일)
