@@ -122,28 +122,19 @@
                 </select>
             </div>
 
+            <!-- 가격 정보 (거래 유형에 따라 레이블 동적 변경) -->
             <div class="row" id="priceRow" style="display: none;">
                 <div class="col form-group" id="depositGroup">
                     <label class="form-label" id="depositLabel">보증금 / 매매가 <span>*</span></label>
                     <div class="input-group">
-                        <input type="number" class="form-control" id="deposit" placeholder="예: 1000" required>
+                        <input type="number" class="form-control" id="deposit" placeholder="숫자만 입력" required>
                         <span class="input-unit">만원</span>
                     </div>
                 </div>
                 <div class="col form-group" id="rentGroup">
-                    <label class="form-label" id="rentLabel">월세 <span>*</span></label>
+                    <label class="form-label" id="rentLabel">차임(월세) <span>*</span></label>
                     <div class="input-group">
-                        <input type="number" class="form-control" id="monthlyRent" placeholder="예: 50" required>
-                        <span class="input-unit">만원</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">관리비</label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="maintenanceFee" placeholder="예: 10">
+                        <input type="number" class="form-control" id="monthlyRent" placeholder="숫자만 입력">
                         <span class="input-unit">만원</span>
                     </div>
                 </div>
@@ -161,6 +152,18 @@
                     <select class="form-control" id="bathroomCount">
                         <option value="1">1</option><option value="2">2</option><option value="3+">3개 이상</option>
                     </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col form-group">
+                    <label class="form-label">관리비</label>
+                    <div class="input-group">
+                        <input type="number" class="form-control" id="maintenanceFee" placeholder="예: 10">
+                        <span class="input-unit">만원</span>
+                    </div>
+                </div>
+                <div class="col form-group">
                 </div>
             </div>
 
@@ -353,6 +356,7 @@
             const tradeType = document.getElementById('tradeType').value;
             const priceRow = document.getElementById('priceRow');
             const depositLabel = document.getElementById('depositLabel');
+            const rentLabel = document.getElementById('rentLabel');
             const rentGroup = document.getElementById('rentGroup');
             const rentInput = document.getElementById('monthlyRent');
             
@@ -371,9 +375,15 @@
                 depositLabel.innerHTML = '보증금 <span>*</span>';
                 rentGroup.style.display = 'none';
                 rentInput.removeAttribute('required');
-            } else if (tradeType === '월세' || tradeType === '단기') {
+            } else if (tradeType === '월세') {
                 depositLabel.innerHTML = '보증금 <span>*</span>';
-                rentGroup.style.display = '';
+                rentLabel.innerHTML = '차임(월세) <span>*</span>';
+                rentGroup.style.display = 'block';
+                rentInput.setAttribute('required', 'required');
+            } else if (tradeType === '단기') {
+                depositLabel.innerHTML = '예치금 <span>*</span>';
+                rentLabel.innerHTML = '차임(월세) <span>*</span>';
+                rentGroup.style.display = 'block';
                 rentInput.setAttribute('required', 'required');
             }
         }
