@@ -236,12 +236,12 @@
 
             <div class="row">
                 <div class="col form-group">
-                    <label class="form-label">읍/면/동 <span>*</span></label>
-                    <input type="text" class="form-control" id="dong" placeholder="예: 역삼동" required oninput="updateFullAddress()">
+                    <label class="form-label">읍/면/동/리 <span>*</span></label>
+                    <input type="text" class="form-control" id="dong" placeholder="예: 양평읍 창대리" required oninput="updateFullAddress()">
                 </div>
                 <div class="col form-group">
-                    <label class="form-label">나머지 주소</label>
-                    <input type="text" class="form-control" id="detailAddress" placeholder="예: 테헤란로 123" oninput="updateFullAddress()">
+                    <label class="form-label">나머지 주소 (도로명 + 번호)</label>
+                    <input type="text" class="form-control" id="detailAddress" placeholder="예: 남북로 53" oninput="updateFullAddress()">
                 </div>
             </div>
 
@@ -480,18 +480,28 @@
                 oncomplete: function(data) {
                     const sido = data.sido;
                     const sigungu = data.sigungu;
-                    const bname = data.bname;
+                    // 읍/면(bname1)과 동/리(bname) 결합
+                    let dongRi = (data.bname1 || '') + ' ' + (data.bname || '');
+                    dongRi = dongRi.trim();
+                    
                     const buildingName = data.buildingName;
 
                     document.getElementById('sido').value = sido;
                     document.getElementById('sigungu').value = sigungu;
-                    document.getElementById('dong').value = bname;
+                    document.getElementById('dong').value = dongRi;
                     document.getElementById('buildingName').value = buildingName;
                     
-                    // 상세 주소: 전체 주소에서 시/도, 시/군/구 제거하여 중복 방지
-                    let addr = data.address;
-                    // 앞부분의 시도, 시군구 제거 (공백 포함)
-                    let detailPart = addr.replace(sido, '').replace(sigungu, '').trim();
+                    // 상세 주소: 시/도, 시/군/구, 읍/면/동/리 성분을 순차적으로 제거하여 '남북로 53' 같은 알맹이만 남김
+                    let fullAddr = data.roadAddress || data.address;
+                    let detailPart = fullAddr;
+                    
+                    const removeParts = [sido, sigungu, data.bname1, data.bname];
+                    removeParts.forEach(part => {
+                        if (part && detailPart.includes(part)) {
+                            // 앞쪽에서 발견될 경우 제거
+                            detailPart = detailPart.replace(part, '').trim();
+                        }
+                    });
                     
                     document.getElementById('detailAddress').value = detailPart;
                     document.getElementById('detailAddress').focus();
