@@ -94,6 +94,34 @@
             margin-left: 8px;
         }
 
+        /* 거래 유형 버튼 스타일 */
+        .trade-btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .trade-btn {
+            flex: 1;
+            padding: 12px;
+            background: #fff;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .trade-btn:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        .trade-btn.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+
     </style>
     <!-- 카카오 우편번호 서비스 SDK -->
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -134,13 +162,13 @@
 
             <div class="form-group">
                 <label class="form-label">거래유형 <span>*</span></label>
-                <select class="form-control" id="tradeType" required onchange="updatePriceFields()">
-                    <option value="" disabled selected>선택해주세요</option>
-                    <option value="매매">매매</option>
-                    <option value="전세">전세</option>
-                    <option value="월세">월세</option>
-                    <option value="단기">단기</option>
-                </select>
+                <input type="hidden" id="tradeType" required>
+                <div class="trade-btn-group">
+                    <button type="button" class="trade-btn" onclick="selectTradeType('매매', this)">매매</button>
+                    <button type="button" class="trade-btn" onclick="selectTradeType('전세', this)">전세</button>
+                    <button type="button" class="trade-btn" onclick="selectTradeType('월세', this)">월세</button>
+                    <button type="button" class="trade-btn" onclick="selectTradeType('단기', this)">단기</button>
+                </div>
             </div>
 
             <!-- 가격 정보 (거래 유형에 따라 레이블 동적 변경) -->
@@ -440,6 +468,22 @@
             // 레이블 변경 후 금액 초기화 표시
             updateKoreanAmount('deposit', 'depositKorean');
             updateKoreanAmount('monthlyRent', 'rentKorean');
+        }
+
+        // 거래 유형 버튼 선택 처리
+        window.selectTradeType = function(type, btn) {
+            // hidden input 값 업데이트
+            document.getElementById('tradeType').value = type;
+            
+            // 버튼들 스타일 초기화
+            const btns = document.querySelectorAll('.trade-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            
+            // 현재 클릭된 버튼 활성화
+            btn.classList.add('active');
+            
+            // 가격 필드 업데이트 호출
+            updatePriceFields();
         }
 
         // 매물 종류에 따른 동적 필드 표시
