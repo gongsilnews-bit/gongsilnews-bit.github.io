@@ -116,26 +116,53 @@
             cursor: pointer;
         }
 
-        /* ---------------- 공실 상세 뷰 스타일 ---------------- */
+        /* ---------------- 공실 상세 뷰 스타일 (네이버 부동산 스타일) ---------------- */
         .property-detail-view {
-            flex: 1;
+            width: 400px;
             background: #fff;
             display: none; /* 기본 숨김 */
             flex-direction: column;
             position: relative;
-            overflow: hidden;
+            border-right: 1px solid #eee;
+            z-index: 25;
+            box-shadow: 5px 0 15px rgba(0,0,0,0.05);
         }
         .detail-scroll-area {
             flex: 1;
             overflow-y: auto;
-            padding-bottom: 70px; /* 고정 하단바 공간 확보 */
         }
+        /* 우측 상단 닫기 버튼 */
+        .detail-close-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 30px;
+            height: 30px;
+            background: rgba(255,255,255,0.8);
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        .detail-close-btn:hover {
+            background: #fff;
+            border-color: #999;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
         /* 상단 사진 갤러리 */
         .detail-gallery {
             position: relative;
             width: 100%;
-            height: 220px;
-            background: #ccc;
+            height: 250px;
+            background: #f0f0f0;
         }
         .detail-gallery img {
             width: 100%;
@@ -144,24 +171,15 @@
         }
         .gallery-nav {
             position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(0,0,0,0.3); color: white; border: none; font-size: 20px;
-            padding: 8px 5px; cursor: pointer;
+            background: rgba(0,0,0,0.2); color: white; border: none; font-size: 18px;
+            padding: 10px 6px; cursor: pointer; border-radius: 0 4px 4px 0;
         }
-        .gallery-nav.prev { left: 0; }
-        .gallery-nav.next { right: 0; }
+        .gallery-nav.next { right: 0; border-radius: 4px 0 0 4px; }
         .gallery-page {
-            position: absolute; bottom: 10px; right: 10px;
-            background: rgba(0,0,0,0.6); color: white; font-size: 11px;
-            padding: 3px 10px; border-radius: 12px;
+            position: absolute; bottom: 15px; right: 15px;
+            background: rgba(0,0,0,0.5); color: white; font-size: 11px;
+            padding: 3px 12px; border-radius: 20px;
         }
-        .detail-back-btn {
-            position: absolute; top: 10px; left: 10px;
-            background: rgba(0,0,0,0.5); color: white; border: none;
-            width: 32px; height: 32px; border-radius: 50%; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 18px;
-            z-index: 10;
-        }
-        .detail-back-btn:hover { background: rgba(0,0,0,0.8); }
 
         /* 매물 텍스트 정보 */
         .detail-info { padding: 20px; }
@@ -328,61 +346,64 @@
                 </div>
             </div>
 
-            <!-- --- (새로 추가됨) 상세 뷰 (클릭 시 펼쳐짐) --- -->
-            <div class="property-detail-view" id="propertyDetailView">
-                <div class="detail-scroll-area">
-                    <!-- 상단 사진 -->
-                    <div class="detail-gallery">
-                        <button class="detail-back-btn" onclick="hidePropertyDetail()">〈</button>
-                        <img src="https://via.placeholder.com/600x400/DDDDDD/666666?text=Building+Indoor" alt="상세사진">
-                        <button class="gallery-nav prev">〈</button>
-                        <button class="gallery-nav next">〉</button>
-                        <div class="gallery-page">1/10</div>
-                    </div>
+        </aside>
 
-                    <!-- 텍스트 정보 -->
-                    <div class="detail-info">
-                        <div class="detail-meta-top">
-                            <span>등록번호 48240955</span>
-                            <span>9일 전</span>
-                        </div>
-                        <h2 class="detail-price-title">월세 1,000/75</h2>
-                        <div class="detail-loc-text">서울시 강남구 논현동 · 관리비 11만원</div>
-                        <div class="detail-error-report">⚠️ 오류 제보하기</div>
-
-                        <div class="detail-desc-box">
-                            올리모델링 분리형원룸 가성비최고
-                        </div>
-
-                        <!-- 매물 스펙(아이콘 목록) -->
-                        <div class="feature-item" style="margin-top:10px;">
-                            <div class="feature-icon">📐</div>
-                            전용 26.45m²
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">🚪</div>
-                            분리형원룸 (욕실 1개)
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">🅿️</div>
-                            주차 가능
-                        </div>
-                        <div class="feature-item">
-                            <div class="feature-icon">🏢</div>
-                            2층 / 3층
-                        </div>
-                    </div>
+        <!-- --- (수정) 상세 뷰 (리스트 옆으로 이동) --- -->
+        <div class="property-detail-view" id="propertyDetailView">
+            <button class="detail-close-btn" onclick="hidePropertyDetail()">&times;</button>
+            
+            <div class="detail-scroll-area">
+                <!-- 상단 사진 -->
+                <div class="detail-gallery">
+                    <img src="https://via.placeholder.com/600x400/DDDDDD/666666?text=Building+Indoor" alt="상세사진">
+                    <button class="gallery-nav prev">〈</button>
+                    <button class="gallery-nav next">〉</button>
+                    <div class="gallery-page">1/10</div>
                 </div>
 
-                <!-- 고정 하단바 -->
-                <div class="detail-bottom-bar">
-                    <div class="bottom-price">월세 1,000/75</div>
-                    <button class="btn-inquiry">문의하기</button>
+                <!-- 텍스트 정보 -->
+                <div class="detail-info">
+                    <div class="detail-meta-top">
+                        <span>등록번호 48240955</span>
+                        <span>9일 전</span>
+                    </div>
+                    <h2 class="detail-price-title">월세 1,000/75</h2>
+                    <div class="detail-loc-text">서울시 강남구 논현동 · 관리비 11만원</div>
+                    <div class="detail-error-report">⚠️ 오류 제보하기</div>
+
+                    <div class="detail-desc-box">
+                        올리모델링 분리형원룸 가성비최고
+                    </div>
+
+                    <!-- 매물 스펙(아이콘 목록) -->
+                    <div class="feature-item" style="margin-top:10px;">
+                        <div class="feature-icon">📐</div>
+                        전용 26.45m²
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🚪</div>
+                        분리형원룸 (욕실 1개)
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🅿️</div>
+                        주차 가능
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🏢</div>
+                        2층 / 3층
+                    </div>
+                    
+                    <div style="height: 100px;"></div> <!-- 스크롤 여백 -->
                 </div>
             </div>
-            <!-- --- 상세 뷰 끝 --- -->
 
-        </aside>
+            <!-- 고정 하단바 -->
+            <div class="detail-bottom-bar">
+                <div class="bottom-price">월세 1,000/75</div>
+                <button class="btn-inquiry">문의하기</button>
+            </div>
+        </div>
+        <!-- --- 상세 뷰 끝 --- -->
 
         <!-- 우측 지도 영역 -->
         <div class="map-wrapper">
@@ -414,17 +435,13 @@
     <!-- UI 토글 로직 추가 -->
     <script>
         function showPropertyDetail() {
-            // 목록 영역과 상단 지역 갯수 헤더를 숨기고 상세화면을 켭니다.
-            document.getElementById('listCountHeader').style.display = 'none';
-            document.getElementById('propertyListArea').style.display = 'none';
+            // 상세화면을 옆에 켭니다. (리스트는 유지)
             document.getElementById('propertyDetailView').style.display = 'flex';
         }
 
         function hidePropertyDetail() {
-            // 상세화면을 끄고 뒤로 돌아옵니다.
+            // 상세화면만 숨깁니다.
             document.getElementById('propertyDetailView').style.display = 'none';
-            document.getElementById('listCountHeader').style.display = 'flex';
-            document.getElementById('propertyListArea').style.display = 'block';
         }
     </script>
 </body>
