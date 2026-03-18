@@ -120,7 +120,7 @@
 
             <div class="form-group">
                 <label class="form-label">매물종류 <span>*</span></label>
-                <select class="form-control" id="propertyType" required>
+                <select class="form-control" id="propertyType" required onchange="updatePropertyFields()">
                     <option value="" disabled selected>선택해주세요</option>
                     <option value="아파트">아파트</option>
                     <option value="오피스텔">오피스텔</option>
@@ -173,18 +173,41 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col form-group">
-                    <label class="form-label">방 개수</label>
-                    <select class="form-control" id="roomCount">
-                        <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4개 이상</option>
-                    </select>
+            <!-- 주거용 전용: 방/욕실 수 (ID 추가) -->
+            <div id="residentialFields">
+                <div class="row">
+                    <div class="col form-group">
+                        <label class="form-label">방 개수</label>
+                        <select class="form-control" id="roomCount">
+                            <option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4+">4개 이상</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <label class="form-label">욕실 개수</label>
+                        <select class="form-control" id="bathroomCount">
+                            <option value="1">1</option><option value="2">2</option><option value="3+">3개 이상</option>
+                        </select>
+                    </div>
                 </div>
-                <div class="col form-group">
-                    <label class="form-label">욕실 개수</label>
-                    <select class="form-control" id="bathroomCount">
-                        <option value="1">1</option><option value="2">2</option><option value="3+">3개 이상</option>
-                    </select>
+            </div>
+
+            <!-- 상업용/업무용 전용: 층수 정보 (기본 숨김) -->
+            <div id="commercialFields" style="display: none;">
+                <div class="row">
+                    <div class="col form-group">
+                        <label class="form-label">해당층</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="currentFloor" placeholder="예: 3">
+                            <span class="input-unit">층</span>
+                        </div>
+                    </div>
+                    <div class="col form-group">
+                        <label class="form-label">전체층</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="totalFloor" placeholder="예: 5">
+                            <span class="input-unit">층</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -419,6 +442,24 @@
             updateKoreanAmount('monthlyRent', 'rentKorean');
         }
 
+        // 매물 종류에 따른 동적 필드 표시
+        window.updatePropertyFields = function() {
+            const propertyType = document.getElementById('propertyType').value;
+            const residentialFields = document.getElementById('residentialFields');
+            const commercialFields = document.getElementById('commercialFields');
+            
+            // 초기화
+            residentialFields.style.display = 'none';
+            commercialFields.style.display = 'none';
+            
+            if (['아파트', '오피스텔', '원룸', '빌라/주택'].includes(propertyType)) {
+                residentialFields.style.display = 'block';
+            } else if (['사무실/상가', '빌딩/건물'].includes(propertyType)) {
+                commercialFields.style.display = 'block';
+            }
+            // 토지/공장/기타 등은 어느 필드도 표시하지 않음
+        }
+
         // 금액 한글 변환 함수 (4억 5천 스타일)
         window.updateKoreanAmount = function(inputId, displayId) {
             const input = document.getElementById(inputId);
@@ -530,6 +571,7 @@
         // 페이지 로드 시 상태 초기화
         window.addEventListener('DOMContentLoaded', () => {
             window.updatePriceFields();
+            window.updatePropertyFields(); // 추가
             loadUserProfile();
         });
 
