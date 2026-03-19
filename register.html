@@ -448,6 +448,41 @@
             <!-- 섹션 3: 의뢰인 정보 -->
             <h2 class="section-title">의뢰인 정보</h2>
 
+            <!-- 부동산 회원 전용 섹션 -->
+            <div id="realtorSection" style="display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                <h3 style="font-size: 16px; margin-top: 0; margin-bottom: 15px;">🏘️ 부동산 / 기업 정보</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">상호명</label>
+                        <input type="text" class="form-control" id="companyName" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">중개등록번호</label>
+                        <input type="text" class="form-control" id="companyRegNo" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">대표자명</label>
+                        <input type="text" class="form-control" id="ceoName" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">사업자등록번호</label>
+                        <input type="text" class="form-control" id="bizRegNo" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">일반번호</label>
+                        <input type="text" class="form-control" id="telNum" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">휴대번호</label>
+                        <input type="text" class="form-control" id="cellNum" readonly style="background: #eee;">
+                    </div>
+                    <div class="form-group" style="grid-column: span 2; margin-bottom: 0;">
+                        <label class="form-label" style="font-size: 12px; color: #666;">부동산 주소</label>
+                        <input type="text" class="form-control" id="companyAddress" readonly style="background: #eee;">
+                    </div>
+                </div>
+            </div>
+
             <div class="form-group">
                 <label class="form-label">의뢰인명 <span>*</span></label>
                 <input type="text" class="form-control" id="authorName" required>
@@ -929,7 +964,7 @@
 
             const { data: profile, error } = await supabase
                 .from('members')
-                .select('name, phone')
+                .select('*')
                 .eq('id', session.user.id)
                 .maybeSingle();
 
@@ -939,8 +974,26 @@
             }
 
             if (profile) {
+                // 기본 의뢰인 정보 채우기
                 if (profile.name) document.getElementById('authorName').value = profile.name;
                 if (profile.phone) document.getElementById('authorPhone').value = profile.phone;
+
+                // 부동산 회원인 경우 추가 정보 노출
+                if (profile.role === 'realtor') {
+                    document.getElementById('realtorSection').style.display = 'block';
+                    document.getElementById('companyName').value = profile.company_name || '';
+                    document.getElementById('companyRegNo').value = profile.company_reg_no || '';
+                    document.getElementById('ceoName').value = profile.ceo_name || '';
+                    document.getElementById('bizRegNo').value = profile.biz_reg_no || '';
+                    document.getElementById('telNum').value = profile.tel_num || '';
+                    document.getElementById('cellNum').value = profile.cell_num || '';
+                    
+                    const fullAddr = `${profile.address || ''} ${profile.address_detail || ''}`.trim();
+                    document.getElementById('companyAddress').value = fullAddr;
+
+                    // 관계를 '공인중개사'로 자동 설정
+                    document.getElementById('ownerRelation').value = '공인중개사';
+                }
             }
         }
     </script>
