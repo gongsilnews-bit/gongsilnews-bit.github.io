@@ -328,241 +328,215 @@
                 <col style="width:72px;">   <!-- 최초등록 -->
                 <col style="width:150px;">  <!-- 등록자 -->
                 <col style="width:90px;">   <!-- 관리 -->
-            </colgroup>
-            <thead>
-                <tr>
-                    <th><input type="checkbox" id="chk-all"></th>
-                    <th>번호</th>
-                    <th>광고설정<br><span style="font-weight:400;font-size:11px;color:#888;">순위갱신일</span></th>
-                    <th>매물종류</th>
-                    <th style="text-align:left; padding-left:4px;">주소 / 임대인연락처</th>
-                    <th style="text-align:left; padding-left:4px;">금액</th>
-                    <th>방수/면적(㎡)/층</th>
-                    <th>최초등록</th>
-                    <th>등록자 / 연락처</th>
-                    <th>관리</th>
-                </tr>
-            </thead>
-            <tbody>
-
-                <!-- ═══ 행 1 : 매매 / 부동산 / 광고중 ═══ -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <!-- 번호 (배지 제거) -->
-                    <td><div class="cell-num">72189911</div></td>
-                    <!-- 광고 토글 -->
-                    <td>
-                        <button class="btn-ad-toggle state-on" onclick="toggleAd(this)">광고중</button>
-                        <div class="ad-date">03.02</div>
-                    </td>
-                    <td>아파트</td>
-                    <!-- 주소 / 임대인 -->
-                    <td class="cell-addr">
-                        <div class="addr-main">논현동 177</div>
-                        <div class="contact-row">
-                            <span class="contact-badge contact-landlord">임대인</span>
-                            <span class="contact-num">010-1234-5678</span>
-                        </div>
-                    </td>
-                    <!-- 금액: 배지 + 금액 -->
-                    <td class="cell-price">
-                        <div class="price-line">
-                            <span class="badge-deal badge-sale">매매</span>
-                            <span class="price-amount price-amount-sale">32억</span>
-                        </div>
-                    </td>
-                    <!-- 방수/면적/층 -->
-                    <td class="cell-spec">3 / 84.97(25) / 12층</td>
-                    <td class="date-text">02.23</td>
-                    <td class="cell-registrar">
-                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
-                        <div class="registrar-name">진흥부동산</div>
-                        <div class="registrar-phone">010-6890-6589</div>
-                    </td>
-                    <td>
-                        <div class="cell-actions">
-                            <button class="btn-edit">수정</button>
-                            <button class="btn-delete">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- ═══ 행 2 : 전세 / 일반인 / 광고종료 ═══ -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><div class="cell-num">72189045</div></td>
-                    <td>
-                        <button class="btn-ad-toggle state-off" onclick="toggleAd(this)">광고종료</button>
-                        <div class="ad-date">03.05</div>
-                    </td>
-                    <td>빌라/주택</td>
-                    <td class="cell-addr">
-                        <div class="addr-main">은평구 신사동 384</div>
-                        <div class="contact-row">
-                            <span class="contact-badge contact-landlord">임대인</span>
-                            <span class="contact-num">010-9876-5432</span>
-                        </div>
-                    </td>
-                    <td class="cell-price">
-                        <div class="price-line">
-                            <span class="badge-deal badge-jeonse">전세</span>
-                            <span class="price-amount price-amount-jeonse">6억 100/10</span>
-                        </div>
-                    </td>
-                    <td class="cell-spec">2 / 49.5(15) / 2층</td>
-                    <td class="date-text">03.05</td>
-                    <td class="cell-registrar">
-                        <div><span class="member-badge mbadge-general">일반인</span></div>
-                        <div class="registrar-name">김민수</div>
-                        <div class="registrar-phone">010-9876-5432</div>
-                    </td>
-                    <td>
-                        <div class="cell-actions">
-                            <button class="btn-edit">수정</button>
-                            <button class="btn-delete">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- ═══ 행 3 : 월세 / 부동산 / 광고중 ═══ -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><div class="cell-num">72188712</div></td>
-                    <td>
-                        <button class="btn-ad-toggle state-on" onclick="toggleAd(this)">광고중</button>
-                        <div class="ad-date">03.07</div>
-                    </td>
-                    <td>오피스텔</td>
-                    <td class="cell-addr">
-                        <div class="addr-main">강남구 역삼동 815</div>
-                        <div class="contact-row">
-                            <span class="contact-badge contact-landlord">임대인</span>
-                            <span class="contact-num">010-5555-3344</span>
-                        </div>
-                    </td>
-                    <td class="cell-price">
-                        <div class="price-line">
-                            <span class="badge-deal badge-monthly">월세</span>
-                            <span class="price-amount price-amount-monthly">7천/10</span>
-                        </div>
-                    </td>
-                    <td class="cell-spec">1 / 33.0(10) / 7층</td>
-                    <td class="date-text">03.07</td>
-                    <td class="cell-registrar">
-                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
-                        <div class="registrar-name">한강공인중개</div>
-                        <div class="registrar-phone">010-5555-3344</div>
-                    </td>
-                    <td>
-                        <div class="cell-actions">
-                            <button class="btn-edit">수정</button>
-                            <button class="btn-delete">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- ═══ 행 4 : 단기 / 관리자 / 광고중 ═══ -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><div class="cell-num">72187003</div></td>
-                    <td>
-                        <button class="btn-ad-toggle state-on" onclick="toggleAd(this)">광고중</button>
-                        <div class="ad-date">03.09</div>
-                    </td>
-                    <td>상가/사무실</td>
-                    <td class="cell-addr">
-                        <div class="addr-main">서초구 방배동 122-3</div>
-                        <div class="contact-row">
-                            <span class="contact-badge contact-landlord">임대인</span>
-                            <span class="contact-num">010-7700-2211</span>
-                        </div>
-                    </td>
-                    <td class="cell-price">
-                        <div class="price-line">
-                            <span class="badge-deal badge-short">단기</span>
-                            <span class="price-amount price-amount-short">300/100/10</span>
-                        </div>
-                    </td>
-                    <td class="cell-spec">- / 66.1(20) / 1층</td>
-                    <td class="date-text">03.09</td>
-                    <td class="cell-registrar">
-                        <div><span class="member-badge mbadge-admin">관리자</span></div>
-                        <div class="registrar-name">admin</div>
-                        <div class="registrar-phone">010-0000-0000</div>
-                    </td>
-                    <td>
-                        <div class="cell-actions">
-                            <button class="btn-edit">수정</button>
-                            <button class="btn-delete">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-
-                <!-- ═══ 행 5 : 매매만 / 부동산 / 광고종료 ═══ -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><div class="cell-num">72186500</div></td>
-                    <td>
-                        <button class="btn-ad-toggle state-off" onclick="toggleAd(this)">광고종료</button>
-                        <div class="ad-date">02.22</div>
-                    </td>
-                    <td>빌라/주택</td>
-                    <td class="cell-addr">
-                        <div class="addr-main">논현동 177</div>
-                        <div class="contact-row">
-                            <span class="contact-badge contact-landlord">임대인</span>
-                            <span class="contact-num">010-6890-6589</span>
-                        </div>
-                    </td>
-                    <!-- 매매 금액만 -->
-                    <td class="cell-price">
-                        <div class="price-line">
-                            <span class="badge-deal badge-sale">매매</span>
-                            <span class="price-amount price-amount-sale">32억</span>
-                        </div>
-                    </td>
-                    <td class="cell-spec">4 / 215(65) / 1층</td>
-                    <td class="date-text">02.23</td>
-                    <td class="cell-registrar">
-                        <div><span class="member-badge mbadge-realtor">부동산</span></div>
-                        <div class="registrar-name">공실뉴스공인</div>
-                        <div class="registrar-phone">010-6890-6589</div>
-                    </td>
-                    <td>
-                        <div class="cell-actions">
-                            <button class="btn-edit">수정</button>
-                            <button class="btn-delete">삭제</button>
-                        </div>
-                    </td>
-                </tr>
-
+            </colgroup            <tbody>
+                <!-- 자바스크립트에서 동적으로 렌더링됩니다. -->
             </tbody>
         </table>
     </div>
 
     <!-- ⑤ 페이지네이션 -->
-    <div class="pagination">
-        <a href="#" class="page-link active">1</a>
-        <a href="#" class="page-link">2</a>
-        <a href="#" class="page-link">3</a>
-        <a href="#" class="page-link">4</a>
-        <a href="#" class="page-link">5</a>
+    <div class="pagination" id="pagination">
+        <!-- 동적으로 페이지 생성 가능하도록 비워둠 -->
     </div>
 
 </div>
 
+<!-- Supabase SDK 및 설정 로드 -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+
 <script>
-    function toggleAd(btn) {
-        if (btn.classList.contains('state-on')) {
-            btn.classList.remove('state-on');
-            btn.classList.add('state-off');
-            btn.textContent = '광고종료';
-        } else {
-            btn.classList.remove('state-off');
-            btn.classList.add('state-on');
-            btn.textContent = '광고중';
+    const supabase = window.gongsiClient;
+    let allProperties = [];
+
+    window.addEventListener('load', async () => {
+        await loadProperties();
+    });
+
+    // 매물 데이터 로드 및 렌더링
+    async function loadProperties() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            alert("로그인이 필요합니다.");
+            parent.window.location.href = 'index.html';
+            return;
         }
+
+        const user = session.user;
+        let query = supabase.from('properties').select('*');
+
+        // 현재 페이지가 회원용 관리자인지 전체 관리자인지 구분 (간단히 처리)
+        // 만약 부모 페이지가 user_admin.html 이라면 본인 매물만 보여주는 것이 자연스러움
+        const isUserAdmin = window.parent.location.pathname.includes('user_admin.html');
+        
+        // 유저 프로필 로드 (권한 확인용)
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const userRole = ud.profile?.role || 'general';
+
+        if (isUserAdmin || (userRole !== 'admin' && userRole !== 'superadmin')) {
+            query = query.eq('user_id', user.id);
+        }
+
+        const { data, error } = await query.order('created_at', { ascending: false });
+
+        if (error) {
+            console.error('Error fetching properties:', error);
+            return;
+        }
+
+        allProperties = data;
+        renderProperties(allProperties);
+        updateCounts(allProperties);
     }
+
+    function updateCounts(props) {
+        const total = props.length;
+        const activeCount = props.filter(p => p.status === 'active' || p.status === 'pending').length;
+        document.querySelector('.ad-count').textContent = `광고 ${activeCount}건`;
+        document.querySelector('.total-count').textContent = `전체 ${total}건`;
+    }
+
+    function renderProperties(props) {
+        const tbody = document.querySelector('tbody');
+        tbody.innerHTML = '';
+
+        if (props.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" style="padding: 100px; color: #999;">등록된 매물이 없습니다.</td></tr>';
+            return;
+        }
+
+        props.forEach(p => {
+            const tr = document.createElement('tr');
+            
+            const isAdOn = (p.status === 'active' || p.status === 'pending');
+            const stateCls = isAdOn ? 'state-on' : 'state-off';
+            const stateText = isAdOn ? '광고중' : '광고종료';
+            
+            let dealBadge = '';
+            let priceText = '';
+            let priceCls = '';
+            
+            if (p.trade_type === '매매') {
+                dealBadge = '<span class="badge-deal badge-sale">매매</span>';
+                priceText = formatPrice(p.deposit);
+                priceCls = 'price-amount-sale';
+            } else if (p.trade_type === '전세') {
+                dealBadge = '<span class="badge-deal badge-jeonse">전세</span>';
+                priceText = formatPrice(p.deposit);
+                priceCls = 'price-amount-jeonse';
+            } else if (p.trade_type === '월세') {
+                dealBadge = '<span class="badge-deal badge-monthly">월세</span>';
+                priceText = `${formatPrice(p.deposit)} / ${p.monthly_rent || 0}`;
+                priceCls = 'price-amount-monthly';
+            } else if (p.trade_type === '단기') {
+                dealBadge = '<span class="badge-deal badge-short">단기</span>';
+                priceText = `${formatPrice(p.deposit)} / ${p.monthly_rent || 0}`;
+                priceCls = 'price-amount-short';
+            }
+
+            const dateObj = new Date(p.created_at);
+            const dateStr = `${(dateObj.getMonth()+1).toString().padStart(2,'0')}.${dateObj.getDate().toString().padStart(2,'0')}`;
+
+            const roleBadgeCls = p.user_role === 'realtor' ? 'mbadge-realtor' : 'mbadge-general';
+            const roleText = p.user_role === 'realtor' ? '부동산' : '일반인';
+
+            tr.innerHTML = `
+                <td><input type="checkbox" name="prop_chk" value="${p.id}"></td>
+                <td><div class="cell-num">${p.id}</div></td>
+                <td>
+                    <button class="btn-ad-toggle ${stateCls}" onclick="toggleAdStatus(${p.id}, '${p.status}')">${stateText}</button>
+                    <div class="ad-date">${dateStr}</div>
+                </td>
+                <td>${p.property_type}</td>
+                <td class="cell-addr">
+                    <div class="addr-main">${p.dong || ''} ${p.building_name || ''}</div>
+                    <div class="contact-row">
+                        <span class="contact-badge contact-landlord">임대인</span>
+                        <span class="contact-num">${p.author_phone || '-'}</span>
+                    </div>
+                </td>
+                <td class="cell-price">
+                    <div class="price-line">
+                        ${dealBadge}
+                        <span class="price-amount ${priceCls}">${priceText}</span>
+                    </div>
+                </td>
+                <td class="cell-spec">${p.room_count || '-'} / ${p.area || '-'}㎡ / ${p.room_number ? p.room_number + '호' : '-'}</td>
+                <td class="date-text">${dateStr}</td>
+                <td class="cell-registrar">
+                    <div><span class="member-badge ${roleBadgeCls}">${roleText}</span></div>
+                    <div class="registrar-name">${p.author_name || '-'}</div>
+                    <div class="registrar-phone">${p.author_phone || '-'}</div>
+                </td>
+                <td>
+                    <div class="cell-actions">
+                        <button class="btn-edit" onclick="editProperty(${p.id})">수정</button>
+                        <button class="btn-delete" onclick="deleteProperty(${p.id})">삭제</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function formatPrice(val) {
+        if (!val || val === 0) return '0';
+        if (val >= 10000) {
+            const uk = Math.floor(val / 10000);
+            const man = val % 10000;
+            return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
+        }
+        return val.toString();
+    }
+
+    window.toggleAdStatus = async function(id, currentStatus) {
+        const nextStatus = (currentStatus === 'active' || currentStatus === 'pending') ? 'hidden' : 'active';
+        const msg = nextStatus === 'active' ? "광고를 다시 시작할까요?" : "광고를 종료하시겠습니까?";
+        if (!confirm(msg)) return;
+
+        const { error } = await supabase.from('properties').update({ status: nextStatus }).eq('id', id);
+        if (error) alert("오류: " + error.message);
+        else loadProperties();
+    }
+
+    window.deleteProperty = async function(id) {
+        if (!confirm("삭제하시겠습니까?")) return;
+        const { error } = await supabase.from('properties').delete().eq('id', id);
+        if (error) alert("오류: " + error.message);
+        else { alert("삭제완료"); loadProperties(); }
+    }
+
+    window.editProperty = function(id) {
+        alert("수정 기능 준비중 (ID: " + id + ")");
+    }
+
+    document.getElementById('btn-do-search').addEventListener('click', () => {
+        const num = document.getElementById('search-num').value.trim();
+        const type = document.getElementById('search-type').value;
+        const deal = document.getElementById('search-deal').value;
+        const keyword = document.getElementById('search-keyword').value.trim().toLowerCase();
+
+        const filtered = allProperties.filter(p => {
+            const matchNum = num ? String(p.id).includes(num) : true;
+            const matchType = type ? p.property_type === type : true;
+            const matchDeal = deal ? p.trade_type === deal : true;
+            const matchKeyword = keyword ? (
+                (p.building_name || '').toLowerCase().includes(keyword) ||
+                (p.dong || '').toLowerCase().includes(keyword) ||
+                (p.author_name || '').toLowerCase().includes(keyword)
+            ) : true;
+            return matchNum && matchType && matchDeal && matchKeyword;
+        });
+        renderProperties(filtered);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        document.getElementById('search-num').value = '';
+        document.getElementById('search-type').value = '';
+        document.getElementById('search-deal').value = '';
+        document.getElementById('search-keyword').value = '';
+        renderProperties(allProperties);
+    });
 
     document.getElementById('chk-all').addEventListener('change', function () {
         document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
@@ -573,4 +547,4 @@
     });
 </script>
 </body>
-</html>
+</html>

@@ -732,7 +732,7 @@
                     owner_relation: document.getElementById('ownerRelation').value,
                     brokerage_fee: brokerageFee,
                     images: imageUrls, // 문자열 배열형태로 저장 (text[])
-                    status: 'pending',
+                    status: 'active', // 바로 활성화 (관리자 승인 불필요)
                     agree_promo: document.getElementById('agreePromo').checked,
                     created_at: new Date()
                 };
@@ -745,8 +745,10 @@
                 if (dbError) throw dbError;
 
                 hideLoading();
-                alert("성공적으로 매물이 등록되었습니다! 관리자 확인 후 광고가 진행됩니다.");
-                window.location.href = './user_admin.html';
+                alert("성공적으로 매물이 등록되었습니다!");
+                // iframe 내부에서 호출되므로, 부모 페이지(user_admin.html)를 유지하면서 
+                // iframe의 소스만 매물관리 목록(admin.html)으로 변경합니다.
+                window.location.href = './admin.html';
 
             } catch (error) {
                 hideLoading();
