@@ -54,12 +54,20 @@
         아래 버튼을 클릭하면 Supabase DB에 직접 적용됩니다.
     </p>
 
-    <div class="sql-box">ALTER TABLE public.members
-  ADD COLUMN IF NOT EXISTS member_no
-  BIGINT GENERATED ALWAYS AS IDENTITY;
+    <div class="sql-box">-- 1. 회원번호(member_no) 추가
+ALTER TABLE public.members
+  ADD COLUMN IF NOT EXISTS member_no BIGINT GENERATED ALWAYS AS IDENTITY;
 
-CREATE UNIQUE INDEX IF NOT EXISTS members_member_no_idx
-  ON public.members (member_no);</div>
+CREATE UNIQUE INDEX IF NOT EXISTS members_member_no_idx 
+  ON public.members (member_no);
+
+-- 2. 유료 멤버십 시작일(membership_start_at) 추가
+ALTER TABLE public.members 
+  ADD COLUMN IF NOT EXISTS membership_start_at timestamptz;
+
+-- 3. 사전 등록 테이블 시작일(start_date) 추가
+ALTER TABLE public.pre_registered_realtors 
+  ADD COLUMN IF NOT EXISTS start_date date;</div>
 
     <div class="step">✅ 이미 <b>member_no</b> 컬럼이 있으면 무시됩니다 (IF NOT EXISTS)</div>
     <div class="step">✅ 기존 회원에게도 자동으로 번호가 부여됩니다</div>
@@ -93,25 +101,29 @@ async function runMigration() {
 
         if (colErr) throw colErr;
 
-        // member_no 컬럼이 이미 있는지 확인
-        const firstRow = cols?.[0];
-        if (firstRow && 'member_no' in firstRow) {
+        // 컬럼 존재 여부 확인
+        const firstRow = cols?.[0] || {};
+        const hasMemberNo = 'member_no' in firstRow;
+        const hasStartAt  = 'membership_start_at' in firstRow;
+
+        if (hasMemberNo && hasStartAt) {
             showResult('success',
-                '✅ member_no 컬럼이 이미 존재합니다!\n\n' +
-                '추가 작업이 필요 없습니다.\n' +
-                '회원관리 페이지에서 바로 확인하실 수 있습니다.'
+                '✅ 모든 마이그레이션이 완료되었습니다!\n\n' +
+                '- member_no (회원번호)\n' +
+                '- membership_start_at (유료 시작일)\n\n' +
+                '회원관리 페이지에서 정상적으로 모든 기능을 사용하실 수 있습니다.'
             );
             return;
         }
 
-        // member_no가 없으면 Supabase SQL Editor에서 실행 필요 안내
+        // 부족한 컬럼 안내
+        let missing = [];
+        if (!hasMemberNo) missing.push('member_no');
+        if (!hasStartAt)  missing.push('membership_start_at');
+
         showResult('error',
-            '⚠️ member_no 컬럼이 아직 없습니다.\n\n' +
-            'Supabase SQL Editor에서 아래 SQL을 직접 실행해 주세요:\n\n' +
-            'ALTER TABLE public.members\n' +
-            '  ADD COLUMN IF NOT EXISTS member_no BIGINT GENERATED ALWAYS AS IDENTITY;\n\n' +
-            'CREATE UNIQUE INDEX IF NOT EXISTS members_member_no_idx\n' +
-            '  ON public.members (member_no);\n\n' +
+            `⚠️ DB 스키마가 최신이 아닙니다 (컬럼 누락: ${missing.join(', ')})\n\n` +
+            'Supabase SQL Editor에서 위 박스의 SQL을 직접 실행해 주세요.\n\n' +
             '▶ https://supabase.com/dashboard/project/kjrjrjnsiynrcelzepju/sql/new'
         );
 
