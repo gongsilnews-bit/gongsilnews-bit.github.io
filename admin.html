@@ -260,7 +260,7 @@
     <div class="card-header">
         <h2>매물관리</h2>
         <span class="count-info">
-            (<span class="ad-count">광고 10건</span> / <span class="total-count">전체 20건</span>)
+            (<span class="ad-count">광고 -건</span> / <span class="total-count">전체 -건</span>)
         </span>
     </div>
 
@@ -364,9 +364,11 @@
     const supabase = window.gongsiClient;
     let allProperties = [];
 
-    window.addEventListener('load', async () => {
+    // 즉시 실행 (iframe 환경 대응)
+    (async () => {
+        console.log("admin.html initialization started");
         await loadProperties();
-    });
+    })();
 
     // 매물 데이터 로드 및 렌더링
     async function loadProperties() {
