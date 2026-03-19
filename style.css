@@ -252,6 +252,12 @@ body {
     z-index: 20;
 }
 
+/* 우측 사이드바 레이아웃 (뉴스 페이지) */
+.main-container.sidebar-right .sidebar {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
 .sidebar-header {
     padding: 16px 20px;
     border-bottom: 1px solid var(--border-color);

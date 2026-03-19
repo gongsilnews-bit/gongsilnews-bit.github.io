@@ -61,8 +61,14 @@
     </header>
 
     <!-- 메인 컨텐츠 (지도 + 사이드바) -->
-    <main class="main-container">
-        <!-- 좌측 사이드바 (뉴스 리스트) -->
+    <main class="main-container sidebar-right">
+        <!-- 좌측 지도 영역 (사이드바가 우측으로 이동함에 따라 좌측으로 배치) -->
+        <div class="map-wrapper">
+            <!-- 검색바 오버레이 -->
+            <div id="map"></div>
+        </div>
+
+        <!-- 우측 사이드바 (뉴스 리스트) -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <div class="search-box">
@@ -85,12 +91,6 @@
                 <div class="loading-spinner">뉴스 불러오는 중...</div>
             </div>
         </aside>
-
-        <!-- 우측 지도 영역 -->
-        <div class="map-wrapper">
-            <!-- 검색바 오버레이 -->
-            <div id="map"></div>
-        </div>
     </main>
 
     <!-- Kakao Map SDK -->
