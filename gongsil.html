@@ -331,27 +331,204 @@
         </div>
         <!-- --- 상세 뷰 끝 --- -->
 
-        <!-- 우측 지도 영역 -->
-        <div class="map-wrapper">
-            <div id="map"></div>
-        </div>
-    </main>
-
     <!-- Kakao Map SDK (services 라이브러리 추가) -->
     <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=435d3602201a49ea712e5f5a36fe6efc&libraries=clusterer,services"></script>
     
-    <!-- Supabase 연동 및 기능 스크립트 -->
-    <script src="gongsil_render.js?v=3"></script>
+    <!-- Supabase 연동 및 기능 스크립트 (통합 로직) -->
     <script type="module" src="supabase_auth.js"></script>
-
     <script>
-        function showPropertyDetail() {
-            document.getElementById('propertyDetailView').style.display = 'flex';
-        }
+        // 전역 에러 핸들러 (사용자 화면에 에러 표시)
+        window.onerror = function(msg, url, line) {
+            const listArea = document.getElementById('propertyListArea');
+            if (listArea) {
+                listArea.innerHTML += `<div style="padding:10px; color:red; font-size:12px; border:1px solid red; margin-top:10px;">
+                    스크립트 에러 발생: ${msg}<br>(Line: ${line})
+                </div>`;
+            }
+            return false;
+        };
 
-        function hidePropertyDetail() {
-            document.getElementById('propertyDetailView').style.display = 'none';
-        }
+        (function() {
+            const supabase = window.gongsiClient;
+            let mapInstance = null;
+            let allActiveProperties = [];
+
+            console.log("gongsil.html [init] script started");
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                const listArea = document.getElementById('propertyListArea');
+                if (listArea) listArea.innerHTML = '<div style="padding:20px; text-align:center; color:#4285f4; font-weight:bold;">데이터를 불러오는 중입니다... 🔄</div>';
+
+                // 1. 지도 및 데이터 초기화 시작
+                try {
+                    if (typeof kakao !== 'undefined' && kakao.maps) {
+                        kakao.maps.load(() => {
+                            initMap();
+                            loadActiveProperties(); 
+                        });
+                    } else {
+                        console.error("Kakao maps SDK not found!");
+                        if (listArea) listArea.innerHTML = '<div style="padding:20px; color:red;">카카오 지도 SDK를 불러오지 못했습니다.</div>';
+                    }
+                } catch (e) {
+                    console.error("Init Error:", e);
+                    if (listArea) listArea.innerHTML += `<div style="color:red;">초기화 중 오류: ${e.message}</div>`;
+                }
+            });
+
+            function initMap() {
+                const container = document.getElementById('map');
+                if (!container) return;
+                try {
+                    const options = {
+                        center: new kakao.maps.LatLng(37.5665, 126.9780), 
+                        level: 8
+                    };
+                    mapInstance = new kakao.maps.Map(container, options);
+                    window.mapInstance = mapInstance; 
+                    console.log('gongsil: 지도 초기화 성공');
+                } catch (e) {
+                    console.error("Map init error:", e);
+                }
+            }
+
+            async function loadActiveProperties() {
+                const listArea = document.getElementById('propertyListArea');
+                const countHeader = document.querySelector('#listCountHeader span');
+                const supabaseClient = window.gongsiClient;
+
+                if (!supabaseClient) {
+                    console.error("Supabase client not initialized.");
+                    if (listArea) listArea.innerHTML = '<div style="padding:20px; color:red;">Supabase 설정이 올바르지 않습니다.</div>';
+                    return;
+                }
+
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('properties')
+                        .select('*')
+                        .eq('status', 'active')
+                        .order('created_at', { ascending: false });
+
+                    if (error) throw error;
+
+                    allActiveProperties = data || [];
+                    console.log("Active properties loaded:", allActiveProperties.length);
+                    
+                    if (countHeader) countHeader.textContent = `지역 목록 ${allActiveProperties.length}개`;
+
+                    renderPropertyCards(allActiveProperties);
+                    addMarkersToMap(allActiveProperties);
+                } catch (e) {
+                    console.error("Data load error:", e);
+                    if (listArea) listArea.innerHTML = `<div style="padding:20px; color:red;">데이터 조회 실패: ${e.message}</div>`;
+                }
+            }
+
+            function renderPropertyCards(props) {
+                const listArea = document.getElementById('propertyListArea');
+                if (!listArea) return;
+                listArea.innerHTML = '';
+
+                if (props.length === 0) {
+                    listArea.innerHTML = '<div style="padding:50px 20px; text-align:center; color:#999;">현재 등록된 공실 매물이 없습니다.</div>';
+                    return;
+                }
+
+                props.forEach(p => {
+                    const card = document.createElement('div');
+                    card.className = 'property-card';
+                    card.onclick = () => window.showPropertyDetail(p);
+                    
+                    const priceStr = formatPriceDisplay(p);
+                    const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/150/EEEEEE/999999?text=No+Image';
+
+                    card.innerHTML = `
+                        <div class="property-info">
+                            <span class="recommend-tag">추천</span>
+                            <h3 class="price-title">${priceStr}</h3>
+                            <div class="maintenance-fee">관리비 ${p.maintenance_fee || 0}만원</div>
+                            <div class="property-desc">${p.property_type || '매물'} · ${p.area || '-'}㎡</div>
+                            <div class="property-loc">${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''}</div>
+                            <div class="property-detail">${p.description || p.building_name || ''}</div>
+                        </div>
+                        <div class="property-image">
+                            <img src="${imgUrl}" alt="매물사진">
+                        </div>
+                    `;
+                    listArea.appendChild(card);
+                });
+            }
+
+            function formatPriceDisplay(p) {
+                const dep = formatPriceValue(p.deposit);
+                if (p.trade_type === '매매' || p.trade_type === '전세') return `${p.trade_type} ${dep}`;
+                return `${p.trade_type} ${dep}/${p.monthly_rent || 0}`;
+            }
+
+            function formatPriceValue(val) {
+                val = Number(val);
+                if (!val || val === 0) return '0';
+                if (val >= 10000) {
+                    const uk = Math.floor(val / 10000);
+                    const man = val % 10000;
+                    return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
+                }
+                return val.toLocaleString();
+            }
+
+            window.showPropertyDetail = function(p) {
+                const detailView = document.getElementById('propertyDetailView');
+                if (!detailView) return;
+
+                const priceStr = formatPriceDisplay(p);
+                detailView.querySelector('.detail-price-title').textContent = priceStr;
+                const metaTop = detailView.querySelector('.detail-meta-top');
+                if (metaTop) {
+                    const regDate = new Date(p.created_at);
+                    metaTop.innerHTML = `<span>등록번호 ${p.id}</span><span>${regDate.toLocaleDateString()}</span>`;
+                }
+                detailView.querySelector('.detail-loc-text').textContent = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''} · 관리비 ${p.maintenance_fee || 0}만원`;
+                detailView.querySelector('.detail-desc-box').textContent = p.description || '상세 설명이 없습니다.';
+                detailView.querySelector('.bottom-price').textContent = priceStr;
+                const features = detailView.querySelectorAll('.feature-item');
+                if (features[0]) features[0].innerHTML = `<div class="feature-icon">📐</div>전용 ${p.area || '-'}㎡`;
+                if (features[1]) features[1].innerHTML = `<div class="feature-icon">🚪</div>${p.room_count || '-'} (욕실 ${p.bathroom_count || '-'}개)`;
+                const galleryImg = detailView.querySelector('.detail-gallery img');
+                if (galleryImg) galleryImg.src = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/600x400/DDDDDD/666666?text=No+Image';
+                detailView.style.display = 'flex';
+            };
+
+            window.hidePropertyDetail = function() {
+                const detailView = document.getElementById('propertyDetailView');
+                if (detailView) detailView.style.display = 'none';
+            };
+
+            function addMarkersToMap(props) {
+                if (!window.mapInstance) return;
+                const geocoder = new kakao.maps.services.Geocoder();
+                props.forEach(p => {
+                    const fullAddr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''} ${p.detail_address || ''}`;
+                    geocoder.addressSearch(fullAddr, (result, status) => {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                            const marker = new kakao.maps.Marker({
+                                map: window.mapInstance,
+                                position: coords
+                            });
+                            const infowindow = new kakao.maps.InfoWindow({
+                                content: `<div style="padding:5px;font-size:12px;">${formatPriceDisplay(p)}</div>`
+                            });
+                            kakao.maps.event.addListener(marker, 'click', () => {
+                                window.showPropertyDetail(p);
+                                infowindow.open(window.mapInstance, marker);
+                                setTimeout(() => infowindow.close(), 3000);
+                            });
+                        }
+                    });
+                });
+            }
+        })();
     </script>
 </body>
 
