@@ -83,6 +83,7 @@ create table if not exists public.properties (
     author_name text,
     author_phone text,
     owner_relation text,
+    brokerage_fee text,
     agree_promo boolean default false,
     status text default 'pending',
     created_at timestamptz default now()

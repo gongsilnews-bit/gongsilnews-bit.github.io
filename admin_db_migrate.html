@@ -67,7 +67,11 @@ ALTER TABLE public.members
 
 -- 3. 사전 등록 테이블 시작일(start_date) 추가
 ALTER TABLE public.pre_registered_realtors 
-  ADD COLUMN IF NOT EXISTS start_date date;</div>
+  ADD COLUMN IF NOT EXISTS start_date date;
+
+-- 4. 매물 테이블 중개보수(brokerage_fee) 추가
+ALTER TABLE public.properties
+  ADD COLUMN IF NOT EXISTS brokerage_fee text;</div>
 
     <div class="step">✅ 이미 <b>member_no</b> 컬럼이 있으면 무시됩니다 (IF NOT EXISTS)</div>
     <div class="step">✅ 기존 회원에게도 자동으로 번호가 부여됩니다</div>
@@ -101,25 +105,26 @@ async function runMigration() {
 
         if (colErr) throw colErr;
 
-        // 컬럼 존재 여부 확인
-        const firstRow = cols?.[0] || {};
-        const hasMemberNo = 'member_no' in firstRow;
-        const hasStartAt  = 'membership_start_at' in firstRow;
+        // properties 컬럼 확인
+        const { data: propCols } = await supabase.from('properties').select('*').limit(1);
+        const hasBrokerage = propCols?.[0] ? ('brokerage_fee' in propCols[0]) : false;
 
-        if (hasMemberNo && hasStartAt) {
+        if (hasMemberNo && hasStartAt && hasBrokerage) {
             showResult('success',
                 '✅ 모든 마이그레이션이 완료되었습니다!\n\n' +
                 '- member_no (회원번호)\n' +
-                '- membership_start_at (유료 시작일)\n\n' +
-                '회원관리 페이지에서 정상적으로 모든 기능을 사용하실 수 있습니다.'
+                '- membership_start_at (유료 시작일)\n' +
+                '- brokerage_fee (매물 중개보수)\n\n' +
+                '서비스의 모든 기능을 정상적으로 사용하실 수 있습니다.'
             );
             return;
         }
 
         // 부족한 컬럼 안내
         let missing = [];
-        if (!hasMemberNo) missing.push('member_no');
-        if (!hasStartAt)  missing.push('membership_start_at');
+        if (!hasMemberNo) missing.push('members.member_no');
+        if (!hasStartAt)  missing.push('members.membership_start_at');
+        if (!hasBrokerage) missing.push('properties.brokerage_fee');
 
         showResult('error',
             `⚠️ DB 스키마가 최신이 아닙니다 (컬럼 누락: ${missing.join(', ')})\n\n` +

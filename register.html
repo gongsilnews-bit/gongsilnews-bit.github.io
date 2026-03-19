@@ -426,12 +426,11 @@
                 <textarea class="form-control" id="description" placeholder="매물의 특징, 입주 가능일 등 상세 내용을 입력해주세요."></textarea>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">사진 등록 (최대 5장)</label>
-                <div class="image-upload-box">
-                    <div style="font-size: 24px;">☁️</div>
-                    <p>클릭하여 업로드</p>
-                    <span>JPG, PNG (최대 5장)</span>
+            <div class="form-group" style="margin-top: 30px;">
+                <label class="form-label">중개보수 지급 <span>*</span></label>
+                <input type="hidden" id="brokerageFee" value="">
+                <div id="brokerageBtns" class="trade-btn-group" style="flex-wrap: wrap;">
+                    <!-- JS에서 등급에 따라 버튼이 생성됩니다 -->
                 </div>
             </div>
 
@@ -516,15 +515,16 @@
                 author_name: document.getElementById('authorName').value,
                 author_phone: document.getElementById('authorPhone').value,
                 owner_relation: document.getElementById('ownerRelation').value,
+                brokerage_fee: document.getElementById('brokerageFee').value, // 중개보수 정보 추가
                 agree_promo: document.getElementById('agreePromo').checked,
-                status: 'pending', // 관리자 승인 대기 상태
+                status: 'pending', 
                 created_at: new Date()
             };
 
-            // 필수값 검증 (HTML5 required가 작동하지만 JS에서도 한번 더)
-            if(!propertyData.property_type || !propertyData.trade_type || !propertyData.dong || !propertyData.authorName || !propertyData.authorPhone) {
-                // alert("필수 항목을 모두 입력해주세요.");
-                // return;
+            // 필수값 검증
+            if(!propertyData.property_type || !propertyData.trade_type || !propertyData.dong || !propertyData.author_name || !propertyData.author_phone || !propertyData.brokerage_fee) {
+                alert("중개보수 지급을 포함한 모든 필수 항목을 입력해주세요.");
+                return;
             }
 
             try {
@@ -796,6 +796,53 @@
             }
         }
 
+
+        // --- 추가: 중개보수 버튼 렌더링 로직 ---
+        async function initBrokerage() {
+            const { data: { session } } = await supabase.auth.getSession();
+            let role = 'general';
+            
+            if (session) {
+                const { data: member } = await supabase
+                    .from('members')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                if (member) role = member.role;
+            }
+
+            const container = document.getElementById('brokerageBtns');
+            container.innerHTML = '';
+            
+            if (role === 'realtor' || role === 'admin') {
+                const options = ['공동중개 0%', '공동중개 25%', '공동중개 50%', '공동중개 100%'];
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'trade-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => {
+                        document.getElementById('brokerageFee').value = opt;
+                        container.querySelectorAll('.trade-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                    container.appendChild(btn);
+                });
+            } else {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'trade-btn active';
+                btn.innerText = '법정중개보수';
+                document.getElementById('brokerageFee').value = '법정중개보수';
+                btn.onclick = () => {
+                    // 일반회원은 옵션이 하나뿐이므로 항상 선택 상태
+                };
+                container.appendChild(btn);
+            }
+        }
+
+        // 초기 실행에 포함
+        initBrokerage();
 
         // 카카오 주소 검색 함수
         window.searchAddress = function() {
