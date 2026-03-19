@@ -229,26 +229,9 @@ async function handleUserDocument(user) {
 function updateRoleUI(userData) {
     if(!userRoleBadge) return;
 
-    // 기존 톱니바퀴 버튼이 있으면 제거 (중복 방지)
+    // 기존 톱니바퀴 버튼이 있으면 제거 (관리자 설정 버튼이 배지에 통합되므로)
     const existingGear = document.getElementById('adminGearBtn');
     if (existingGear) existingGear.remove();
-
-    // 역할별 배지 스타일
-    if (userData.role === 'admin') {
-        userRoleBadge.textContent = "최고관리자";
-        userRoleBadge.style.background = "#e74c3c";
-        userRoleBadge.style.color = "white";
-    } else if (userData.role === 'realtor') {
-        userRoleBadge.textContent = "부동산회원";
-        userRoleBadge.style.background = "#ff9f1c";
-        userRoleBadge.style.color = "white";
-    } else {
-        userRoleBadge.textContent = "일반회원";
-        userRoleBadge.style.background = "#f0f0f0";
-        userRoleBadge.style.color = "#555";
-    }
-    userRoleBadge.style.cursor = "default";
-    userRoleBadge.onclick = null;
 
     // 이동할 페이지 결정
     const targetPage = userData.role === 'admin'
@@ -256,82 +239,52 @@ function updateRoleUI(userData) {
         : window.BASE_PATH + '/user_admin.html';
     const tooltipLabel = userData.role === 'admin' ? '관리자페이지로 이동' : '마이페이지로 이동';
 
-    // ── 톱니바퀴 버튼 + 호버 툴팁 ──
-    const gearWrap = document.createElement('div');
-    gearWrap.id = 'adminGearBtn';
-    gearWrap.style.cssText = `
-        position: relative;
-        display: inline-flex;
-        align-items: center;
-    `;
-
-    const gearBtn = document.createElement('button');
-    gearBtn.textContent = '⚙️';
-    gearBtn.title = tooltipLabel;
-    gearBtn.style.cssText = `
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        padding: 2px 4px;
-        line-height: 1;
-        display: flex;
-        align-items: center;
-        transition: transform 0.3s;
-    `;
-
-    const tooltip = document.createElement('div');
-    tooltip.textContent = tooltipLabel;
-    tooltip.style.cssText = `
-        position: absolute;
-        top: 110%;
-        right: 0;
-        background: #222;
-        color: #fff;
-        font-size: 12px;
-        font-weight: 600;
-        white-space: nowrap;
-        padding: 5px 10px;
-        border-radius: 5px;
-        pointer-events: none;
-        opacity: 0;
-        transition: opacity 0.2s;
-        z-index: 999;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    `;
-    // 툴팁 화살표
-    tooltip.style.setProperty('--arrow', 'none');
-
-    gearWrap.appendChild(gearBtn);
-    gearWrap.appendChild(tooltip);
-
-    // hover 시 툴팁 표시 + 톱니 회전
-    gearWrap.addEventListener('mouseenter', () => {
-        tooltip.style.opacity = '1';
-        gearBtn.style.transform = 'rotate(60deg)';
-    });
-    gearWrap.addEventListener('mouseleave', () => {
-        tooltip.style.opacity = '0';
-        gearBtn.style.transform = 'rotate(0deg)';
-    });
-
-    // 클릭 시 이동
-    gearBtn.addEventListener('click', () => {
-        window.location.href = targetPage;
-    });
-    tooltip.style.pointerEvents = 'auto';
-    tooltip.addEventListener('click', () => {
-        window.location.href = targetPage;
-    });
-    tooltip.style.cursor = 'pointer';
-
-    // userProfile 안 로그아웃 버튼 바로 앞에 삽입
-    const logoutEl = document.getElementById('headerLogoutBtn');
-    if (logoutEl) {
-        userProfile.insertBefore(gearWrap, logoutEl);
+    // 역할별 배지 스타일 및 텍스트 설정
+    if (userData.role === 'admin') {
+        userRoleBadge.textContent = "최고관리자 >>";
+        userRoleBadge.style.background = "#e74c3c";
+        userRoleBadge.style.color = "white";
+    } else if (userData.role === 'realtor') {
+        userRoleBadge.textContent = "부동산회원 >>";
+        userRoleBadge.style.background = "#ff9f1c";
+        userRoleBadge.style.color = "white";
     } else {
-        userProfile.appendChild(gearWrap);
+        userRoleBadge.textContent = "일반회원 >>";
+        userRoleBadge.style.background = "#f0f0f0";
+        userRoleBadge.style.color = "#555";
     }
+
+    // 배지를 클릭 가능한 버튼 형태로 변경
+    userRoleBadge.style.cursor = "pointer";
+    userRoleBadge.style.display = "inline-flex";
+    userRoleBadge.style.alignItems = "center";
+    userRoleBadge.style.padding = "5px 12px";
+    userRoleBadge.style.borderRadius = "6px";
+    userRoleBadge.style.fontWeight = "bold";
+    userRoleBadge.style.fontSize = "12px";
+    userRoleBadge.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+    userRoleBadge.style.transition = "all 0.2s ease";
+    userRoleBadge.title = tooltipLabel;
+
+    userRoleBadge.onclick = () => {
+        window.location.href = targetPage;
+    };
+
+    // 호버 효과 추가
+    userRoleBadge.onmouseenter = () => {
+        userRoleBadge.style.transform = "translateY(-1px)";
+        userRoleBadge.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
+        if(userData.role === 'admin') userRoleBadge.style.background = "#c0392b";
+        else if(userData.role === 'realtor') userRoleBadge.style.background = "#e67e22";
+        else userRoleBadge.style.background = "#e5e5e5";
+    };
+    userRoleBadge.onmouseleave = () => {
+        userRoleBadge.style.transform = "translateY(0)";
+        userRoleBadge.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
+        if(userData.role === 'admin') userRoleBadge.style.background = "#e74c3c";
+        else if(userData.role === 'realtor') userRoleBadge.style.background = "#ff9f1c";
+        else userRoleBadge.style.background = "#f0f0f0";
+    };
 }
 
 // 실행
