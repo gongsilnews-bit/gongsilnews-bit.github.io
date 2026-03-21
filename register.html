@@ -716,8 +716,7 @@
                     maintenance_fee: parseInt(document.getElementById('maintenanceFee').value) || 0,
                     room_count: document.getElementById('roomCount').value,
                     bathroom_count: document.getElementById('bathroomCount').value,
-                    current_floor: parseInt(document.getElementById('currentFloor').value) || null,
-                    total_floor: parseInt(document.getElementById('totalFloor').value) || null,
+
                     supply_area: parseFloat(document.getElementById('supplyArea').value) || 0,
                     area: parseFloat(document.getElementById('dedicatedArea').value) || 0,
                     options: document.getElementById('selectedOptions').value,
@@ -1201,8 +1200,7 @@
                 // Rooms / Floors
                 if(data.room_count) document.getElementById('roomCount').value = data.room_count;
                 if(data.bathroom_count) document.getElementById('bathroomCount').value = data.bathroom_count;
-                if(data.current_floor) document.getElementById('currentFloor').value = data.current_floor;
-                if(data.total_floor) document.getElementById('totalFloor').value = data.total_floor;
+
                 
                 // Areas
                 if(data.supply_area) document.getElementById('supplyArea').value = data.supply_area;
