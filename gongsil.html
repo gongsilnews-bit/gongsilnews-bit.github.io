@@ -394,10 +394,14 @@
                 <!-- 중개사 정보 영역 -->
                 <div class="realtor-info-box">
                     <div class="realtor-title">등록자정보</div>
-                    <div class="realtor-details">
-                        <div class="realtor-name" id="docRealtorName">공실뉴스 파트너 중개사</div>
-                        <div class="realtor-address" id="docRealtorAddr">위치 정보 준비중</div>
-                        <div class="realtor-phone" id="docRealtorPhone">010-0000-0000</div>
+                    <div class="realtor-details" style="display: flex; gap: 15px; align-items: center;">
+                        <div id="docRealtorProfileImg" style="width: 70px; height: 70px; background: #eee; border-radius: 4px; flex-shrink: 0; background-position: center; background-size: cover; background-image: url('https://via.placeholder.com/70/dddddd/999999?text=사진'); display: none;"></div>
+                        <div style="flex-grow: 1;">
+                            <div class="realtor-name" id="docRealtorName" style="font-size: 16px; font-weight: bold; color: #111; margin-bottom: 5px;">공실뉴스 파트너 중개사</div>
+                            <div class="realtor-rep" id="docRealtorRep" style="font-size: 13px; color: #555; margin-bottom: 3px;">대표 정보없음</div>
+                            <div class="realtor-address" id="docRealtorAddr" style="font-size: 13px; color: #666; margin-bottom: 3px;">위치 정보 준비중</div>
+                            <div class="realtor-phone" id="docRealtorPhone" style="font-size: 13px; font-weight: bold; color: #1f5edb;">전화 010-0000-0000</div>
+                        </div>
                     </div>
                 </div>
                 </div> <!-- tabInfoSection End -->
@@ -635,9 +639,49 @@
                 document.getElementById('docDescription').textContent = p.description || '상세 설명이 등록되지 않았습니다.';
                 
                 // Realtor Info
-                document.getElementById('docRealtorName').textContent = p.author_name || '등록자 정보 없음';
-                document.getElementById('docRealtorPhone').textContent = p.author_phone || '연락처 비공개';
-                document.getElementById('docRealtorAddr').textContent = '-';
+                const nameEl = document.getElementById('docRealtorName');
+                const phoneEl = document.getElementById('docRealtorPhone');
+                const addrEl = document.getElementById('docRealtorAddr');
+                const repEl = document.getElementById('docRealtorRep');
+                
+                const defaultName = p.author_name || '등록자 정보 없음';
+                const defaultPhone = p.author_phone || '연락처 비공개';
+                
+                nameEl.textContent = defaultName;
+                phoneEl.textContent = "전화 " + defaultPhone;
+                addrEl.textContent = '-';
+                if(repEl) repEl.textContent = '';
+                
+                if (p.user_id && supabase) {
+                    supabase.from('members').select('*').eq('id', p.user_id).maybeSingle()
+                    .then(({data: profile, error}) => {
+                        if (error) {
+                            console.error("Realtor fetch error", error);
+                            return;
+                        }
+                        if (profile && profile.role === 'realtor') {
+                            nameEl.innerHTML = `<strong>${profile.company_name || defaultName}</strong>`;
+                            
+                            let repStr = `대표 ${profile.ceo_name || '-'}`;
+                            if (profile.company_reg_no) {
+                                repStr += `  |  등록번호 ${profile.company_reg_no}`;
+                            }
+                            repEl.textContent = repStr;
+                            
+                            const fullAddr = `${profile.address || ''} ${profile.address_detail || ''}`.trim();
+                            addrEl.textContent = fullAddr || '-';
+                            
+                            const phones = [profile.tel_num, profile.cell_num, defaultPhone].filter(Boolean);
+                            phoneEl.textContent = `전화 ${Array.from(new Set(phones)).join(', ')}`;
+                        } else if (profile && profile.role !== 'realtor') {
+                            nameEl.textContent = profile.name || defaultName;
+                            const phones = [profile.phone, defaultPhone].filter(Boolean);
+                            phoneEl.textContent = `전화 ${Array.from(new Set(phones)).join(', ')}`;
+                            repEl.textContent = '일반 등록자';
+                            addrEl.textContent = '-';
+                        }
+                    });
+                }
 
                 // ================== 옵션 렌더링 ==================
                 const optContainer = document.getElementById('docOptionsContainer');
