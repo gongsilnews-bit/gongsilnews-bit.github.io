@@ -1181,28 +1181,31 @@
                 return;
             }
             if (data) {
-                // Property Type (매물종류)
-                const allTradeBtns = Array.from(document.querySelectorAll('.trade-btn'));
-                const pTypeBtn = allTradeBtns.find(b => {
-                    const btnText = b.textContent.trim();
-                    const dataText = (data.property_type || '').trim();
-                    if (btnText === dataText) return true;
-                    // 상가/사무실 <-> 사무실/상가 명칭 호환성 처리
-                    if ((btnText === '사무실/상가' && dataText === '상가/사무실') || 
-                        (btnText === '상가/사무실' && dataText === '사무실/상가')) return true;
-                    // 빌라/주택 <-> 빌라,주택 등 호환성
-                    if (btnText.replace(/[^가-힣a-zA-Z]/g, '') === dataText.replace(/[^가-힣a-zA-Z]/g, '')) return true;
-                    return false;
-                });
-                if (pTypeBtn) pTypeBtn.click();
+                // Property Type (매물종류) & Trade Type (거래유형) 매핑 로직 강화
+                const btnGroups = document.querySelectorAll('.trade-btn-group');
                 
-                // Trade Type (거래유형)
-                const tTypeBtn = allTradeBtns.find(b => {
-                    const btnText = b.textContent.trim();
-                    const dataText = (data.trade_type || '').trim();
-                    return btnText === dataText;
-                });
-                if (tTypeBtn) tTypeBtn.click();
+                // 1. 매물종류 (첫 번째 그룹: 아파트, 오피스텔 등)
+                if (btnGroups[0] && data.property_type) {
+                    const btns = Array.from(btnGroups[0].querySelectorAll('.trade-btn'));
+                    const target = data.property_type.trim();
+                    const matchedBtn = btns.find(b => {
+                        const txt = b.textContent.trim();
+                        return txt === target || 
+                               (txt === '사무실/상가' && target === '상가/사무실') ||
+                               (txt === '상가/사무실' && target === '사무실/상가') ||
+                               (target.includes(txt) && txt.length > 1) ||
+                               (txt.includes(target) && target.length > 1);
+                    });
+                    if (matchedBtn) matchedBtn.click();
+                }
+                
+                // 2. 거래유형 (두 번째 그룹: 매매, 전세 등)
+                if (btnGroups[1] && data.trade_type) {
+                    const btns = Array.from(btnGroups[1].querySelectorAll('.trade-btn'));
+                    const target = data.trade_type.trim();
+                    const matchedBtn = btns.find(b => b.textContent.trim() === target);
+                    if (matchedBtn) matchedBtn.click();
+                }
                 
                 // Prices
                 if(data.deposit) document.getElementById('deposit').value = data.deposit;
