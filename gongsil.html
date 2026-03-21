@@ -316,13 +316,13 @@
     <div class="top-filter-bar">
         <!-- 1. 메인 물건 정보 탭 -->
         <div class="top-row">
-            <button class="top-tab active" onclick="this.classList.toggle('active')">아파트</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">오피스텔</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">원룸</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">빌라/주택</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">상가/사무실</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">빌딩/건물</button>
-            <button class="top-tab" onclick="this.classList.toggle('active')">토지/공장/기타</button>
+            <button class="top-tab active" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">아파트</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">오피스텔</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">원룸</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">빌라/주택</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">상가/사무실</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">빌딩/건물</button>
+            <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">토지/공장/기타</button>
         </div>
         
         <!-- 2. 세부 물건 정보 탭 (선택 시 옅은 하늘색 배경 & 파란 체크) -->
@@ -354,10 +354,10 @@
             <div class="sidebar-header" style="padding: 0; border-bottom: none;">
                 <!-- 4. 정렬 탭 -->
                 <div class="sort-tabs">
-                    <button class="sort-tab active">랭킹순</button>
-                    <button class="sort-tab">최신순</button>
-                    <button class="sort-tab">가격순</button>
-                    <button class="sort-tab">면적순</button>
+                    <button class="sort-tab active" onclick="document.querySelectorAll('.sort-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">랭킹순</button>
+                    <button class="sort-tab" onclick="document.querySelectorAll('.sort-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">최신순</button>
+                    <button class="sort-tab" onclick="document.querySelectorAll('.sort-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">가격순</button>
+                    <button class="sort-tab" onclick="document.querySelectorAll('.sort-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">면적순</button>
                 </div>
                 
                 <div id="listCountHeader" style="padding: 15px 20px; font-weight: bold; font-size: 13px; color: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee;">
