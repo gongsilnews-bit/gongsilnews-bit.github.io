@@ -740,7 +740,8 @@
                 };
 
                 // 3. DB Insert 또는 Update
-                    delete propertyData.created_at; // 기존 날짜 유지
+                if (editPropertyId) {
+                    delete propertyData.created_at; // 기존 날좌 유지
                     const { error: dbError } = await supabase
                         .from('properties')
                         .update(propertyData)
