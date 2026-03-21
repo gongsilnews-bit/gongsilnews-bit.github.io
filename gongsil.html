@@ -226,9 +226,16 @@
             color: rgba(66, 133, 244, 0.85); /* 숫자 색상은 하늘색 */
             border: 2px solid rgba(66, 133, 244, 0.85);
         }
-        .cluster-small { font-size: 15px; }    /* ~4개 (40x40) */
         .cluster-medium { font-size: 16px; }   /* 5~19개 (50x50) */
         .cluster-large { font-size: 18px; }    /* 20개~ (60x60) */
+
+        /* 추가 정보 섹션 스타일 */
+        .extra-info-group { padding: 10px 20px 20px 20px; border-bottom: 10px solid #f5f5f5; }
+        .extra-section { margin-bottom: 25px; }
+        .extra-title { font-size: 16px; font-weight: bold; color: #111; margin-bottom: 15px; display: flex; align-items: center; }
+        .options-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .option-item { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 68px; height: 68px; background: #fafafa; border-radius: 8px; border: 1px solid #eee; color: #444; font-size: 11px; }
+        .option-icon { font-size: 24px; margin-bottom: 4px; color: #666; }
     </style>
 </head>
 
@@ -360,10 +367,33 @@
                         <div class="info-value full-desc" id="docDescription">-</div>
                     </div>
                 </div>
+
+                <!-- 추가 정보 섹션 그룹 -->
+                <div class="extra-info-group">
+                    <!-- 위치정보 -->
+                    <div class="extra-section" id="sectionMap">
+                        <div class="extra-title" style="margin-top: 10px;">위치정보</div>
+                        <div id="detailMiniMap" style="width:100%; height:200px; border-radius:8px; background:#eee; margin-bottom: 20px;"></div>
+                    </div>
+                
+                    <!-- 로드뷰 -->
+                    <div class="extra-section" id="sectionRoadview">
+                        <div class="extra-title">로드뷰</div>
+                        <div id="detailRoadview" style="width:100%; height:200px; border-radius:8px; background:#eee; margin-bottom: 20px;"></div>
+                    </div>
+
+                    <!-- 옵션 -->
+                    <div class="extra-section">
+                        <div class="extra-title" style="margin-bottom: 20px;">옵션</div>
+                        <div class="options-container" id="docOptionsContainer">
+                            <!-- JS에서 동적 생성 -->
+                        </div>
+                    </div>
+                </div>
                 
                 <!-- 중개사 정보 영역 -->
                 <div class="realtor-info-box">
-                    <div class="realtor-title">중개사 정보</div>
+                    <div class="realtor-title">등록자정보</div>
                     <div class="realtor-details">
                         <div class="realtor-name" id="docRealtorName">공실뉴스 파트너 중개사</div>
                         <div class="realtor-address" id="docRealtorAddr">위치 정보 준비중</div>
@@ -608,6 +638,75 @@
                 document.getElementById('docRealtorName').textContent = p.author_name || '등록자 정보 없음';
                 document.getElementById('docRealtorPhone').textContent = p.author_phone || '연락처 비공개';
                 document.getElementById('docRealtorAddr').textContent = '-';
+
+                // ================== 옵션 렌더링 ==================
+                const optContainer = document.getElementById('docOptionsContainer');
+                optContainer.innerHTML = '';
+                if (p.options) {
+                    const optArray = p.options.split(',').map(o => o.trim()).filter(Boolean);
+                    const iconMap = {
+                        '에어컨': '❄️', '세탁기': '🧺', '냉장고': '🧊', '침대': '🛏️', '옷장': '🚪',
+                        '신발장': '👞', '싱크대': '🚰', '가스레인지': '🔥', '인덕션': '🔥', '전자레인지': '♨️', 'CCTV': '📹',
+                        '비디오폰': '📹', '인터폰': '📞', '무인택배함': '📦', '공동현관보안': '🔐', '현관보안': '🔐', '도어락': '🔐', '방범창': '🪟',
+                        '베란다': '🏢', '엘리베이터': '🛗', '주차가능': '🅿️', '마당': '🪴', '테라스': '☕'
+                    };
+                    optArray.forEach(opt => {
+                        const icon = iconMap[opt] || '✅';
+                        optContainer.innerHTML += `
+                            <div class="option-item">
+                                <div class="option-icon">${icon}</div>
+                                <span>${opt}</span>
+                            </div>
+                        `;
+                    });
+                    if(optArray.length === 0) {
+                        optContainer.innerHTML = '<span style="color:#999; font-size:13px;">등록된 옵션이 없습니다.</span>';
+                    }
+                } else {
+                    optContainer.innerHTML = '<span style="color:#999; font-size:13px;">등록된 옵션이 없습니다.</span>';
+                }
+
+                // ================== 미니맵 & 로드뷰 렌더링 ==================
+                const mapSec = document.getElementById('sectionMap');
+                const rvSec = document.getElementById('sectionRoadview');
+                const miniMapContainer = document.getElementById('detailMiniMap');
+                const roadviewContainer = document.getElementById('detailRoadview');
+                
+                // 상세정보 노출 설정 혹은 좌표가 있을 경우 표시
+                const lat = parseFloat(p.lat);
+                const lng = parseFloat(p.lng);
+                
+                if (lat && lng && !p.is_room_private) {
+                    mapSec.style.display = 'block';
+                    rvSec.style.display = 'block';
+                    const coords = new kakao.maps.LatLng(lat, lng);
+                    
+                    // 미니맵 로딩
+                    miniMapContainer.innerHTML = '';
+                    setTimeout(() => { 
+                        const miniMap = new kakao.maps.StaticMap(miniMapContainer, {
+                            center: coords,
+                            level: 4,
+                            marker: { position: coords }
+                        });
+                        
+                        // 로드뷰 로딩
+                        roadviewContainer.innerHTML = '';
+                        const rv = new kakao.maps.Roadview(roadviewContainer);
+                        const rvClient = new kakao.maps.RoadviewClient();
+                        rvClient.getNearestPanoId(coords, 50, function(panoId) {
+                            if (panoId) {
+                                rvSec.style.display = 'block';
+                                rv.setPanoId(panoId, coords);
+                            } else {
+                                rvSec.style.display = 'none'; // 해당 위치 로드뷰 없음
+                            }
+                        });
+                    }, 50);
+                } else {
+                    mapSec.style.display = 'none';
+                    rvSec.style.display = 'none';
+                }
 
                 // Bottom bar
                 document.getElementById('docBottomPrice').textContent = priceStr;
