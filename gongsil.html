@@ -125,6 +125,8 @@
         /* ---------------- 공실 상세 뷰 스타일 (네이버 부동산 스타일) ---------------- */
         .property-detail-view {
             width: 500px;
+            min-width: 500px; /* 원본 가로 사이즈 유지 */
+            flex-shrink: 0;   /* 축소 방지 */
             background: #fff;
             display: none; /* 기본 숨김 */
             flex-direction: column;
@@ -137,6 +139,7 @@
         .detail-scroll-area {
             flex: 1;
             overflow-y: auto;
+            overflow-x: hidden; /* 가로 스크롤 방지 */
         }
         /* 우측 상단 닫기 버튼 */
         .detail-close-btn {
