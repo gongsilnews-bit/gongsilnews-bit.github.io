@@ -256,12 +256,16 @@ function updateRoleUI(userData) {
     if (userData.role === 'admin') {
         userRoleBadge.style.background = "#e74c3c";
         userRoleBadge.style.color = "white";
+    } else if (userData.role === 'realtor') {
+        // 부동산회원은 블루 계통
+        userRoleBadge.style.background = "#1a73e8";
+        userRoleBadge.style.color = "white";
     } else if (userData.membership === 'paid') {
-        // 유료 회원 스타일 (부동산/일반 공통)
+        // 일반 유료 회원 스타일
         userRoleBadge.style.background = "#ff9f1c";
         userRoleBadge.style.color = "white";
     } else {
-        // 무료 회원 스타일
+        // 일반 무료 회원 스타일
         userRoleBadge.style.background = "#f0f0f0";
         userRoleBadge.style.color = "#555";
     }
@@ -287,6 +291,7 @@ function updateRoleUI(userData) {
         userRoleBadge.style.transform = "translateY(-1px)";
         userRoleBadge.style.boxShadow = "0 4px 8px rgba(0,0,0,0.15)";
         if(userData.role === 'admin') userRoleBadge.style.background = "#c0392b";
+        else if(userData.role === 'realtor') userRoleBadge.style.background = "#1557b0";
         else if(userData.membership === 'paid') userRoleBadge.style.background = "#e67e22";
         else userRoleBadge.style.background = "#e5e5e5";
     };
@@ -294,6 +299,7 @@ function updateRoleUI(userData) {
         userRoleBadge.style.transform = "translateY(0)";
         userRoleBadge.style.boxShadow = "0 2px 5px rgba(0,0,0,0.1)";
         if(userData.role === 'admin') userRoleBadge.style.background = "#e74c3c";
+        else if(userData.role === 'realtor') userRoleBadge.style.background = "#1a73e8";
         else if(userData.membership === 'paid') userRoleBadge.style.background = "#ff9f1c";
         else userRoleBadge.style.background = "#f0f0f0";
     };
