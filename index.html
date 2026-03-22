@@ -42,30 +42,19 @@
         .btn-close-detail { position: fixed; top: 120px; right: 40px; background: #111; color: #fff; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; z-index: 1100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .btn-close-detail:hover { background: #ff9f1c; }
 
-        /* 신규 뉴스 네비게이션 스타일 */
-        .news-nav-bar { background: #fff; border-bottom: 1px solid #eee; z-index: 50; position: relative; }
-        .news-tier1 { display: flex; align-items: center; gap: 40px; padding: 0 24px; height: 50px; border-bottom: 1px solid #f5f5f5; }
-        .news-tab-item { font-size: 15px; font-weight: bold; color: #444; cursor: pointer; height: 100%; display: flex; align-items: center; position: relative; transition: color 0.2s; }
+        /* 신규 뉴스 네비게이션 스타일 - 공실열람과 간격/폰트 완벽 통일 */
+        .news-nav-bar { background: #fff; border-bottom: 1px solid #ddd; z-index: 50; position: relative; }
+        .news-tier1 { display: flex; align-items: center; gap: 24px; padding: 0 20px; border-bottom: 1px solid #ddd; }
+        .news-tab-item { font-size: 16px; font-weight: bold; color: #555; cursor: pointer; padding: 16px 4px; position: relative; white-space: nowrap; transition: color 0.2s; }
         .news-tab-item.active { color: #ff9f1c; }
         .news-tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: #ff9f1c; }
 
-        /* 뉴스 필터바 - 공실열람 디자인 복제 (오렌지 버전) */
-        .filter-bar-news { background: #fff; border-bottom: 1px solid #eee; }
-        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid #f8f9fa; overflow-x: auto; }
-        .news-pill { background: #fff; border: 1px solid #ddd; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #666; cursor: pointer; white-space: nowrap; font-weight: 500; font-family: inherit; }
-        .news-pill:hover { border-color: #ff9f1c; color: #ff9f1c; }
-        .news-pill.active { background: #fff; border-color: #ff9f1c; color: #ff9f1c; font-weight: bold; }
-        .news-pill.active::before { content: '✓ '; }
-
-        .filter-dropdown-news { background: none; border: none; font-size: 13px; color: #555; cursor: pointer; padding: 8px 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; border-radius: 4px; flex-shrink: 0; }
-        .filter-dropdown-news:hover { background: #fff8f1; color: #ff9f1c; }
-        .filter-dropdown-news .arrow { font-size: 10px; color: #ccc; }
-        
-        .btn-detail-toggle-news { background: none; border: none; font-size: 13px; font-weight: bold; color: #ff9f1c; cursor: pointer; padding: 8px 12px; white-space: nowrap; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .btn-detail-toggle-news:hover { text-decoration: underline; }
-        
-        .btn-refresh-news { background: none; border: none; font-size: 13px; color: #999; cursor: pointer; padding: 8px 12px; white-space: nowrap; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
-        .v-divider-news { width: 1px; height: 14px; background: #eee; margin: 0 8px; }
+        .filter-bar-news { background: #fff; border-bottom: 1px solid #e0e0e0; }
+        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; }
+        .news-pill { background: #fff; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #333; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-weight: 500; font-family: inherit; }
+        .news-pill:hover { background: #f9fafb; border-color: #999; }
+        .news-pill.active { background: #fff8f1; border-color: #ff9f1c; color: #ff9f1c; font-weight: bold; }
+        .news-pill.active::before { content: '✓ '; font-weight: bold; }
     </style>
 </head>
 
@@ -111,9 +100,7 @@
             <div class="news-tab-item">MY관심기사</div>
             <div class="news-tab-item">기사관리</div>
         </div>
-        <!-- 공실열람 스타일의 상세 필터바 -->
         <div class="filter-bar-news">
-            <!-- 1단: 매물 종류 칩 -->
             <div class="filter-row">
                 <button class="news-pill active">아파트</button>
                 <button class="news-pill">아파트분양권</button>
@@ -121,20 +108,6 @@
                 <button class="news-pill">오피스텔</button>
                 <button class="news-pill">오피스텔분양권</button>
                 <button class="news-pill">재개발</button>
-            </div>
-            <!-- 2단: 상세 조건 드롭다운 -->
-            <div class="filter-row" style="padding-top:2px; padding-bottom:2px;">
-                <button class="filter-dropdown-news">거래방식 <span class="arrow">▼</span></button>
-                <button class="filter-dropdown-news">가격대 <span class="arrow">▼</span></button>
-                <button class="filter-dropdown-news">면적 <span class="arrow">▼</span></button>
-                <button class="filter-dropdown-news">사용승인일 <span class="arrow">▼</span></button>
-                <button class="filter-dropdown-news">세대수 <span class="arrow">▼</span></button>
-                
-                <div class="v-divider-news"></div>
-                <button class="btn-detail-toggle-news">상세매물검색 +</button>
-                
-                <div style="flex: 1;"></div>
-                <button class="btn-refresh-news">🔄 초기화</button>
             </div>
         </div>
     </div>
