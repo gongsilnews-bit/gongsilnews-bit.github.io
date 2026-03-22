@@ -102,12 +102,20 @@ function renderTier2(key) {
 }
 
 window.selectSubTab = function(el) {
-    document.querySelectorAll('.news-pill').forEach(tab => tab.classList.remove('active'));
-    el.classList.add('active');
+    el.classList.toggle('active');
     
-    // 서브 카테고리 클릭 시 데이터 로드 로직 (나중에 구현)
-    const category = el.innerText.replace('✓ ', '').trim();
-    loadNews(category);
+    // 선택된 모든 카테고리 기사들을 로드하기 위해 선택된 항목들 수집
+    const activePills = document.querySelectorAll('.news-pill.active');
+    const selectedCategories = Array.from(activePills).map(pill => pill.innerText.replace('✓ ', '').trim());
+    
+    console.log("Selected News Categories:", selectedCategories);
+    
+    // 데이터 로드 로직 호출 (로드 로직에서 배열을 처리하거나 첫 번째 항목 처리)
+    if (selectedCategories.length > 0) {
+        loadNews(selectedCategories.join(',')); // 콤마로 구분하여 전달 (서버 처리 용도)
+    } else {
+        loadNews('전체기사'); // 아무것도 선택 안된 경우 기본값
+    }
 }
 
 // 2. 카카오 SDK 로드 및 초기화
