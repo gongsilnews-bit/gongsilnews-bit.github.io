@@ -260,9 +260,9 @@
         .top-tab:hover { color: var(--primary-color); }
         .top-tab.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
         
-        .mid-row { display: flex; gap: 8px; padding: 12px 20px; border-bottom: 1px solid #e0e0e0; overflow-x: auto; }
-        .mid-tab { background: #fff; border: 1px solid #ccc; font-size: 14px; color: #333; cursor: pointer; padding: 6px 14px; border-radius: 20px; white-space: nowrap; transition: all 0.2s; position: relative; }
-        .mid-tab:hover { background: #f9fafb; }
+        .mid-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid #e0e0e0; overflow-x: auto; }
+        .mid-tab { background: #fff; border: 1px solid #ccc; font-size: 13px; color: #333; cursor: pointer; padding: 6px 14px; border-radius: 20px; white-space: nowrap; transition: all 0.2s; position: relative; flex-shrink: 0; }
+        .mid-tab:hover { background: #f9fafb; border-color: #999; }
         .mid-tab.active {
             background: #e8f0fe; /* 옅은 하늘색 배경 */
             color: #1a73e8; /* 진한 파란색 글씨 */
@@ -271,13 +271,13 @@
         }
         .mid-tab.active::before { content: '✓ '; font-weight: bold; }
 
-        .bot-row { display: flex; align-items: center; padding: 0 20px; border-bottom: 1px solid #eee; overflow-x: auto; background: #fff; }
-        .filter-dropdown { background: none; border: none; border-right: 1px solid #eee; font-size: 13px; color: #555; cursor: pointer; padding: 12px 16px; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
-        .filter-dropdown:hover { background: #f9f9f9; color: #111; }
+        .filter-dropdown { background: none; border: none; font-size: 13px; color: #555; cursor: pointer; padding: 8px 12px; display: flex; align-items: center; gap: 4px; white-space: nowrap; border-radius: 4px; flex-shrink: 0; }
+        .filter-dropdown:hover { background: #f1f3f5; color: #111; }
         .arrow { font-size: 10px; color: #999; }
         
-        .btn-refresh { background: none; border: none; font-size: 13px; color: #666; cursor: pointer; padding: 12px 16px; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
+        .btn-refresh { background: none; border: none; font-size: 13px; color: #666; cursor: pointer; padding: 8px 12px; white-space: nowrap; display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
         .btn-refresh:hover { background: #f0f0f0; color: #333; }
+        .v-divider { width: 1px; height: 16px; background: #e0e0e0; margin: 0 8px; flex-shrink: 0; }
 
         .sort-tabs { display: flex; width: 100%; border-bottom: 1px solid #eee; }
         .sort-tab { flex: 1; background: #fff; border: none; border-right: 1px solid #f0f0f0; font-size: 13px; color: #888; cursor: pointer; padding: 12px 0; text-align: center; }
@@ -330,16 +330,14 @@
             <button class="top-tab" onclick="document.querySelectorAll('.top-tab').forEach(t=>t.classList.remove('active')); this.classList.add('active')">토지/공장/기타</button>
         </div>
         
-        <!-- 2. 세부 물건 정보 탭 (선택 시 옅은 하늘색 배경 & 파란 체크) -->
         <div class="mid-row">
             <button class="mid-tab active" onclick="this.classList.toggle('active')">빌라/연립</button>
             <button class="mid-tab" onclick="this.classList.toggle('active')">단독/다가구</button>
             <button class="mid-tab active" onclick="this.classList.toggle('active')">전원주택</button>
             <button class="mid-tab" onclick="this.classList.toggle('active')">상가주택</button>
-        </div>
-        
-        <!-- 3. 상세 검색 조건 필터 -->
-        <div class="bot-row">
+            
+            <div class="v-divider"></div>
+            
             <button class="filter-dropdown">거래방식 <span class="arrow">▼</span></button>
             <button class="filter-dropdown">가격대 <span class="arrow">▼</span></button>
             <button class="filter-dropdown">면적 <span class="arrow">▼</span></button>
@@ -347,7 +345,8 @@
             <button class="filter-dropdown">사용승인일 <span class="arrow">▼</span></button>
             <button class="filter-dropdown">방향 <span class="arrow">▼</span></button>
             <button class="filter-dropdown">융자금 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown" style="border-right: none;">기타옵션 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown">기타옵션 <span class="arrow">▼</span></button>
+            
             <button class="btn-refresh" style="margin-left: auto;">↻ 초기화</button>
         </div>
     </div>
