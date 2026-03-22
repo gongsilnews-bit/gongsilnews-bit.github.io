@@ -5,6 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>공실뉴스 - 공실스터디</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Supabase & Auth Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
     <style>
         :root {
             --study-green: #1b4332; /* 짙은 녹색 */
@@ -185,10 +190,12 @@
     <header class="header">
         <div class="header-left">
             <div class="logo-group">
-                <a href="index.html" class="logo-img-link">
+                <a href="https://www.gongsilnews.com/" target="_blank" class="logo-img-link">
                     <img src="logo.png" alt="공실뉴스" style="height: 40px;">
                 </a>
-                <span class="beta-badge">map 베타서비스</span>
+                <a href="javascript:location.href=window.BASE_PATH + '/'" class="logo-text-link">
+                    <span class="beta-badge">map 베타서비스</span>
+                </a>
             </div>
             <nav class="nav">
                 <a href="gongsil.html" class="nav-tab">공실열람</a>
@@ -196,9 +203,15 @@
                 <a href="study.html" class="nav-tab active">공실스터디</a>
             </nav>
         </div>
-        <div class="header-right">
-            <a href="#" class="btn-login">구글 로그인</a>
-            <a href="#" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
+        <div class="header-right" style="display: flex; align-items: center;">
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-right: 15px;">
+                <span id="userNameDisplay" style="font-size: 14px; font-weight: bold; color: #333;">이름</span>
+                <span id="userRoleBadge" style="font-size: 11px; padding: 3px 6px; border-radius: 4px; background: #f0f0f0; color: #555;">로딩중</span>
+                <a href="#" id="headerLogoutBtn" class="btn-login" style="background:#666; color:white; border:none;">로그아웃</a>
+            </div>
+            
+            <a href="#" id="headerLoginBtn" class="btn-login">구글 로그인</a>
+            <a href="https://smartstore.naver.com/mygongsil/products/10361563253" target="_blank" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
         </div>
     </header>
 
