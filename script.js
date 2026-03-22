@@ -378,14 +378,15 @@ function renderSidebar(newsList) {
             if (map && news.lat && news.lng) {
                 const moveLatLon = new kakao.maps.LatLng(news.lat, news.lng);
                 map.panTo(moveLatLon);
-                map.setLevel(4); // 확대
+                map.setLevel(4);
 
-                // 마커 클릭 트리거 (오버레이 표시)
-                // allMarkers는 renderMarkers 함수에서 채워지는 전역 배열이라고 가정
                 if (allMarkers[index]) {
                     kakao.maps.event.trigger(allMarkers[index], 'click');
                 }
             }
+            
+            // 상세 기사 보기 표시
+            showNewsDetail(news);
         });
 
         container.appendChild(card);
@@ -479,6 +480,24 @@ function renderMarkers(newsList) {
     const validMarkers = allMarkers.filter(m => m !== null && m !== undefined);
     clusterer.addMarkers(validMarkers);
 }
+
+// 뉴스 상세 보기 표시 함수
+window.showNewsDetail = function(news) {
+    const detailView = document.getElementById('news-detail-view');
+    if (detailView) {
+        detailView.style.display = 'block';
+        // 실제 데이터 연동 시 news 객체를 사용하여 필드 채우기 가능
+        // 현재는 더미 레이아웃이 html에 포함되어 있음
+    }
+};
+
+// 뉴스 상세 보기 닫기 함수
+window.closeNewsDetail = function() {
+    const detailView = document.getElementById('news-detail-view');
+    if (detailView) {
+        detailView.style.display = 'none';
+    }
+};
 
 // 초기화 완료
 document.addEventListener('DOMContentLoaded', () => {
