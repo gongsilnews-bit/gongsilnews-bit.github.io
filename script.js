@@ -97,16 +97,16 @@ function renderTier2(key) {
 
     const subs = NEWS_NAV_CONFIG[key].subs;
     container.innerHTML = subs.map((sub, idx) => 
-        `<div class="news-sub-tab ${idx === 0 ? 'active' : ''}" onclick="selectSubTab(this)">${sub}</div>`
+        `<button class="news-pill ${idx === 0 ? 'active' : ''}" onclick="selectSubTab(this)">${sub}</button>`
     ).join('');
 }
 
 window.selectSubTab = function(el) {
-    document.querySelectorAll('.news-sub-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.news-pill').forEach(tab => tab.classList.remove('active'));
     el.classList.add('active');
     
     // 서브 카테고리 클릭 시 데이터 로드 로직 (나중에 구현)
-    const category = el.innerText.trim();
+    const category = el.innerText.replace('✓ ', '').trim();
     loadNews(category);
 }
 
