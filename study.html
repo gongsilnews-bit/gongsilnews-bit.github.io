@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실뉴스 - 공실스터디</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        :root {
+            --study-green: #1b4332; /* 짙은 녹색 */
+            --study-light-green: #d8f3dc;
+            --study-accent: #2d6a4f;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        /* 헤더 네비게이션 활성화 상태 */
+        .nav-tab.active {
+            color: var(--study-green);
+            border-bottom-color: var(--study-green);
+        }
+
+        /* 스터디 전용 네비게이션 */
+        .study-nav-bar {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            z-index: 50;
+            position: sticky;
+            top: 0;
+        }
+        .study-tier1 {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .study-tab-item {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            padding: 16px 4px;
+            position: relative;
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+        .study-tab-item:hover {
+            color: var(--study-green);
+        }
+        .study-tab-item.active {
+            color: var(--study-green);
+        }
+        .study-tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--study-green);
+        }
+
+        /* 메인 그리드 레이아웃 */
+        .study-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111;
+        }
+        .view-all {
+            font-size: 14px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        /* 강의 카드 그리드 */
+        .lecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .lecture-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .lecture-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .lecture-thumb {
+            width: 100%;
+            height: 180px;
+            background: #eee;
+            position: relative;
+        }
+        .lecture-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .badge-new {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--study-green);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .bookmark-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: rgba(255,255,255,0.8);
+            font-size: 20px;
+        }
+
+        .lecture-info {
+            padding: 16px;
+        }
+        .lecture-cat {
+            font-size: 11px;
+            color: var(--study-green);
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .lecture-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #222;
+            line-height: 1.4;
+            height: 44px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 12px;
+        }
+        .lecture-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+        .instructor {
+            font-weight: 600;
+            color: #444;
+        }
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #ff9f1c; /* 별점은 노란색 유지 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 공통 헤더 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-group">
+                <a href="index.html" class="logo-img-link">
+                    <img src="logo.png" alt="공실뉴스" style="height: 40px;">
+                </a>
+                <span class="beta-badge">map 베타서비스</span>
+            </div>
+            <nav class="nav">
+                <a href="gongsil.html" class="nav-tab">공실열람</a>
+                <a href="index.html" class="nav-tab">뉴스기사</a>
+                <a href="study.html" class="nav-tab active">공실스터디</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="#" class="btn-login">구글 로그인</a>
+            <a href="#" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
+        </div>
+    </header>
+
+    <!-- 스터디 네비게이션 -->
+    <div class="study-nav-bar">
+        <div class="study-tier1">
+            <div class="study-tab-item active">챗GPT/AI</div>
+            <div class="study-tab-item">경매물건분석</div>
+            <div class="study-tab-item">블로그글쓰기</div>
+            <div class="study-tab-item">유튜브영상제작</div>
+            <div class="study-tab-item">중개실무기타</div>
+        </div>
+    </div>
+
+    <main class="study-container">
+        <!-- 상단 특집 섹션 (더미) -->
+        <div class="section-header">
+            <h2 class="section-title">2026 대비, 라이브 무료 특강 🔥</h2>
+            <a href="#" class="view-all">전체보기 〉</a>
+        </div>
+
+        <div class="lecture-grid">
+            <!-- 더미 강의 카드 1 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <span class="badge-new">NEW</span>
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">챗GPT/AI</div>
+                    <h3 class="lecture-title">부동산 중개인을 위한 챗GPT 실전 활용법: 매물 광고 자동화</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">김프로 강사</span>
+                        <div class="rating">★ 4.9 (124)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 더미 강의 카드 2 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">경매물건분석</div>
+                    <h3 class="lecture-title">왕초보도 1주 만에 끝내는 실전 경매 권리분석 가이드</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">이전문가</span>
+                        <div class="rating">★ 4.8 (89)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 더미 강의 카드 3 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">블로그글쓰기</div>
+                    <h3 class="lecture-title">네이버 블로그 상위 노출 전략: 지역 기반 부동산 마케팅</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">박작가</span>
+                        <div class="rating">★ 4.7 (56)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 더미 강의 카드 4 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">유튜브영상제작</div>
+                    <h3 class="lecture-title">조회수 터지는 임장 유튜브 기획부터 프리미어 프로 편집까지</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">유디터</span>
+                        <div class="rating">★ 5.0 (210)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 더미 강의 카드 5 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1454165833767-0e96ef4a3771?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">중개실무기타</div>
+                    <h3 class="lecture-title">2026 부동산 법률 개정안 총정리 및 중개 사고 예방 교육</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">조변호사</span>
+                        <div class="rating">★ 4.9 (45)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 더미 강의 카드 6 -->
+            <div class="lecture-card">
+                <div class="lecture-thumb">
+                    <img src="https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=400" alt="강의">
+                    <div class="bookmark-btn">🔖</div>
+                </div>
+                <div class="lecture-info">
+                    <div class="lecture-cat">챗GPT/AI</div>
+                    <h3 class="lecture-title">AI로 만드는 고퀄리티 매물 홍보 이미지 및 가상 인테리어</h3>
+                    <div class="lecture-meta">
+                        <span class="instructor">디자이너 최</span>
+                        <div class="rating">★ 4.6 (32)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 간단한 탭 클릭 이벤트
+        document.querySelectorAll('.study-tab-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.study-tab-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
