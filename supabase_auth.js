@@ -46,63 +46,6 @@ async function handleAuthStateChange(user) {
     }
 }
 
-// 동의 약관 모달 - 신규 가입 시에만 호출됨
-function showTermsModal(onAgree, onCancel) {
-    let modal = document.getElementById('termsModal');
-    if(!modal) {
-        modal = document.createElement('div');
-        modal.id = 'termsModal';
-        modal.innerHTML = `
-            <div style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); display:flex; justify-content:center; align-items:center; z-index:9999;">
-                <div style="background:#fff; padding:30px; border-radius:12px; width:360px; box-shadow:0 10px 25px rgba(0,0,0,0.2);">
-                    <h3 style="margin-top:0; border-bottom:2px solid #ff9f1c; padding-bottom:12px; font-size:18px; color:#111;">🛡️ 서비스 이용 동의</h3>
-                    <p style="font-size:13px; color:#666; line-height:1.6; margin-bottom:20px;">
-                        반갑습니다! 공실뉴스에 처음 오셨군요.<br>안전한 서비스 이용을 위해 약관에 동의해 주세요.
-                    </p>
-                    
-                    <div style="margin:20px 0; font-size:14px; color:#333; background:#f9f9f9; padding:15px; border-radius:8px;">
-                        <label style="display:flex; align-items:center; gap:8px; margin-bottom:12px; cursor:pointer;">
-                            <input type="checkbox" id="chkTerm1" style="width:16px; height:16px; accent-color:#ff9f1c;"> <b>[필수]</b> 공실뉴스 이용약관 동의
-                        </label>
-                        <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                            <input type="checkbox" id="chkTerm2" style="width:16px; height:16px; accent-color:#ff9f1c;"> <b>[필수]</b> 개인정보 수집 및 처리방침 동의
-                        </label>
-                    </div>
-
-                    <div style="display:flex; gap:10px;">
-                        <button id="btnCancelTerms" style="flex:1; padding:12px; border:none; border-radius:6px; background:#e5e7eb; color:#4b5563; font-weight:bold; cursor:pointer;">거부</button>
-                        <button id="btnAgreeTerms" style="flex:2; padding:12px; border:none; border-radius:6px; background:#ff9f1c; color:#fff; font-weight:bold; cursor:pointer; font-size:15px;">동의하고 가입완료 🎉</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-    }
-
-    // 이벤트 리스너 설정 (클린업을 위해 매번 새로 설정)
-    const btnAgree = document.getElementById('btnAgreeTerms');
-    const btnCancel = document.getElementById('btnCancelTerms');
-
-    btnAgree.onclick = () => {
-        const t1 = document.getElementById('chkTerm1').checked;
-        const t2 = document.getElementById('chkTerm2').checked;
-        if(!t1 || !t2) {
-            alert("⚠️ 필수 약관에 모두 동의해주셔야 서비스 이용이 가능합니다.");
-            return;
-        }
-        modal.style.display = 'none';
-        if(onAgree) onAgree();
-    };
-
-    btnCancel.onclick = () => {
-        modal.style.display = 'none';
-        if(onCancel) onCancel();
-    };
-    
-    document.getElementById('termsModal').style.display = 'flex';
-    document.getElementById('chkTerm1').checked = false;
-    document.getElementById('chkTerm2').checked = false;
-}
 
 // 구글 로그인 클릭 이벤트 (이제 바로 로그인 시도)
 if(loginBtn) {
@@ -161,59 +104,9 @@ async function handleUserDocument(user) {
             window.currentUser = { ...user, profile: userData };
             localStorage.setItem('gongsil_user', JSON.stringify(window.currentUser));
         } else {
-            // [신규 가입자] 약관 동의 모달 띄우기
-            showTermsModal(
-                async () => {
-                    // 동의함 -> 회원 등록 진행
-                    const { data: preRegData } = await supabase
-                        .from('pre_registered_realtors')
-                        .select('*')
-                        .eq('email', user.email.toLowerCase())
-                        .maybeSingle();
-                    
-                    let initialRole = "general";
-                    let initialExpiredAt = null;
-                    
-                    if (user.email === ADMIN_EMAIL) {
-                        initialRole = "admin";
-                    } else if (preRegData) {
-                        if (preRegData.note && preRegData.note.includes('role:')) {
-                            initialRole = preRegData.note.split('role:')[1];
-                        } else {
-                            initialRole = "realtor";
-                        }
-                        initialExpiredAt = preRegData.expired_date;
-                        if (initialRole === 'general') initialExpiredAt = null;
-                    }
-
-                    const newUserData = {
-                        id: user.id,
-                        email: user.email,
-                        role: initialRole,
-                        expired_at: initialExpiredAt,
-                        created_at: new Date().toISOString()
-                    };
-
-                    const { data: savedData, error: insertError } = await supabase
-                        .from('members')
-                        .insert([newUserData])
-                        .select()
-                        .maybeSingle();
-
-                    if (insertError) throw insertError;
-                    userData = savedData || newUserData;
-                    updateRoleUI(userData);
-
-                    window.currentUser = { ...user, profile: userData };
-                    localStorage.setItem('gongsil_user', JSON.stringify(window.currentUser));
-                },
-                async () => {
-                    // 동의 거부 -> 로그아웃
-                    alert("약관에 동의하지 않으시면 서비스 이용이 불가능하여 로그아웃됩니다.");
-                    await supabase.auth.signOut();
-                    window.location.reload();
-                }
-            );
+            // [신규 가입자] 회원가입 마무리 페이지로 이동
+            console.log("신규 가입자 감지: 가입 마무리 페이지로 이동합니다.");
+            window.location.href = window.BASE_PATH + '/register_profile.html';
         }
 
     } catch (error) {
