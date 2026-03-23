@@ -168,6 +168,188 @@ if (typeof kakao === 'undefined') {
         // 검색 이벤트 연결
         initSearchEvents();
 
+        // ---- [추가] 뉴스 지도 전용 플로팅 검색 및 지역 선택 로직 ----
+        window.globalGeocoder = new kakao.maps.services.Geocoder();
+        window.globalPlaces = new kakao.maps.services.Places();
+        window.currentRegCodeDo = '';
+        window.currentRegCodeGu = '';
+        window.currentSelectedSido = '서울특별시';
+        window.currentSelectedGugun = '강남구';
+
+        // 지도가 멈췄을 때 중앙 주소 파악하여 상단 탭 업데이트
+        kakao.maps.event.addListener(map, 'idle', function() {
+            let center = map.getCenter();
+            window.globalGeocoder.coord2RegionCode(center.getLng(), center.getLat(), (result, status) => {
+                if (status === kakao.maps.services.Status.OK) {
+                    for(let i = 0; i < result.length; i++) {
+                        if (result[i].region_type === 'H') {
+                            const doEl = document.getElementById('mapRegionDo');
+                            const guEl = document.getElementById('mapRegionGu');
+                            const dongEl = document.getElementById('mapRegionDong');
+                            if(doEl) doEl.textContent = result[i].region_1depth_name || '-';
+                            if(guEl) guEl.textContent = result[i].region_2depth_name || '-';
+                            if(dongEl) dongEl.textContent = result[i].region_3depth_name || '-';
+                            break;
+                        }
+                    }
+                }
+            });
+        });
+
+        window.toggleMapSearch = function() {
+            const regionPanel = document.getElementById('regionSelectorPanel');
+            if(regionPanel) regionPanel.style.display = 'none';
+            const panel = document.getElementById('mapSearchPanel');
+            if (!panel) return;
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                document.getElementById('mapSearchInput').focus();
+            } else {
+                panel.style.display = 'none';
+            }
+        };
+
+        window.openRegionSelector = function(tabName) {
+            const searchPanel = document.getElementById('mapSearchPanel');
+            if(searchPanel) searchPanel.style.display = 'none';
+            const panel = document.getElementById('regionSelectorPanel');
+            if(!panel) return;
+            if(panel.style.display === 'none') {
+                panel.style.display = 'block';
+            }
+            window.switchRegTab(tabName);
+        };
+
+        window.switchRegTab = async function(tabName) {
+            document.querySelectorAll('.region-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.reg-panel').forEach(el => el.style.display = 'none');
+            
+            let activeBtn;
+            if(tabName === 'sido') { activeBtn = document.getElementById('tabSido'); document.getElementById('panelSido').style.display = 'grid'; await window.loadRegSido(); }
+            if(tabName === 'gugun') { activeBtn = document.getElementById('tabGugun'); document.getElementById('panelGugun').style.display = 'grid'; await window.loadRegGugun(); }
+            if(tabName === 'dong') { activeBtn = document.getElementById('tabDong'); document.getElementById('panelDong').style.display = 'grid'; await window.loadRegDong(); }
+            if(activeBtn) activeBtn.classList.add('active');
+        };
+
+        window.loadRegSido = async function() {
+            const panel = document.getElementById('panelSido');
+            if(!panel || panel.innerHTML.includes('reg-item-btn')) return;
+            panel.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center;">로딩중...</div>';
+            try {
+                const res = await fetch('https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=*00000000');
+                const data = await res.json();
+                panel.innerHTML = data.regcodes.map(c => `<button class="reg-item-btn" onclick="window.onRegSelectSido('${c.code}', '${c.name}')">${c.name}</button>`).join('');
+            } catch(e) { panel.innerHTML = '<div style="grid-column:1/-1; color:red; text-align:center;">데이터를 로드하지 못했습니다.</div>'; }
+        };
+
+        window.loadRegGugun = async function() {
+            const panel = document.getElementById('panelGugun');
+            if(!panel) return;
+            if(!window.currentRegCodeDo) return panel.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#888;">먼저 시/도를 선택해주세요.</div>';
+            panel.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center;">로딩중...</div>';
+            const prefix = window.currentRegCodeDo.substring(0, 2);
+            try {
+                const res = await fetch(`https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=${prefix}*00000&is_ignore_zero=true`);
+                const data = await res.json();
+                const sorted = data.regcodes.sort((a,b) => a.name.localeCompare(b.name));
+                panel.innerHTML = sorted.map(c => {
+                    const name = c.name.split(' ').slice(1).join(' ');
+                    return `<button class="reg-item-btn" onclick="window.onRegSelectGugun('${c.code}', '${name}')">${name}</button>`;
+                }).join('');
+            } catch(e) { panel.innerHTML = '<div style="grid-column:1/-1; color:red; text-align:center;">데이터를 로드하지 못했습니다.</div>'; }
+        };
+
+        window.loadRegDong = async function() {
+            const panel = document.getElementById('panelDong');
+            if(!panel) return;
+            if(!window.currentRegCodeGu) return panel.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#888;">먼저 시/군/구를 선택해주세요.</div>';
+            panel.innerHTML = '<div style="grid-column:1/-1; padding:20px; text-align:center;">로딩중...</div>';
+            const prefix = window.currentRegCodeGu.substring(0, 5);
+            try {
+                const res = await fetch(`https://grpc-proxy-server-mkvo6j4wsq-du.a.run.app/v1/regcodes?regcode_pattern=${prefix}*&is_ignore_zero=true`);
+                const data = await res.json();
+                const sorted = data.regcodes.sort((a,b) => a.name.localeCompare(b.name));
+                let html = '';
+                sorted.forEach(c => {
+                    if(c.code === window.currentRegCodeGu) return;
+                    const parts = c.name.split(' ');
+                    const name = parts[parts.length - 1];
+                    html += `<button class="reg-item-btn" onclick="window.onRegSelectDong('${name}')">${name}</button>`;
+                });
+                panel.innerHTML = html || '<div style="grid-column:1/-1; padding:20px; text-align:center; color:#888;">세부 지역 없음</div>';
+            } catch(e) { panel.innerHTML = '<div style="grid-column:1/-1; color:red; text-align:center;">데이터를 로드하지 못했습니다.</div>'; }
+        };
+
+        window.onRegSelectSido = function(code, name) {
+            window.currentRegCodeDo = code;
+            window.currentSelectedSido = name;
+            window.moveToMapSearchByKeyword(name, 8); 
+            window.switchRegTab('gugun');
+        };
+        window.onRegSelectGugun = function(code, name) {
+            window.currentRegCodeGu = code;
+            window.currentSelectedGugun = name;
+            window.moveToMapSearchByKeyword(window.currentSelectedSido + ' ' + name, 6); 
+            window.switchRegTab('dong');
+        };
+        window.onRegSelectDong = function(name) {
+            window.moveToMapSearchByKeyword(window.currentSelectedSido + ' ' + window.currentSelectedGugun + ' ' + name, 4); 
+            document.getElementById('regionSelectorPanel').style.display = 'none';
+        };
+
+        window.moveToMapSearchByKeyword = function(keyword, zlevel) {
+            if(!window.globalPlaces || !map) return;
+            window.globalPlaces.keywordSearch(keyword, (data, status) => {
+                if (status === kakao.maps.services.Status.OK && data.length > 0) {
+                    let coords = new kakao.maps.LatLng(data[0].y, data[0].x);
+                    map.setCenter(coords);
+                    map.setLevel(zlevel);
+                }
+            });
+        };
+
+        window.executeMapKeywordSearch = function() {
+            const kw = document.getElementById('mapSearchInput').value.trim();
+            const output = document.getElementById('mapSearchResultList');
+            if (!kw) {
+                output.innerHTML = '<div style="color:#e74c3c; padding:10px;">검색어를 입력해 주세요.</div>';
+                return;
+            }
+            output.innerHTML = '<div style="padding:10px;">검색 중...</div>';
+            
+            window.globalPlaces.keywordSearch(kw, (data, status) => {
+                if (status === kakao.maps.services.Status.OK) {
+                    output.innerHTML = data.map(item => `
+                        <div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="window.moveToMapSearch(${item.y}, ${item.x}, '${item.place_name || ''}')">
+                            <strong style="color:#111;">${item.place_name}</strong><br>
+                            <span style="font-size:11px; color:#888;">${item.road_address_name || item.address_name}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    window.globalGeocoder.addressSearch(kw, (addrData, addrStatus) => {
+                        if (addrStatus === kakao.maps.services.Status.OK) {
+                            output.innerHTML = addrData.map(item => `
+                                <div style="padding:10px; border-bottom:1px solid #eee; cursor:pointer;" onclick="window.moveToMapSearch(${item.y}, ${item.x}, '${item.address_name}')">
+                                    <strong style="color:#111;">${item.address_name}</strong>
+                                </div>
+                            `).join('');
+                        } else {
+                            output.innerHTML = '<div style="padding:10px;">검색 결과가 없습니다.</div>';
+                        }
+                    });
+                }
+            });
+        };
+
+        window.moveToMapSearch = function(lat, lng, name) {
+            if(!map) return;
+            const coords = new kakao.maps.LatLng(parseFloat(lat), parseFloat(lng));
+            map.setCenter(coords);
+            map.setLevel(4);
+            window.toggleMapSearch();
+            if (name) setTimeout(() => document.getElementById('mapSearchInput').value = name, 100);
+        };
+
         // 뉴스 데이터 로드
         await loadNews(currentCategory);
     });

@@ -81,6 +81,18 @@
         .news-wish-sort-item { cursor: pointer; }
         .news-wish-sort-item.active { color: #ff9f1c; font-weight: bold; }
         .news-edit-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+        /* 지도 통합 플로팅 검색 스타일 (공실열람 스타일 이식 + 주황색 테마) */
+        #wishFloatingFilter { display: flex; position: absolute; top: 15px; left: 20px; z-index: 10; background: #fff; padding: 5px 15px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ddd; align-items: center; gap: 10px; font-size: 14px; color: #333; transition: box-shadow 0.2s; }
+        #wishFloatingFilter:hover { box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .wish-select { background: none; border: none; cursor: pointer; font-weight: bold; padding: 5px 10px; }
+        .wish-select::after { content: ' ▼'; font-size: 10px; color: #999; }
+        
+        .region-tab { flex:1; padding:12px; background:transparent; border:none; cursor:pointer; font-weight:bold; font-size:14px; color:#666; transition:all 0.2s; border-bottom:2px solid transparent; }
+        .region-tab.active { color:var(--primary-color); border-bottom:2px solid var(--primary-color); background:#fff; }
+        .reg-item-btn { padding:8px 5px; background:#fff; border:1px solid #eee; border-radius:4px; font-size:13px; color:#444; cursor:pointer; transition:all 0.2s; text-align:center; }
+        .reg-item-btn:hover { background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
+        .region-close-btn:hover { background:#ddd !important; }
     </style>
 </head>
 
@@ -206,13 +218,47 @@
                 </div>
             </div>
             
+            <div id="wishFloatingFilter">
+                <span class="wish-select" id="mapRegionDo" onclick="window.openRegionSelector('sido')">위치 파악중</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" id="mapRegionGu" onclick="window.openRegionSelector('gugun')">-</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" id="mapRegionDong" onclick="window.openRegionSelector('dong')">-</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" style="color:var(--primary-color);" onclick="window.toggleMapSearch()">검색 🔍</span>
+            </div>
+
+            <!-- 지역 선택 캐스케이딩 패널 -->
+            <div id="regionSelectorPanel" style="display:none; position:absolute; top:70px; left:20px; z-index:20; background:#fff; width:380px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); overflow:hidden;">
+                <div style="display:flex; border-bottom:1px solid #ccc; background:#f9f9f9;">
+                    <button class="region-tab active" id="tabSido" onclick="window.switchRegTab('sido')">시/도</button>
+                    <button class="region-tab" id="tabGugun" onclick="window.switchRegTab('gugun')">시/군/구</button>
+                    <button class="region-tab" id="tabDong" onclick="window.switchRegTab('dong')">읍/면/동</button>
+                </div>
+                <div class="region-content-box" style="padding:15px; height:250px; overflow-y:auto;">
+                    <div id="panelSido" class="reg-panel" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                    <div id="panelGugun" class="reg-panel" style="display:none; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                    <div id="panelDong" class="reg-panel" style="display:none; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                </div>
+                <button onclick="document.getElementById('regionSelectorPanel').style.display='none';" style="width:100%; padding:10px; border:none; background:#eee; cursor:pointer;" class="region-close-btn">닫기</button>
+            </div>
+
+            <!-- 지도 검색 입력 패널 -->
+            <div id="mapSearchPanel" style="display:none; position:absolute; top:70px; left:20px; z-index:20; background:#fff; padding:15px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); width:320px;">
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="text" id="mapSearchInput" placeholder="동, 읍, 면 또는 랜드마크 검색" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; outline:none;" onkeypress="if(event.key==='Enter') window.executeMapKeywordSearch()">
+                    <button onclick="window.executeMapKeywordSearch()" style="padding:8px 12px; background:var(--primary-color); color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">이동</button>
+                </div>
+                <div id="mapSearchResultList" style="max-height:200px; overflow-y:auto; font-size:13px; color:#555;"></div>
+            </div>
+
             <div id="map"></div>
         </div>
     </main>
 
-    <!-- Kakao Map SDK -->
+    <!-- Kakao Map SDK (services 라이브러리 추가) -->
     <script type="text/javascript"
-        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=435d3602201a49ea712e5f5a36fe6efc&libraries=clusterer"></script>
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=435d3602201a49ea712e5f5a36fe6efc&libraries=clusterer,services"></script>
     <script src="script.js?v=1.3"></script>
 
     <!-- Supabase 인증 모듈 추가 -->
