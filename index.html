@@ -57,10 +57,10 @@
 
         /* 신규 뉴스 네비게이션 스타일 - 공실열람과 간격/폰트 완벽 통일 */
         .news-nav-bar { background: #fff; border-bottom: 1px solid #ddd; z-index: 50; position: relative; }
-        .news-tier1 { display: flex; align-items: center; gap: 24px; padding: 0 20px; border-bottom: 1px solid #ddd; }
-        .news-tab-item { font-size: 16px; font-weight: bold; color: #555; cursor: pointer; padding: 16px 4px; position: relative; white-space: nowrap; transition: color 0.2s; }
-        .news-tab-item.active { color: #ff9f1c; }
-        .news-tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: #ff9f1c; }
+        .news-tier1 { display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid #ddd; overflow-x: auto; }
+        .news-tab-item { background: none; border: none; font-size: 16px; font-weight: bold; color: #555; cursor: pointer; padding: 16px 4px; position: relative; white-space: nowrap; font-family: inherit; }
+        .news-tab-item:hover { color: #ff9f1c; }
+        .news-tab-item.active { color: #ff9f1c; border-bottom: 3px solid #ff9f1c; }
 
         .filter-bar-news { background: #fff; border-bottom: 1px solid #e0e0e0; }
         .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; }
@@ -85,7 +85,7 @@
 </head>
 
 <body>
-    <!-- 헤더 -->
+    <!-- 공통 헤더 -->
     <header class="header">
         <div class="header-left">
             <div class="logo-group">
@@ -122,10 +122,10 @@
     <!-- 뉴스 전용 네비게이션 필터 (공실열람 디자인 복제) -->
     <div class="news-nav-bar">
         <div class="news-tier1">
-            <div class="news-tab-item active">우리동네부동산</div>
-            <div class="news-tab-item">뉴스/칼럼</div>
-            <div class="news-tab-item">MY관심기사</div>
-            <div class="news-tab-item">기사관리</div>
+            <button class="news-tab-item active">우리동네부동산</button>
+            <button class="news-tab-item">뉴스/칼럼</button>
+            <button class="news-tab-item">MY관심기사</button>
+            <button class="news-tab-item">기사관리</button>
         </div>
         <div class="filter-bar-news">
             <div class="filter-row">
@@ -159,7 +159,7 @@
                     <span class="news-edit-btn">⚙︎ 편집</span>
                 </div>
 
-                <h2 id="newsCategoryTitle" style="padding: 20px; margin: 0; font-size: 18px; border-bottom: 1px solid #eee;">최신 뉴스</h2>
+                <h2 id="newsCategoryTitle" style="padding: 15px 20px; margin: 0; font-size: 15px; font-weight: 800; color: #111; border-bottom: 1px solid #eee; display: flex; align-items: center;">최신 뉴스</h2>
             </div>
             <div id="news-content" class="news-list">
                 <!-- 자바스크립트로 뉴스 로드됨 -->
