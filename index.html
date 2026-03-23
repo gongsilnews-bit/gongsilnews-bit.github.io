@@ -55,6 +55,19 @@
         .news-pill:hover { background: #f9fafb; border-color: #999; }
         .news-pill.active { background: #fff8f1; border-color: #ff9f1c; color: #ff9f1c; font-weight: bold; }
         .news-pill.active::before { content: '✓ '; font-weight: bold; }
+
+        /* MY관심기사/기사관리 전용 탭 (사이드바 내부) */
+        .news-interest-tabs { display: none; width: 100%; border-bottom: 1px solid #eee; }
+        .wish-mode .news-interest-tabs { display: flex; }
+        .news-interest-tab { flex: 1; padding: 12px 0; text-align: center; border: 1px solid #eee; background: #fff; font-size: 13px; cursor: pointer; color: #666; font-weight: bold; border-top: none; }
+        .news-interest-tab.active { background: #00ca62; color: #fff; border-color: #00ca62; }
+        
+        .news-wish-sort-bar { display: none; padding: 12px 20px; justify-content: space-between; align-items: center; border-bottom: 1px solid #f5f5f5; font-size: 12px; color: #888; background: #fff; }
+        .wish-mode .news-wish-sort-bar { display: flex; }
+        .news-wish-sort-items { display: flex; gap: 10px; }
+        .news-wish-sort-item { cursor: pointer; }
+        .news-wish-sort-item.active { color: #00ca62; font-weight: bold; }
+        .news-edit-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; }
     </style>
 </head>
 
@@ -116,10 +129,24 @@
     <main class="main-container">
         <!-- 좌측 사이드바 (뉴스 리스트) -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <!-- 기존 카테고리 필터 제거 (위의 상단 2단 메뉴로 대체됨) -->
- 
-                <h2>최신 뉴스</h2> <!-- 카테고리에 따라 변경됨 -->
+            <div class="sidebar-header" style="padding: 0; border-bottom: none;">
+                <!-- MY관심기사 전용 탭 -->
+                <div class="news-interest-tabs" id="newsInterestTabs">
+                    <!-- JS rendering -->
+                </div>
+
+                <!-- MY관심기사 정렬 바 -->
+                <div class="news-wish-sort-bar" id="newsWishSortBar">
+                    <div class="news-wish-sort-items">
+                        <span class="news-wish-sort-item active">등록일순</span>
+                        <span class="news-wish-sort-item">가나다순</span>
+                        <span class="news-wish-sort-item">세대수순</span>
+                        <span class="news-wish-sort-item">최근입주순</span>
+                    </div>
+                    <span class="news-edit-btn">⚙︎ 편집</span>
+                </div>
+
+                <h2 id="newsCategoryTitle" style="padding: 20px; margin: 0; font-size: 18px; border-bottom: 1px solid #eee;">최신 뉴스</h2>
             </div>
             <div id="news-content" class="news-list">
                 <!-- 자바스크립트로 뉴스 로드됨 -->

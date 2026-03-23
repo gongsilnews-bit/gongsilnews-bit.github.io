@@ -92,13 +92,51 @@ function initNewsNavigation() {
 }
 
 function renderTier2(key) {
-    const container = document.querySelector('.filter-bar-news .filter-row');
-    if (!container) return;
+    const filterRow = document.querySelector('.filter-bar-news .filter-row');
+    const filterBar = document.querySelector('.filter-bar-news');
+    const sidebar = document.querySelector('.sidebar');
+    const newsInterestTabs = document.getElementById('newsInterestTabs');
+    const categoryTitle = document.getElementById('newsCategoryTitle');
+    
+    if (!filterRow || !filterBar || !sidebar) return;
 
-    const subs = NEWS_NAV_CONFIG[key].subs;
-    container.innerHTML = subs.map((sub, idx) => 
-        `<button class="news-pill ${idx === 0 ? 'active' : ''}" onclick="selectSubTab(this)">${sub}</button>`
-    ).join('');
+    const config = NEWS_NAV_CONFIG[key];
+    if (!config || !config.subs) return;
+
+    const isSpecialNav = key === 'interest' || key === 'manage';
+
+    if (isSpecialNav) {
+        // 관심/관리 탭: 상단 필터바 숨기기, 사이드바 내에 탭 활성화
+        filterBar.style.display = 'none';
+        sidebar.classList.add('wish-mode');
+        if (newsInterestTabs) {
+            newsInterestTabs.innerHTML = config.subs.map((sub, idx) => 
+                `<div class="news-interest-tab ${idx === 0 ? 'active' : ''}" onclick="selectNewsSubTab(this)">${sub}</div>`
+            ).join('');
+        }
+        if (categoryTitle) categoryTitle.style.display = 'none';
+    } else {
+        // 일반 뉴스 탭: 상단 필터바 보이기, 사이드바 탭 숨기기
+        filterBar.style.display = 'block';
+        sidebar.classList.remove('wish-mode');
+        filterRow.innerHTML = config.subs.map((sub, idx) => 
+            `<button class="news-pill ${idx === 0 ? 'active' : ''}" onclick="selectSubTab(this)">${sub}</button>`
+        ).join('');
+        if (categoryTitle) {
+            categoryTitle.style.display = 'block';
+            categoryTitle.innerText = config.name;
+        }
+    }
+}
+
+// 탭 스타일 전용 클릭 핸들러 (MY관심기사 / 기사관리 용도)
+window.selectNewsSubTab = function(el) {
+    const tabs = document.querySelectorAll('.news-interest-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    
+    const subName = el.innerText.trim();
+    loadNews(subName);
 }
 
 window.selectSubTab = function(el) {
