@@ -809,7 +809,12 @@
                 props.forEach(p => {
                     const card = document.createElement('div');
                     card.className = 'property-card';
-                    card.onclick = () => window.showPropertyDetail(p);
+                    card.id = `property-card-${p.id}`;
+                    card.onclick = () => {
+                        document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
+                        card.classList.add('active');
+                        window.showPropertyDetail(p);
+                    };
                     
                     const priceStr = formatPriceDisplay(p);
                     const imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/150/EEEEEE/999999?text=No+Image';
@@ -1118,6 +1123,12 @@
                                 content: `<div style="padding:5px;font-size:12px;">${formatPriceDisplay(p)}</div>`
                             });
                             kakao.maps.event.addListener(marker, 'click', () => {
+                                document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
+                                const targetCard = document.getElementById(`property-card-${p.id}`);
+                                if (targetCard) {
+                                    targetCard.classList.add('active');
+                                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                }
                                 window.showPropertyDetail(p);
                                 infowindow.open(window.mapInstance, marker);
                                 setTimeout(() => infowindow.close(), 3000);
