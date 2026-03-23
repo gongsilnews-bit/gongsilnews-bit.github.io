@@ -13,7 +13,7 @@
     <script src="supabase_gongsi_config.js"></script>
 
     <style>
-        /* 초기 로딩 스타일 */
+        /* 초기 로딩 및 풀스크린 맵 레이아웃 최적화 */
         html,
         body {
             margin: 0;
@@ -21,6 +21,19 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 상단 고정 요소 처리 (메뉴 끊김 방지) */
+        .header { flex: none; }
+        .news-nav-bar { flex: none; }
+        
+        /* 메인 컨텐츠 영역은 남은 공간만 100% 점유 */
+        .main-container {
+            flex: 1;
+            height: auto;
+            min-height: 0;
         }
 
         /* 뉴스 상세 보기 스타일 (오렌지 톤/뉴스기사 레이아웃) */
