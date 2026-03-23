@@ -22,18 +22,21 @@
             --card-shadow: 0 10px 25px rgba(0,0,0,0.05);
         }
 
+        html, body {
+            overflow: auto !important;
+            height: auto !important;
+        }
+
         body {
             background-color: var(--bg-color);
             font-family: 'Pretendard Variable', sans-serif;
             display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* 중앙 정렬 대신 상단 시작으로 변경하여 클리핑 방지 */
             min-height: 100vh;
             margin: 0;
-            padding: 20px;
+            padding: 40px 20px;
             box-sizing: border-box;
-            overflow-y: auto !important;
-            height: auto !important;
         }
 
         .reg-card {
