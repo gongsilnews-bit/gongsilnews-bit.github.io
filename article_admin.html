@@ -230,8 +230,8 @@
     <!-- 액션 및 유틸 버튼 영역 -->
     <div class="action-bar">
         <div class="left-actions">
-            <!-- 기사 쓰기 폼으로 이동 (새 탭에서 관리자 레이아웃 유지하며 열림) -->
-            <a href="user_admin.html?page=news_write" target="_blank" class="btn-write">+ 기사쓰기</a>
+            <!-- 기사 쓰기 폼으로 이동 (동일 프레임 내부에서 열림) -->
+            <button onclick="window.parent.loadPage(null, '기사쓰기', 'news_write.html')" class="btn-write" style="cursor:pointer;">+ 기사쓰기</button>
             <button class="btn">⭐ 광고순위갱신</button>
             <button class="btn">🗑️ 선택삭제</button>
         </div>
