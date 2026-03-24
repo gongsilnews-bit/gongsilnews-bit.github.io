@@ -86,9 +86,7 @@ window.closePortalView = function() {
 };
 
 // 포털 탭 선택
-window.selectPortalTab = function(el, category) {
-    document.querySelectorAll('.portal-sub-tab').forEach(t => t.classList.remove('active'));
-    el.classList.add('active');
+window.selectPortalTab = function(category) {
     const title = document.getElementById('portalSectionTitle');
     if (title) title.textContent = '📰 ' + (category === '전체기사' ? '최신 뉴스' : category);
     loadPortalNews(category);
@@ -166,11 +164,12 @@ function initNewsNavigation() {
                 tier1Items.forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
                 
-                // 포털 모드 전환 (뉴스/칼럼 → portal-view 열기)
+                // 포털 모드 전환
                 if (configKey === 'column') {
+                    document.body.classList.add('portal-mode');
                     window.openPortalView();
-                    return; // 나머지 렌더링 불필요
                 } else {
+                    document.body.classList.remove('portal-mode');
                     window.closePortalView();
                 }
 
@@ -179,7 +178,11 @@ function initNewsNavigation() {
 
                 // 탭 전환 시 첫 번째 서브 카테고리 기사 자동 로드
                 const firstSub = NEWS_NAV_CONFIG[configKey].subs[0];
-                loadNews(firstSub);
+                if (configKey === 'column') {
+                    window.selectPortalTab(firstSub);
+                } else {
+                    loadNews(firstSub);
+                }
             }
         });
     });
@@ -237,6 +240,16 @@ window.selectNewsSubTab = function(el) {
 }
 
 window.selectSubTab = function(el) {
+    // 포털 모드일 경우 (단일 선택 방식)
+    if (document.body.classList.contains('portal-mode')) {
+        document.querySelectorAll('.news-pill').forEach(p => p.classList.remove('active'));
+        el.classList.add('active');
+        const cat = el.innerText.replace('✓ ', '').trim();
+        window.selectPortalTab(cat);
+        return;
+    }
+
+    // 일반 모드 (다중 선택 방식)
     el.classList.toggle('active');
     
     // 선택된 모든 카테고리 기사들을 로드하기 위해 선택된 항목들 수집
@@ -245,9 +258,10 @@ window.selectSubTab = function(el) {
     
     console.log("Selected News Categories:", selectedCategories);
     
-    // 데이터 로드 로직 호출 (로드 로직에서 배열을 처리하거나 첫 번째 항목 처리)
+    // 데이터 로드 로직 호출
     if (selectedCategories.length > 0) {
-        loadNews(selectedCategories.join(',')); // 콤마로 구분하여 전달 (서버 처리 용도)
+        loadNews(selectedCategories.join(','));
+
     } else {
         loadNews('전체기사'); // 아무것도 선택 안된 경우 기본값
     }
