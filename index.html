@@ -36,24 +36,112 @@
             min-height: 0;
         }
 
-        /* 뉴스 상세 보기 스타일 (오렌지 톤/뉴스기사 레이아웃) */
-        #news-detail-view { display: none; position: absolute; top:0; left:0; width:100%; height:100%; background: #fff; z-index: 1000; overflow-y: auto; }
-        .detail-container { max-width: 1000px; margin: 0 auto; display: flex; gap: 40px; padding: 40px 20px; }
-        .detail-content { flex: 1; }
-        .detail-breadcrumb { font-size: 13px; color: #ff9f1c; margin-bottom: 20px; font-weight: bold; }
-        .detail-title { font-size: 32px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 25px; word-break: keep-all; }
-        .detail-meta { border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 12px 0; margin-bottom: 30px; font-size: 13px; color: #888; display: flex; gap: 20px; }
-        .article-body { font-size: 16px; line-height: 1.8; color: #333; }
-        .article-body b { display: block; margin: 20px 0; color: #111; font-size: 18px; }
-        .article-img { width: 100%; border-radius: 4px; margin: 25px 0; }
+        /* 뉴스 상세 보기 스타일 고도화 (프리미엄 뉴스 레이아웃) */
+        #news-detail-view { 
+            display: none; 
+            position: fixed; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: #fff; 
+            z-index: 2000; 
+            overflow-y: auto; 
+            animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .detail-container { 
+            max-width: 1100px; 
+            margin: 0 auto; 
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 50px; 
+            padding: 60px 20px; 
+        }
+
+        .detail-content { min-width: 0; }
+        .detail-breadcrumb { font-size: 14px; color: #ff9f1c; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .detail-title { font-size: 38px; font-weight: 800; color: #111; line-height: 1.25; margin-bottom: 30px; word-break: keep-all; letter-spacing: -1.5px; }
+        .detail-meta { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee; 
+            border-bottom: 1px solid #eee; 
+            padding: 16px 0; 
+            margin-bottom: 40px; 
+            font-size: 14px; 
+            color: #666; 
+        }
+        .meta-info { display: flex; gap: 20px; }
         
-        .detail-sidebar { width: 300px; flex-shrink: 0; }
-        .side-box { border: 1px solid #eee; margin-bottom: 25px; border-radius: 4px; overflow: hidden; }
-        .side-title { background: #ff9f1c; color: #fff; font-size: 12px; font-weight: bold; padding: 8px 12px; text-transform: uppercase; }
-        .side-img { width: 100%; display: block; }
-        .side-btn { display: block; width: 100%; padding: 12px; background: #00ca62; color: #fff; border: none; font-size: 14px; font-weight: bold; margin-bottom: 10px; text-align: center; text-decoration: none; border-radius: 4px; }
-        .btn-close-detail { position: fixed; top: 120px; right: 40px; background: #111; color: #fff; padding: 10px 20px; border-radius: 40px; cursor: pointer; font-weight: bold; z-index: 1100; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-        .btn-close-detail:hover { background: #ff9f1c; }
+        .article-body { font-size: 18px; line-height: 1.85; color: #333; font-family: 'Pretendard', sans-serif; }
+        .article-body p { margin-bottom: 24px; }
+        .article-body b { display: block; margin: 30px 0 20px; color: #111; font-size: 20px; font-weight: 700; background: #fffcf0; padding: 15px; border-left: 4px solid #ff9f1c; }
+        .article-img-wrap { width: 100%; border-radius: 8px; overflow: hidden; margin: 30px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .article-img { width: 100%; display: block; }
+        
+        .detail-sidebar { position: sticky; top: 20px; }
+        .side-box { border: 1px solid #f1f3f5; margin-bottom: 35px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .side-title { background: #f8f9fa; color: #111; font-size: 14px; font-weight: 800; padding: 15px 20px; border-bottom: 1px solid #f1f3f5; }
+        .side-img-link { display: block; position: relative; }
+        .side-img { width: 100%; display: block; transition: transform 0.3s; }
+        .side-img-link:hover .side-img { transform: scale(1.05); }
+        .side-article-title { padding: 15px 20px; font-size: 15px; font-weight: 700; color: #333; line-height: 1.4; display: block; text-decoration: none; }
+        .side-article-title:hover { color: #ff9f1c; }
+
+        .btn-close-detail { 
+            position: fixed; 
+            top: 25px; 
+            right: 25px; 
+            width: 44px;
+            height: 44px;
+            background: #fff; 
+            color: #111; 
+            border-radius: 50%; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            z-index: 2200; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+            border: 1px solid #eee;
+        }
+        .btn-close-detail:hover { background: #ff9f1c; color: #fff; border-color: #ff9f1c; }
+
+        /* 뉴스 포털 모드 (그리드 레이아웃) */
+        .portal-mode .map-wrapper { display: none; }
+        .portal-mode .sidebar { width: 100% !important; max-width: 1200px; margin: 0 auto; border-right: none; position: relative; background: #fff; overflow-y: visible; padding: 40px 0; }
+        .portal-mode .news-list { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
+            gap:30px; 
+            padding: 0 20px; 
+        }
+        .portal-mode .news-card { 
+            border: 1px solid #eee; 
+            border-radius: 12px; 
+            padding: 0; 
+            overflow: hidden; 
+            height: 100%; 
+            display: flex; 
+            flex-direction: column; 
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            background: #fff;
+        }
+        .portal-mode .news-card:hover { transform: translateY(-8px); box-shadow: 0 12px 24px rgba(0,0,0,0.08); border-color: #ff9f1c; }
+        .portal-mode .card-img-wrap { width: 100%; height: 180px; overflow: hidden; background: #f8f9fa; }
+        .portal-mode .card-img { width: 100%; height: 100%; object-fit: cover; }
+        .portal-mode .card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+        .portal-mode .news-tag { margin-top: 0; margin-bottom: 12px; }
+        .portal-mode .news-card-title { font-size: 18px; line-height: 1.4; height: 50px; overflow: hidden; margin-bottom: 12px; }
+        .portal-mode .news-desc { font-size: 14px; margin-bottom: 15px; }
 
         /* 신규 뉴스 네비게이션 스타일 - 공실열람과 간격/폰트 완벽 통일 */
         .news-nav-bar { background: #fff; border-bottom: 1px solid #ddd; z-index: 50; position: relative; }
@@ -181,39 +269,60 @@
 
         <!-- 우측 지도 영역 -->
         <div class="map-wrapper">
-            <!-- 뉴스 상세 페이지 (레이아웃 더미) -->
+            <!-- 뉴스 상세 페이지 (레이아웃) -->
             <div id="news-detail-view">
-                <div class="btn-close-detail" onclick="closeNewsDetail()">지도 보기 🗺️</div>
+                <div class="btn-close-detail" onclick="closeNewsDetail()">✕</div>
                 <div class="detail-container">
                     <div class="detail-content">
-                        <div class="detail-breadcrumb">뉴스/칼럼 > 부동산·주식·재테크</div>
-                        <h1 class="detail-title">대법원, 신반포2차 재건축 상가 분쟁에 마침표... "조합원 전원 동의 불필요"</h1>
+                        <div class="detail-breadcrumb" id="detailCategory">뉴스/칼럼 > 부동산·주식·재테크</div>
+                        <h1 class="detail-title" id="detailTitle">로딩 중...</h1>
                         <div class="detail-meta">
-                            <span>공실뉴스 다른 기사 보기</span>
-                            <span>입력 2026.03.19 10:51</span>
-                            <span>조회수 53</span>
+                            <div class="meta-info">
+                                <span id="detailAuthor">공실뉴스</span>
+                                <span id="detailDate">입력 2026.03.19 10:51</span>
+                            </div>
+                            <div class="meta-stats">
+                                <span id="detailViews">조회수 0</span>
+                            </div>
                         </div>
-                        <div class="article-body">
-                            <b>대법원, 상가 산정 비율 관련 소송서 조합 승소 판결... '전원 동의' 족쇄 풀었다<br>
-                            신반포2차, 1572가구에서 2056가구 대단지로 탈바꿈... 사업 추진에 청신호<br>
-                            은마·목동 등 유사 갈등 겪는 타 재건축 단지 불확실성 해소에 긍정적 영향 전망</b>
+                        <div class="article-body" id="detailBody">
+                            <!-- JS에서 내용 채움 -->
+                        </div>
 
-                            <img src="https://via.placeholder.com/800x400?text=News+Article+Image" alt="Article Image" class="article-img">
-                            
-                            <p>[공실뉴스] 서울 서초구 잠원동 '신반포2차' 아파트 재건축 사업의 발목을 잡았던 상가 조합원과의 분쟁이 대법원 판결로 일단락 됐다. 대법원이 상가 권리가액 산정 비율을 정할 때 조합원 전원의 동의를 받을 필요는 없다고 판단하면서, 사업 추진에 가속도가 붙을 전망이다.</p>
-                            <p>부동산업계에 따르면 최근 대법원은 신반포2차 일부 상가 소유주들이 조합을 상대로 제기한 소송에서 조합의 손을 들어준 원심 판결을 확정했다. 이번 소송의 핵심은 상가 조합원들에게 아파트를 분양할 수 있는 기준인 '상가 산정 비율'을 정관이 아닌 내부 결의로 정할 수 있느냐였다.</p>
+                        <!-- 하단 관련 기사 추천 (포털형) -->
+                        <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid #111;">
+                            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 25px;">함께 보면 좋은 뉴스</h3>
+                            <div id="relatedNewsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <!-- 더미 추천 기사 -->
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">은마·목동 등 재건축 단지 불확실성 해소 전망...</div>
+                                </div>
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">2024년 부동산 전망 전문가 심층 토론회 개최...</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="detail-sidebar">
                         <div class="side-box">
-                            <div class="side-title">HOT 공실뉴스</div>
-                            <img src="https://via.placeholder.com/300x200?text=Banner+Image" alt="Ad" class="side-img">
-                            <div style="padding:15px; font-size:13px; font-weight:bold;">관악구 대단지 관악드림타운 네이버 전세 매물 0건?</div>
+                            <div class="side-title">📈 이 시각 인기 상위</div>
+                            <div id="mostReadList">
+                                <a href="#" class="side-article-title">1. 서울 아파트 공시가 18.7% 급등... '한강벨트' 보유세 폭탄</a>
+                                <a href="#" class="side-article-title">2. 관악구 대단지 전세 매물 0건? 수급 불균형 심화</a>
+                                <a href="#" class="side-article-title">3. 세무 가이드: 다주택자 절세 비법 10가지</a>
+                                <a href="#" class="side-article-title">4. 정부, 신도시 교통 대책 발표 "30분 출퇴근 실현"</a>
+                            </div>
                         </div>
-                        <a href="gongsil.html" class="side-btn" style="background: #00ca62;">공실열람<br><small>(강남권 3,000개 부동산 가입)</small></a>
-                        <a href="#" class="side-btn" style="background: #00b0f0;">신축/분양/급매의뢰<br><small>(유튜브 영상제작 의뢰)</small></a>
+
+                        <div class="side-box" style="padding: 10px;">
+                            <a href="gongsil.html" class="side-btn" style="background: #00ca62; border-radius: 8px;">직거래 매물 등록하기</a>
+                            <a href="#" class="side-btn" style="background: #ff9f1c; border-radius: 8px;">VIP 리포트 신청하기</a>
+                        </div>
                         
-                        <div style="margin-top:30px; border-top:2px solid #333; padding-top:10px; font-weight:bold;">부동산특강</div>
+                        <div style="margin-top:30px; border-top:2px solid #333; padding-top:15px; font-weight:800; font-size: 18px;">공실뉴스 특강</div>
+                        <div style="font-size: 13px; color: #666; margin-top: 8px;">부동산 투자의 정석, 권리분석의 모든 것</div>
                     </div>
                 </div>
             </div>

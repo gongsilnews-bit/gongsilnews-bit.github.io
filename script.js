@@ -81,6 +81,13 @@ function initNewsNavigation() {
                 tier1Items.forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
                 
+                // 포털 모드 토글 (뉴스/칼럼일 때만 활성화)
+                if (configKey === 'column' || configKey === 'manage') {
+                    document.body.classList.add('portal-mode');
+                } else {
+                    document.body.classList.remove('portal-mode');
+                }
+
                 // Tier 2 렌더링
                 renderTier2(configKey);
             }
@@ -642,36 +649,47 @@ function renderSidebar(newsList) {
         card.className = 'news-card';
         card.id = `news-card-${index}`;
 
+        const isPortal = document.body.classList.contains('portal-mode');
+        const imgHtml = (isPortal && news.image_url) ? `
+            <div class="card-img-wrap">
+                <img src="${news.image_url}" class="card-img" onerror="this.src='https://via.placeholder.com/300x180?text=Gongsil+News'">
+            </div>
+        ` : '';
+
         const locationBadge = (news.lat && news.lng) ? '📍' : '';
-        // 화면 표시 시 '공실뉴스' -> '우리동네부동산'으로 이름 변경
         let displayCategory = news.category;
         if (displayCategory === '공실뉴스') displayCategory = '우리동네부동산';
         const categoryBadge = displayCategory ? `[${displayCategory}] ` : '';
 
-        card.innerHTML = `
-            <div class="news-tag">${categoryBadge}NEWS ${locationBadge}</div>
-            <h3 class="news-card-title">${news.title}</h3>
-            <p class="news-desc">${news.description ? news.description.substring(0, 60) + '...' : ''}</p>
-            <div class="news-meta">
-                <span>${date} · ${news.author || '공실뉴스'}</span>
-                <a href="${news.link}" target="_blank" class="news-link">보기 &rarr;</a>
+        const bodyContent = `
+            <div class="card-body">
+                <div class="news-tag">${categoryBadge}NEWS ${locationBadge}</div>
+                <h3 class="news-card-title">${news.title}</h3>
+                <p class="news-desc">${news.description ? news.description.substring(0, 80) + '...' : ''}</p>
+                <div class="news-meta">
+                    <span>${date} · ${news.author || '공실뉴스'}</span>
+                    <a href="javascript:void(0)" class="news-link">자세히 보기 &rarr;</a>
+                </div>
             </div>
         `;
+
+        card.innerHTML = imgHtml + bodyContent;
 
         card.addEventListener('click', () => {
             document.querySelectorAll('.news-card').forEach(el => el.classList.remove('active'));
             card.classList.add('active');
 
-            if (map && news.lat && news.lng) {
+            if (!isPortal && map && news.lat && news.lng) {
                 const moveLatLon = new kakao.maps.LatLng(news.lat, news.lng);
                 map.panTo(moveLatLon);
                 map.setLevel(4);
-
                 if (allMarkers[index]) {
                     kakao.maps.event.trigger(allMarkers[index], 'click');
                 }
+            } else {
+                // 포털 모드거나 위치 정보 없으면 바로 상세 보기
+                window.showNewsDetail(news);
             }
-            // 상세 기사 자동 표시는 제거 (룰 변경)
         });
 
         container.appendChild(card);
@@ -769,11 +787,45 @@ function renderMarkers(newsList) {
 // 뉴스 상세 보기 표시 함수
 window.showNewsDetail = function(news) {
     const detailView = document.getElementById('news-detail-view');
-    if (detailView) {
-        detailView.style.display = 'block';
-        // 실제 데이터 연동 시 news 객체를 사용하여 필드 채우기 가능
-        // 현재는 더미 레이아웃이 html에 포함되어 있음
+    if (!detailView || !news) return;
+
+    // 데이터 바인딩
+    document.getElementById('detailCategory').innerText = `뉴스/칼럼 > ${news.category || '전체기사'}`;
+    document.getElementById('detailTitle').innerText = news.title;
+    document.getElementById('detailAuthor').innerText = news.author || '공실뉴스';
+    document.getElementById('detailDate').innerText = `입력 ${new Date(news.pub_date).toLocaleString()}`;
+    document.getElementById('detailViews').innerText = `조회수 ${Math.floor(Math.random() * 500) + 50}`; // 랜덤 조회수 더미
+
+    // 본문 내용 렌더링
+    const bodyContainer = document.getElementById('detailBody');
+    let contentHtml = '';
+    
+    if (news.image_url) {
+        contentHtml += `
+            <div class="article-img-wrap">
+                <img src="${news.image_url}" class="article-img" alt="기사 이미지">
+            </div>
+        `;
     }
+
+    // 굵은 강조 텍스트 (설명문 활용)
+    if (news.description) {
+        contentHtml += `<b>${news.description}</b>`;
+    }
+
+    // 실제 뉴스 사이트로의 본문 유도 (현재는 RSS 스니펫만 있으므로)
+    contentHtml += `
+        <p>본 기사는 공실뉴스의 공식 기사입니다. 전문을 확인하시려면 아래 공식 링크를 통해 확인하실 수 있습니다.</p>
+        <p style="margin-top:20px;">
+            <a href="${news.link}" target="_blank" style="color:#ff9f1c; font-weight:bold; text-decoration:underline;">[기사 전문 보기] ${news.link}</a>
+        </p>
+    `;
+
+    bodyContainer.innerHTML = contentHtml;
+    detailView.style.display = 'block';
+    
+    // 상세 보기 열릴 때 스크롤 상단으로
+    detailView.scrollTop = 0;
 };
 
 // 뉴스 상세 보기 닫기 함수
