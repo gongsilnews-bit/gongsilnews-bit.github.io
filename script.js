@@ -1028,6 +1028,16 @@ window.showNewsDetail = function(news) {
     const detailView = document.getElementById('news-detail-view');
     if (!detailView || !news) return;
 
+    // 포털 모드인지 확인하여 렌더링 위치 및 기존 컨텐츠 숨김 제어
+    if (document.body.classList.contains('portal-mode')) {
+        const portalBody = document.querySelector('.portal-body');
+        if (portalBody) portalBody.style.display = 'none'; // 목록 숨기기
+        document.getElementById('portal-view').appendChild(detailView);
+    } else {
+        const mapWrapper = document.querySelector('.map-wrapper');
+        if (mapWrapper) mapWrapper.appendChild(detailView);
+    }
+
     // 데이터 바인딩
     document.getElementById('detailCategory').innerText = `뉴스/칼럼 > ${news.category || '전체기사'}`;
     document.getElementById('detailTitle').innerText = news.title;
@@ -1072,6 +1082,12 @@ window.closeNewsDetail = function() {
     const detailView = document.getElementById('news-detail-view');
     if (detailView) {
         detailView.style.display = 'none';
+        
+        // 포털 모드인 경우 숨겼던 목록 컨테이너 복구
+        if (document.body.classList.contains('portal-mode')) {
+            const portalBody = document.querySelector('.portal-body');
+            if (portalBody) portalBody.style.display = 'block';
+        }
     }
 };
 

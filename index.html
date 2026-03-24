@@ -39,7 +39,7 @@
         /* 뉴스 상세 보기 스타일 고도화 (프리미엄 뉴스 레이아웃) */
         #news-detail-view { 
             display: none; 
-            position: fixed; 
+            position: absolute; 
             top: 0; 
             left: 0; 
             width: 100%; 
@@ -47,7 +47,7 @@
             background: #fff; 
             z-index: 2000; 
             overflow-y: auto; 
-            animation: slideUp 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+            animation: slideUp 0.3s ease;
         }
 
         @keyframes slideUp {
@@ -59,14 +59,15 @@
             max-width: 1100px; 
             margin: 0 auto; 
             display: grid;
-            grid-template-columns: 1fr 340px;
-            gap: 50px; 
-            padding: 60px 20px; 
+            grid-template-columns: 1fr 300px; /* 우측 광고/배너 영역 300px */
+            gap: 40px; 
+            padding: 40px; 
+            position: relative;
         }
 
         .detail-content { min-width: 0; }
         .detail-breadcrumb { font-size: 14px; color: #ff9f1c; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.5px; }
-        .detail-title { font-size: 38px; font-weight: 800; color: #111; line-height: 1.25; margin-bottom: 30px; word-break: keep-all; letter-spacing: -1.5px; }
+        .detail-title { font-size: 32px; font-weight: 800; color: #111; line-height: 1.35; margin-bottom: 25px; word-break: keep-all; letter-spacing: -1px; }
         .detail-meta { 
             display: flex; 
             justify-content: space-between;
@@ -80,39 +81,36 @@
         }
         .meta-info { display: flex; gap: 20px; }
         
-        .article-body { font-size: 18px; line-height: 1.85; color: #333; font-family: 'Pretendard', sans-serif; }
+        .article-body { font-size: 17px; line-height: 1.8; color: #333; font-family: 'Pretendard', sans-serif; }
         .article-body p { margin-bottom: 24px; }
-        .article-body b { display: block; margin: 30px 0 20px; color: #111; font-size: 20px; font-weight: 700; background: #fffcf0; padding: 15px; border-left: 4px solid #ff9f1c; }
-        .article-img-wrap { width: 100%; border-radius: 8px; overflow: hidden; margin: 30px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .article-body b { display: block; margin: 30px 0 20px; color: #111; font-size: 19px; font-weight: 700; background: #fffcf0; padding: 15px; border-left: 4px solid #ff9f1c; }
+        .article-img-wrap { width: 100%; border-radius: 8px; overflow: hidden; margin: 30px 0; }
         .article-img { width: 100%; display: block; }
         
         .detail-sidebar { position: sticky; top: 20px; }
-        .side-box { border: 1px solid #f1f3f5; margin-bottom: 35px; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
-        .side-title { background: #f8f9fa; color: #111; font-size: 14px; font-weight: 800; padding: 15px 20px; border-bottom: 1px solid #f1f3f5; }
-        .side-img-link { display: block; position: relative; }
-        .side-img { width: 100%; display: block; transition: transform 0.3s; }
-        .side-img-link:hover .side-img { transform: scale(1.05); }
-        .side-article-title { padding: 15px 20px; font-size: 15px; font-weight: 700; color: #333; line-height: 1.4; display: block; text-decoration: none; }
-        .side-article-title:hover { color: #ff9f1c; }
+        .ad-banner {
+            background:#f9f9f9; 
+            padding:15px; 
+            border:1px solid #eee; 
+            margin-bottom:20px; 
+            border-radius:8px;
+        }
 
         .btn-close-detail { 
-            position: fixed; 
-            top: 25px; 
-            right: 25px; 
-            width: 44px;
-            height: 44px;
-            background: #fff; 
-            color: #111; 
-            border-radius: 50%; 
-            display: flex;
+            background: #222; 
+            color: #fff; 
+            border-radius: 40px; 
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer; 
-            z-index: 2200; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-            border: 1px solid #eee;
+            transition: all 0.2s;
+            margin-bottom: 20px;
         }
-        .btn-close-detail:hover { background: #ff9f1c; color: #fff; border-color: #ff9f1c; }
+        .btn-close-detail:hover { background: #000; }
 
         /* ========================================
            포털 뉴스 그리드 전용 레이어 스타일
@@ -487,7 +485,6 @@
         <div class="map-wrapper">
             <!-- 뉴스 상세 페이지 (레이아웃) -->
             <div id="news-detail-view">
-                <div class="btn-close-detail" onclick="closeNewsDetail()">✕</div>
                 <div class="detail-container">
                     <div class="detail-content">
                         <div class="detail-breadcrumb" id="detailCategory">뉴스/칼럼 > 부동산·주식·재테크</div>
@@ -505,11 +502,10 @@
                             <!-- JS에서 내용 채움 -->
                         </div>
 
-                        <!-- 하단 관련 기사 추천 (포털형) -->
+                        <!-- 하단 관련 기사 추천 -->
                         <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid #111;">
                             <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 25px;">함께 보면 좋은 뉴스</h3>
                             <div id="relatedNewsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                                <!-- 더미 추천 기사 -->
                                 <div style="display: flex; gap: 15px; cursor:pointer;">
                                     <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
                                     <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">은마·목동 등 재건축 단지 불확실성 해소 전망...</div>
@@ -521,24 +517,33 @@
                             </div>
                         </div>
                     </div>
+                    
                     <div class="detail-sidebar">
-                        <div class="side-box">
-                            <div class="side-title">📈 이 시각 인기 상위</div>
-                            <div id="mostReadList">
-                                <a href="#" class="side-article-title">1. 서울 아파트 공시가 18.7% 급등... '한강벨트' 보유세 폭탄</a>
-                                <a href="#" class="side-article-title">2. 관악구 대단지 전세 매물 0건? 수급 불균형 심화</a>
-                                <a href="#" class="side-article-title">3. 세무 가이드: 다주택자 절세 비법 10가지</a>
-                                <a href="#" class="side-article-title">4. 정부, 신도시 교통 대책 발표 "30분 출퇴근 실현"</a>
-                            </div>
-                        </div>
-
-                        <div class="side-box" style="padding: 10px;">
-                            <a href="gongsil.html" class="side-btn" style="background: #00ca62; border-radius: 8px;">직거래 매물 등록하기</a>
-                            <a href="#" class="side-btn" style="background: #ff9f1c; border-radius: 8px;">VIP 리포트 신청하기</a>
+                        <div style="text-align: right;">
+                            <div class="btn-close-detail" onclick="closeNewsDetail()">지도 보기 ✕</div>
                         </div>
                         
-                        <div style="margin-top:30px; border-top:2px solid #333; padding-top:15px; font-weight:800; font-size: 18px;">공실뉴스 특강</div>
-                        <div style="font-size: 13px; color: #666; margin-top: 8px;">부동산 투자의 정석, 권리분석의 모든 것</div>
+                        <div class="ad-banner">
+                            <div style="font-weight:bold; font-size:15px; color:#ff9f1c; margin-bottom:10px;">HOT 매물/광고</div>
+                            <div style="width:100%; height:140px; background:#e0e0e0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">공실가이드맵 (지도 이미지)</div>
+                            <div style="background:#333; color:#fff; text-align:center; padding:8px; font-size:12px; margin-top:8px; border-radius:4px;">강남구 역삼동 신축 빌딩 (수익률 6%)</div>
+                        </div>
+                        
+                        <div style="background:#00b894; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:14px; cursor:pointer;">
+                            공실알림<br><span style="font-size:12px;font-weight:normal;">(관심도 1,000개 부동산 가입)</span>
+                        </div>
+                        <div style="background:#00cec9; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:30px; font-weight:bold; font-size:14px; cursor:pointer;">
+                            신축/분양/권리조회<br><span style="font-size:12px;font-weight:normal;">(부동산 전문가에게 의뢰)</span>
+                        </div>
+
+                        <h3 style="font-size:16px; font-weight:800; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:15px;">많이 본 뉴스</h3>
+                        <ul class="portal-popular-list">
+                            <li><span class="portal-popular-num">1</span><span class="portal-popular-text">대법원, 신반포2차 재건축 상가 분쟁 마침표</span></li>
+                            <li><span class="portal-popular-num">2</span><span class="portal-popular-text">부모님 자산 형태에 따른 세무 가이드</span></li>
+                            <li><span class="portal-popular-num">3</span><span class="portal-popular-text">강남 아파트값 3년 만에 최고 상승률</span></li>
+                            <li><span class="portal-popular-num">4</span><span class="portal-popular-text">5호선 연장·위례신사선 확정... 서부 호재</span></li>
+                            <li><span class="portal-popular-num">5</span><span class="portal-popular-text">다주택자 양도세 중과 완화 정책 분석</span></li>
+                        </ul>
                     </div>
                 </div>
             </div>
