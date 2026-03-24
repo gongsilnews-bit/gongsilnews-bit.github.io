@@ -287,6 +287,66 @@
             padding: 10px 24px; border-radius: 4px; font-size: 14px; cursor: pointer;
         }
 
+        /* --- 포토DB 모달 전용 스타일 --- */
+        .modal-header.center-title { justify-content: center; position: relative; font-size:18px; }
+        .modal-header.center-title .modal-close { position: absolute; right: 20px; top: 14px; }
+        
+        .search-banner {
+            background: #f8fafc; padding: 20px; display: flex; justify-content: center; border-bottom: 1px solid #e1e4e8;
+        }
+        .search-banner-inner {
+            display: flex; width: 440px; border: 1px solid #3b82f6; border-radius: 4px; overflow: hidden;
+        }
+        .search-banner-inner input {
+            flex: 1; border: none; padding: 12px 15px; outline: none; font-size: 14px;
+        }
+        .search-banner-inner button {
+            background: #3b82f6; color: white; border: none; padding: 0 20px; cursor: pointer; font-size: 16px;
+        }
+        
+        .tab-menu { display: flex; border-bottom: 1px solid #e1e4e8; }
+        .tab-item {
+            flex: 1; text-align: center; padding: 14px 0; font-size: 15px; font-weight: 700; cursor: pointer;
+            background: #fff; color: #666; border-right: 1px solid #e1e4e8; transition:0.2s;
+        }
+        .tab-item:last-child { border-right: none; }
+        .tab-item.active { background: #374151; color: #fff; }
+        
+        .photo-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding: 20px; 
+            overflow-y: auto; max-height: 50vh; background: #fff;
+        }
+        /* 스크롤바 디자인 */
+        .photo-grid::-webkit-scrollbar { width: 6px; }
+        .photo-grid::-webkit-scrollbar-track { background: #f1f1f1; }
+        .photo-grid::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+        
+        .photo-card { border: 1px solid #e5e7eb; overflow: hidden; display: flex; flex-direction: column; }
+        .photo-img { height: 160px; background-color: #f3f4f6; background-size: cover; background-position: center; border-bottom:1px solid #f0f0f0; }
+        .photo-info { padding: 15px; flex: 1; }
+        .photo-title {
+            font-size: 13px; font-weight: 600; color: #333; margin-bottom: 8px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+            line-height:1.4;
+        }
+        .photo-date { font-size: 12px; color: #888; margin-bottom: 15px; }
+        .photo-actions { display: flex; border-top: 1px solid #e5e7eb; }
+        .photo-btn {
+            flex: 1; text-align: center; padding: 12px 0; font-size: 12px; color: #666; background: #fff;
+            border:none; border-right: 1px solid #e5e7eb; cursor: pointer; outline:none; transition:0.2s;
+        }
+        .photo-btn:last-child { border-right: none; }
+        .photo-btn:hover { background: #f9fafb; font-weight:600; }
+        .photo-btn.dark { background: #6b7280; color: white; font-weight:600; }
+        .photo-btn.dark:hover { background: #4b5563; }
+        
+        .load-more-wrap { padding: 0 20px 20px 20px; background: #fff; }
+        .btn-load-more {
+            width: 100%; border: 1px solid #e5e7eb; background: #fff; padding: 14px; color: #666;
+            font-size: 14px; cursor: pointer; border-radius: 4px; font-weight:600; transition:0.2s;
+        }
+        .btn-load-more:hover { border-color:#d1d5db; background:#fafafa; }
+
     </style>
 </head>
 <body>
@@ -682,6 +742,125 @@
         </div>
     </div>
 
+    <!-- 포토DB 모달 -->
+    <div class="modal-overlay" id="photodbModal">
+        <div class="modal-window" style="width: 860px; max-height: 90vh;">
+            <div class="modal-header center-title">
+                포토DB
+                <span class="modal-close" onclick="closePhotodbModal()">✕</span>
+            </div>
+            
+            <!-- 포토DB 검색 영역 -->
+            <div class="search-banner">
+                <div class="search-banner-inner">
+                    <input type="text" placeholder="사진검색">
+                    <button>🔍</button>
+                </div>
+            </div>
+            
+            <!-- 탭 메뉴 -->
+            <div class="tab-menu">
+                <div class="tab-item active">전체사진</div>
+                <div class="tab-item">관련사진목록</div>
+                <div class="tab-item">즐겨찾기</div>
+            </div>
+            
+            <!-- 사진 갤러리 그리드 -->
+            <div class="photo-grid">
+                
+                <!-- 카드 1 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1546412414-e1885259563a?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">한강변 고가 아파트 (공실뉴스 드론팀)</div>
+                        <div class="photo-date">2026-03-19</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+
+                <!-- 카드 2 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1570129477492-45c003edd2be?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">병원비 대신 내면 상속세 폭탄? 상속세 수억 절세 비법!</div>
+                        <div class="photo-date">2026-03-19</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+
+                <!-- 카드 3 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">신반포2차 아파트 재건축 대법원 승소 (현대건설 홈페이지)</div>
+                        <div class="photo-date">2026-03-19</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+
+                <!-- 카드 4 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">"실제로는 아파트값 상승..." 강남구 등 하락해 시장 큰 낙폭</div>
+                        <div class="photo-date">2026-03-18</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+
+                <!-- 카드 5 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">강남 아파트 하락폭 증가 (제미나이 AI)</div>
+                        <div class="photo-date">2026-03-18</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+
+                <!-- 카드 6 -->
+                <div class="photo-card">
+                    <div class="photo-img" style="background-image: url('https://images.unsplash.com/photo-1449844908441-8829872d2607?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=60');"></div>
+                    <div class="photo-info">
+                        <div class="photo-title">부동산 시장 침체 장기화 전망 (공실뉴스)</div>
+                        <div class="photo-date">2026-03-17</div>
+                    </div>
+                    <div class="photo-actions">
+                        <button class="photo-btn dark">🖥️<br>기사보기</button>
+                        <button class="photo-btn">✓<br>사용하기</button>
+                        <button class="photo-btn">⭐<br>즐겨찾기추가</button>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <!-- 사진 더보기 버튼 영역 -->
+            <div class="load-more-wrap">
+                <button class="btn-load-more">+ 사진더보기</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 간단한 자바라(아코디언) 토글 스크립트 기능 추가
         function toggleSection() {
@@ -710,24 +889,18 @@
         function openFileModal() { document.getElementById('fileModal').style.display = 'flex'; }
         function closeFileModal() { document.getElementById('fileModal').style.display = 'none'; }
 
-        // 좌측 도구 모음 아이콘 이벤트
+        // 포토DB 모달 스크립트
+        function openPhotodbModal() { document.getElementById('photodbModal').style.display = 'flex'; }
+        function closePhotodbModal() { document.getElementById('photodbModal').style.display = 'none'; }
+
+        // 좌측 도구 모음 아이콘 이벤트 연결
         document.addEventListener('DOMContentLoaded', () => {
             const icons = document.querySelectorAll('.tools-grid .tool-icon');
-            // 사진 (1번째)
-            if(icons[0]) {
-                icons[0].style.cursor = 'pointer';
-                icons[0].onclick = openPhotoModal;
-            }
-            // 영상 (2번째)
-            if(icons[1]) {
-                icons[1].style.cursor = 'pointer';
-                icons[1].onclick = openVideoModal;
-            }
-            // 파일 (3번째)
-            if(icons[2]) {
-                icons[2].style.cursor = 'pointer';
-                icons[2].onclick = openFileModal;
-            }
+            
+            if(icons[0]) { icons[0].style.cursor = 'pointer'; icons[0].onclick = openPhotoModal; }
+            if(icons[1]) { icons[1].style.cursor = 'pointer'; icons[1].onclick = openVideoModal; }
+            if(icons[2]) { icons[2].style.cursor = 'pointer'; icons[2].onclick = openFileModal; }
+            if(icons[3]) { icons[3].style.cursor = 'pointer'; icons[3].onclick = openPhotodbModal; }
         });
     </script>
 </body>
