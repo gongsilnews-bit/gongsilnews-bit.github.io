@@ -68,6 +68,91 @@ function initMap() {
     return { map: mapInstance, clusterer: clustererInstance };
 }
 
+
+// 포털 뷰 열기
+window.openPortalView = function() {
+    const pv = document.getElementById('portal-view');
+    if (pv) {
+        pv.style.display = 'block';
+        pv.scrollTop = 0;
+        loadPortalNews('전체기사');
+    }
+};
+
+// 포털 뷰 닫기
+window.closePortalView = function() {
+    const pv = document.getElementById('portal-view');
+    if (pv) pv.style.display = 'none';
+};
+
+// 포털 탭 선택
+window.selectPortalTab = function(el, category) {
+    document.querySelectorAll('.portal-sub-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    const title = document.getElementById('portalSectionTitle');
+    if (title) title.textContent = '📰 ' + (category === '전체기사' ? '최신 뉴스' : category);
+    loadPortalNews(category);
+};
+
+// 포털 뉴스 로딩 (Supabase 연동)
+async function loadPortalNews(category) {
+    const grid = document.getElementById('portalGrid');
+    if (!grid) return;
+
+    // 로딩 표시
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;font-size:16px;color:#999;">뉴스를 불러오는 중...</div>';
+
+    try {
+        let query = supabaseClient
+            .from('news')
+            .select('*')
+            .order('pub_date', { ascending: false })
+            .limit(12);
+
+        // 카테고리 필터 (전체기사면 필터 없음)
+        if (category !== '전체기사') {
+            // DB에 해당 서브카테고리가 없으므로 전체를 로드
+            // 향후 DB 정비 후 query.eq('sub_category', category) 사용 가능
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        if (!data || data.length === 0) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#999;">표시할 뉴스가 없습니다.</div>';
+            return;
+        }
+
+        grid.innerHTML = data.map(news => {
+            const date = new Date(news.pub_date).toLocaleDateString('ko-KR');
+            const imgSection = news.image_url
+                ? `<img src="${news.image_url}" class="portal-card-img" onerror="this.parentNode.innerHTML='<div class=portal-card-img-placeholder>📰</div>'"/>`
+                : `<div class="portal-card-img-placeholder">📰</div>`;
+            const desc = (news.description || '').substring(0, 100) + '...';
+            const tag = news.category === '공실뉴스' ? '부동산' : (news.category || '뉴스');
+
+            return `
+                <div class="portal-card" onclick="window.showNewsDetail(${JSON.stringify(news).replace(/"/g, '&quot;')})">
+                    ${imgSection}
+                    <div class="portal-card-body">
+                        <span class="portal-card-tag">${tag}</span>
+                        <div class="portal-card-title">${news.title}</div>
+                        <div class="portal-card-desc">${desc}</div>
+                        <div class="portal-card-meta">
+                            <span>${date} · ${news.author || '공실뉴스'}</span>
+                            <a href="${news.link}" target="_blank" class="portal-card-link">전문 보기 →</a>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+
+    } catch (err) {
+        console.error('포털 뉴스 로딩 오류:', err);
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#e74c3c;">뉴스를 불러오지 못했습니다.</div>';
+    }
+}
+
 // 뉴스 1, 2단 네비게이션 연동
 function initNewsNavigation() {
     const tier1Items = document.querySelectorAll('.news-tab-item');
@@ -81,17 +166,18 @@ function initNewsNavigation() {
                 tier1Items.forEach(el => el.classList.remove('active'));
                 item.classList.add('active');
                 
-                // 포털 모드 토글 (뉴스/칼럼일 때만 활성화)
-                if (configKey === 'column' || configKey === 'manage') {
-                    document.body.classList.add('portal-mode');
+                // 포털 모드 전환 (뉴스/칼럼 → portal-view 열기)
+                if (configKey === 'column') {
+                    window.openPortalView();
+                    return; // 나머지 렌더링 불필요
                 } else {
-                    document.body.classList.remove('portal-mode');
+                    window.closePortalView();
                 }
 
                 // Tier 2 렌더링
                 renderTier2(configKey);
 
-                // [추가] 탭 전환 시 첫 번째 서브 카테고리 기사 자동 로드
+                // 탭 전환 시 첫 번째 서브 카테고리 기사 자동 로드
                 const firstSub = NEWS_NAV_CONFIG[configKey].subs[0];
                 loadNews(firstSub);
             }
