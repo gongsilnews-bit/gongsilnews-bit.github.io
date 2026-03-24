@@ -107,13 +107,13 @@
         .btn:hover { background-color: #f3f4f6; }
 
         .btn-write {
-            background-color: #3b82f6; color: white;
+            background-color: #f59e0b; color: white;
             border: none; padding: 8px 18px;
             font-weight: 700; font-size: 13px; text-decoration: none;
             display: inline-flex; align-items: center; gap: 4px;
             border-radius: 4px; transition: background 0.15s;
         }
-        .btn-write:hover { background-color: #2563eb; }
+        .btn-write:hover { background-color: #d97706; }
 
         /* ── 테이블 ── */
         .table-container { width: 100%; overflow-x: auto; border-top: 2px solid #333; }
@@ -230,13 +230,12 @@
     <!-- 액션 및 유틸 버튼 영역 -->
     <div class="action-bar">
         <div class="left-actions">
+            <!-- 기사 쓰기 폼으로 이동 (새 탭 또는 동일 탭) -->
+            <a href="news_write.html" target="_blank" class="btn-write">+ 기사쓰기</a>
             <button class="btn">⭐ 광고순위갱신</button>
             <button class="btn">🗑️ 선택삭제</button>
         </div>
-        <div class="right-actions">
-            <!-- 기사 쓰기 폼으로 이동 (새 탭 또는 동일 탭) -->
-            <a href="news_write.html" target="_blank" class="btn-write">+ 기사쓰기</a>
-        </div>
+        <div class="right-actions"></div>
     </div>
 
     <!-- 테이블 리스트 -->
