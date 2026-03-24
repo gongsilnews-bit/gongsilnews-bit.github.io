@@ -641,6 +641,47 @@
         </div>
     </div>
 
+    <!-- 파일 추가 모달 -->
+    <div class="modal-overlay" id="fileModal">
+        <div class="modal-window" style="width: 580px;">
+            <div class="modal-header">
+                파일추가
+                <span class="modal-close" onclick="closeFileModal()">✕</span>
+            </div>
+            <div class="modal-body">
+                
+                <!-- 1. 제목 -->
+                <div class="modal-row">
+                    <div class="modal-label">제목</div>
+                    <div class="modal-content">
+                        <input type="text" class="input-text" placeholder="제목입력">
+                    </div>
+                </div>
+
+                <!-- 2. 파일 -->
+                <div class="modal-row align-top">
+                    <div class="modal-label" style="padding-top:10px;">파일</div>
+                    <div class="modal-content">
+                        <div style="display:flex; border:1px solid #ddd; border-radius:4px; overflow:hidden;">
+                            <label class="btn-file-select" for="docInput">파일 선택</label>
+                            <input type="file" id="docInput" style="display:none;" onchange="document.getElementById('docName').textContent=this.files[0]?this.files[0].name:'선택된 파일 없음'">
+                            <div class="file-name" id="docName">선택된 파일 없음</div>
+                        </div>
+                        <div class="modal-hint">
+                            <span style="color:#f59e0b; font-weight:bold;">ⓘ</span> 허용용량 (2 Mb) / 허용포맷 (zip, alz, xls, doc, ppt, xlsx, docx, pptx, hwp, pdf, txt)
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="modal-footer" style="padding-bottom: 30px;">
+                <button class="btn-confirm" style="background:#5c7cfa;" onclick="closeFileModal()">✓ 확인</button>
+                <button class="btn-cancel" onclick="closeFileModal()">✕ 취소</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 간단한 자바라(아코디언) 토글 스크립트 기능 추가
         function toggleSection() {
@@ -665,6 +706,10 @@
         function openVideoModal() { document.getElementById('videoModal').style.display = 'flex'; }
         function closeVideoModal() { document.getElementById('videoModal').style.display = 'none'; }
 
+        // 파일 모달 스크립트
+        function openFileModal() { document.getElementById('fileModal').style.display = 'flex'; }
+        function closeFileModal() { document.getElementById('fileModal').style.display = 'none'; }
+
         // 좌측 도구 모음 아이콘 이벤트
         document.addEventListener('DOMContentLoaded', () => {
             const icons = document.querySelectorAll('.tools-grid .tool-icon');
@@ -677,6 +722,11 @@
             if(icons[1]) {
                 icons[1].style.cursor = 'pointer';
                 icons[1].onclick = openVideoModal;
+            }
+            // 파일 (3번째)
+            if(icons[2]) {
+                icons[2].style.cursor = 'pointer';
+                icons[2].onclick = openFileModal;
             }
         });
     </script>
