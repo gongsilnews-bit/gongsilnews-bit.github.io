@@ -968,18 +968,23 @@
                     
                     <div style="flex: 1; padding: 30px; overflow-y: auto; font-size: 14px; line-height: 1.8; color: #333;">
                         <div id="aiGeneratedTitle" style="font-size: 24px; font-weight: 700; margin-top: 0; margin-bottom: 20px; color: #111;">대치동 중심에서 만나는 5억 원대 소형 아파트... 강남 진입 장벽 낮아지나</div>
+                        
+                        <ul id="aiGeneratedSubtitle" style="padding-left: 20px; margin-bottom: 20px; color: #555;">
+                            <li>교육 1번지 강남구 대치동 선릉로 일대, 매매가 5억 원 소형 아파트 등장</li>
+                            <li>우수한 학군과 수인분당선 3호선 교통망, 풍부한 생활 인프라까지 '주목'</li>
+                            <li>1인 가구 증가 추세 속 강남권 핵심 입지 소형 주거 상품 수요 상승 압력</li>
+                        </ul>
+
                         <div id="aiGeneratedContent">
-                            <ul style="padding-left: 20px; margin-bottom: 20px; color: #555;">
-                                <li>교육 1번지 강남구 대치동 선릉로 일대, 매매가 5억 원 소형 아파트 등장</li>
-                                <li>우수한 학군과 수인분당선 3호선 교통망, 풍부한 생활 인프라까지 '주목'</li>
-                                <li>1인 가구 증가 추세 속 강남권 핵심 입지 소형 주거 상품 수요 상승 압력</li>
-                            </ul>
                             <p>최근 대한민국 사교육의 1번지이자 강남의 핵심 주거지인 강남구 대치동 일대에서 매매가 5억 원 수준의 소형 아파트 물건이 화제 되어 시장의 이목이 쏠리고 있습니다. 전통적으로 진입 장벽이 높은 대치동에서 1인 가구 및 실수요를 겨냥한 소형 주거 상품의 시세가 새롭게 형성되는 모습입니다.</p>
                             <p><br>■ 위치: 서울 강남구 대치동 선릉로 206 (동부센트레빌)<br>■ 가격: 매매 5억 원<br>■ 특징: 방 1개/욕실 1개, 풀옵션(에어컨, 냉장고, 세탁기), 관리비 10만 원</p>
                             <p>부동산 업계에 따르면, 해당 매물은 대치동 선릉로 206에 위치한 동부센트레빌 단지 내 또는 인근 소형 상품으로 추정됩니다. 방 1개와 욕실 1개 구조로 이루어져 있으며, 에어컨, 냉장고, 세탁기 등 생활에 필수적인 가전제품이 기본 옵션으로 제공되어 초기 주거 비용 부담을 줄일 수 있는 것이 특징입니다. 월 관리비는 약 10만 원 선으로 형성되어 있습니다.</p>
                         </div>
-                        <div style="margin-top: 30px; display: flex; gap: 8px;">
-                            <span style="color: #f59e0b;">#대치동아파트</span> <span style="color: #f59e0b;">#강남부동산</span> <span style="color: #f59e0b;">#소형아파트</span>
+
+                        <div id="aiGeneratedKeywords" style="margin-top: 30px; display: flex; gap: 8px;">
+                            <span style="color: #ea580c; background:#ffedd5; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">#대치동아파트</span> 
+                            <span style="color: #ea580c; background:#ffedd5; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">#강남부동산</span> 
+                            <span style="color: #ea580c; background:#ffedd5; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:bold;">#소형아파트</span>
                         </div>
                     </div>
 
@@ -1034,11 +1039,31 @@
             const titleTarget = document.querySelector('input[placeholder="제목을 입력하세요"]');
             if(titleTarget) titleTarget.value = document.getElementById('aiGeneratedTitle').innerText;
             
-            // 2. Summernote 에디터 본문칸 내용 복사 넣기
+            // 2. 부제목 타겟 데이터 넣기
+            const subtitleTarget = document.querySelector('textarea[placeholder*="부제목을 입력하세요"]');
+            if(subtitleTarget) {
+                let subText = "";
+                document.querySelectorAll('#aiGeneratedSubtitle li').forEach(li => {
+                    subText += li.innerText + "\n";
+                });
+                subtitleTarget.value = subText.trim();
+            }
+
+            // 3. Summernote 에디터 본문칸 내용 복사 넣기
             const contentHtml = document.getElementById('aiGeneratedContent').innerHTML;
             $('#summernote').summernote('code', contentHtml);
             
-            alert("✨ AI가 작성한 기사 제목과 본문이 편집기 화면으로 완벽하게 연동되었습니다!");
+            // 4. 하단 키워드칸 데이터 넣기
+            const keywordTarget = document.querySelector('input[placeholder="#입력 (최대 20개)"]');
+            if(keywordTarget) {
+                let keyText = "";
+                document.querySelectorAll('#aiGeneratedKeywords span').forEach(span => {
+                    keyText += span.innerText + " ";
+                });
+                keywordTarget.value = keyText.trim();
+            }
+
+            alert("✨ 제목, 부제목, 본문, 그리고 키워드까지 각 항목에 완벽하게 연동되었습니다!");
             closeAiwizard();
         }
 
