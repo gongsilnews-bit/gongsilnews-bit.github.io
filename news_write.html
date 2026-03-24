@@ -516,32 +516,14 @@
         </main>
 
         <!-- 3. 우측 라이브러리 -->
-        <aside class="col-library">
-            <div class="library-title">라이브러리</div>
-            <div class="search-box">
-                <input type="text" placeholder="포토DB 간편검색">
-                <span class="icon">🔍</span>
+        <div class="right-lib">
+            <h3 class="lib-title">라이브러리</h3>
+            <div class="search-wrap">
+                <input type="text" class="search-input" placeholder="간편검색">
+                <div class="search-icon" style="cursor: pointer;" onclick="openPhotodbModal()">🔍</div>
             </div>
 
             <div class="lib-section">
-                <div class="lib-header">
-                    <strong>사진</strong>
-                    <div class="lib-toggle">－</div>
-                </div>
-                <div class="dash-drop-box">
-                    마우스로 이미지를 끌어오거나, 클릭해주세요.<br>
-                    (허용용량 10MB)
-                </div>
-            </div>
-
-            <div class="lib-section">
-                <div class="lib-header">
-                    <strong>영상</strong>
-                    <div class="lib-toggle">－</div>
-                </div>
-                <div style="display:flex; gap:6px;">
-                    <input type="text" class="input-text" style="flex:1; padding:8px; font-size:12px; background:#fafafa;" placeholder="YouTube영상링크입력">
-                    <button class="btn-sm style=background:#666;">입력하기</button>
                 </div>
             </div>
 
