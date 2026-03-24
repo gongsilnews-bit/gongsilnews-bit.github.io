@@ -355,7 +355,8 @@
         .news-tab-item.active { color: #ff9f1c; border-bottom: 3px solid #ff9f1c; }
 
         .filter-bar-news { background: #fff; border-bottom: 1px solid #e0e0e0; }
-        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; max-width: 1200px; margin: 0 auto; }
+        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; }
+        body.portal-mode .filter-row { max-width: 1200px; margin: 0 auto; padding: 10px 20px; }
         .news-pill { background: #fff; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #333; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-weight: 500; font-family: inherit; }
         .news-pill:hover { background: #f9fafb; border-color: #999; }
         .news-pill.active { background: #fff8f1; border-color: #ff9f1c; color: #ff9f1c; font-weight: bold; }
