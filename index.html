@@ -142,99 +142,204 @@
             padding-left: 12px;
             border-left: 4px solid #ff9f1c;
         }
-        .portal-grid {
+        /* 포털 메인 2단 레이아웃 */
+        .portal-layout {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 28px;
+            grid-template-columns: 1fr 340px; /* 좌측 1fr, 우측 사이드바 340px */
+            gap: 40px;
         }
-        .portal-card {
-            background: #fff;
-            border-radius: 16px;
-            overflow: hidden;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+
+        /* ==== 좌측 메인 영역 ==== */
+        .portal-main { min-width: 0; }
+        
+        /* 핫 아티클 (최상단 큰 기사) */
+        .portal-hot-article {
+            margin-bottom: 30px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            border: 1px solid transparent;
-        }
-        .portal-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 16px 40px rgba(0,0,0,0.12);
-            border-color: #ff9f1c;
-        }
-        .portal-card-img {
-            width: 100%;
-            height: 190px;
-            object-fit: cover;
-            background: #f0f0f0;
+            text-decoration: none;
             display: block;
         }
-        .portal-card-img-placeholder {
-            width: 100%;
-            height: 190px;
-            background: linear-gradient(135deg, #f5a623 0%, #ff9f1c 50%, #f0932b 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 42px;
-        }
-        .portal-card-body {
-            padding: 22px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .portal-card-tag {
-            font-size: 11px;
-            font-weight: 700;
-            color: #ff9f1c;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            background: #fff8f1;
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-        }
-        .portal-card-title {
-            font-size: 17px;
+        .portal-hot-title {
+            font-size: 32px;
             font-weight: 800;
-            line-height: 1.5;
             color: #111;
-            margin-bottom: 12px;
+            line-height: 1.35;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+        }
+        .portal-hot-article:hover .portal-hot-title { color: #ff9f1c; text-decoration: underline; }
+        .portal-hot-img-wrap {
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background: #eee;
+        }
+        .portal-hot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        .portal-hot-article:hover .portal-hot-img { transform: scale(1.02); }
+        .portal-hot-desc {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
-        .portal-card-desc {
-            font-size: 13px;
+        
+        .portal-divider {
+            height: 1px;
+            background: #eee;
+            margin: 30px 0;
+            border: none;
+        }
+
+        /* 리스트형 기사 */
+        .portal-list-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #f1f3f5;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .portal-list-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .portal-list-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .portal-list-item:hover .portal-list-title { color: #ff9f1c; text-decoration: underline; }
+        .portal-list-desc {
+            font-size: 14px;
             color: #666;
-            line-height: 1.6;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .portal-list-meta { font-size: 13px; color: #999; margin-top: auto; }
+        .portal-list-img-wrap {
+            width: 160px;
+            height: 100px;
+            border-radius: 6px;
+            background: #f0f0f0;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .portal-list-img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 더보기 버튼 */
+        .portal-btn-more {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background 0.2s;
+        }
+        .portal-btn-more:hover { background: #f9f9f9; border-color: #999; color: #111; }
+
+        /* ==== 우측 사이드바 영역 ==== */
+        .portal-side { min-width: 0; }
+        
+        /* 우측 상단 소형 기사 4개 */
+        .portal-side-top { margin-bottom: 30px; }
+        .portal-side-item {
+            display: flex;
+            gap: 12px;
             margin-bottom: 16px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .portal-side-item-content { flex: 1; min-width: 0; }
+        .portal-side-item-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #222;
+            line-height: 1.4;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            flex: 1;
         }
-        .portal-card-meta {
+        .portal-side-item:hover .portal-side-item-title { color: #ff9f1c; text-decoration: underline; }
+        .portal-side-item-img-wrap {
+            width: 100px;
+            height: 70px;
+            border-radius: 4px;
+            background: #eee;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .portal-side-item-img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* 배너 */
+        .portal-banner {
+            width: 100%;
+            background: #eef1f5;
+            border-radius: 4px;
+            margin-bottom: 30px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-size: 12px;
-            color: #999;
-            border-top: 1px solid #f1f3f5;
-            padding-top: 14px;
-            margin-top: auto;
+            justify-content: center;
+            color: #888;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            min-height: 250px;
         }
-        .portal-card-link {
-            font-size: 12px;
-            color: #ff9f1c;
-            font-weight: 700;
-            text-decoration: none;
+        .portal-banner img { width: 100%; height: auto; display: block; }
+
+        /* 많이 본 뉴스 */
+        .portal-popular { margin-bottom: 30px; }
+        .portal-popular-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #111;
         }
+        .portal-popular-list { list-style: none; padding: 0; margin: 0; }
+        .portal-popular-list li {
+            display: flex;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .portal-popular-num { font-weight: 900; color: #ff9f1c; width: 24px; flex-shrink: 0; font-size: 15px; }
+        .portal-popular-text { font-weight: 600; color: #333; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .portal-popular-list li:hover .portal-popular-text { color: #ff9f1c; text-decoration: underline; }
 
 
         /* 신규 뉴스 네비게이션 스타일 - 공실열람과 간격/폰트 완벽 통일 */
@@ -245,7 +350,7 @@
         .news-tab-item.active { color: #ff9f1c; border-bottom: 3px solid #ff9f1c; }
 
         .filter-bar-news { background: #fff; border-bottom: 1px solid #e0e0e0; }
-        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; }
+        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; max-width: 1200px; margin: 0 auto; }
         .news-pill { background: #fff; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #333; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-weight: 500; font-family: inherit; }
         .news-pill:hover { background: #f9fafb; border-color: #999; }
         .news-pill.active { background: #fff8f1; border-color: #ff9f1c; color: #ff9f1c; font-weight: bold; }
@@ -336,80 +441,8 @@
     <div id="portal-view">
         <div class="portal-body">
             <div class="portal-section-title" id="portalSectionTitle">📰 최신 뉴스</div>
-            <div class="portal-grid" id="portalGrid">
-                <!-- 샘플 데이터 (로딩 전 노출) -->
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">🏢</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">부동산</span>
-                        <div class="portal-card-title">서울 아파트 공시가 18.7% 급등… '한강벨트' 보유세 폭탄 예고</div>
-                        <div class="portal-card-desc">국토교통부가 2026년 공동주택 공시가격을 발표했습니다. 서울 전체 평균 18.7% 상승, 특히 한강변 고가 아파트를 중심으로 보유세 부담이 크게 증가할 전망입니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.24 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">📊</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">재테크</span>
-                        <div class="portal-card-title">2026 부동산 투자 성공 전략… 전문가 5인 긴급 좌담회</div>
-                        <div class="portal-card-desc">금리 인하 국면에서 부동산 시장이 다시 들썩이고 있습니다. 50억 이상 절세한 투자 전문가 5인이 말하는 올해 최고의 부동산 투자 지역과 전략을 공개합니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.23 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">🏠</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">세무</span>
-                        <div class="portal-card-title">다주택자 양도세 중과 완화… 2026년 달라지는 세금 총정리</div>
-                        <div class="portal-card-desc">정부가 다주택자의 주택 처분을 유도하기 위해 양도소득세 중과세율을 한시적으로 완화하기로 했습니다. 2026년 세법 개정안의 주요 내용과 절세 방법을 정리했습니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.22 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">🌆</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">재건축</span>
-                        <div class="portal-card-title">대법원, 신반포2차 재건축 상가 분쟁 마침표… "전원 동의 불필요"</div>
-                        <div class="portal-card-desc">대법원이 신반포2차 재건축 상가 조합원 분쟁에서 조합의 손을 들어줬습니다. 이번 판결로 지지부진하던 재건축 사업이 속도를 낼 전망입니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.21 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">🏗️</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">분양</span>
-                        <div class="portal-card-title">강남권 새 아파트 분양 '역대급' 흥행… 평균 경쟁률 200대 1 돌파</div>
-                        <div class="portal-card-desc">올해 강남 3구에서 분양된 단지들이 역대급 청약 경쟁률을 기록하며 시장의 뜨거운 관심을 받고 있습니다. 전문가들은 희소성과 학군이 핵심 요인이라고 분석합니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.20 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="portal-card">
-                    <div class="portal-card-img-placeholder">💹</div>
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">경제</span>
-                        <div class="portal-card-title">기준금리 3.0% 인하 확정… 부동산 시장 반등 신호탄 될까</div>
-                        <div class="portal-card-desc">한국은행이 기준금리를 0.25% 포인트 인하하며 3.0%로 낮췄습니다. 금리 인하가 침체된 부동산 시장의 반등 신호탄이 될 수 있을지 시장의 이목이 집중되고 있습니다.</div>
-                        <div class="portal-card-meta">
-                            <span>2026.03.19 · 공실뉴스</span>
-                            <a href="#" class="portal-card-link">자세히 보기 →</a>
-                        </div>
-                    </div>
-                </div>
+            <div id="portalContainer">
+                <!-- JS Load Area -->
             </div>
         </div>
     </div>

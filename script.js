@@ -92,63 +92,187 @@ window.selectPortalTab = function(category) {
     loadPortalNews(category);
 };
 
-// 포털 뉴스 로딩 (Supabase 연동)
-async function loadPortalNews(category) {
-    const grid = document.getElementById('portalGrid');
-    if (!grid) return;
+// 포털 뉴스 상태 저장용
+window.portalState = { currentCategory: '전체기사', offset: 0, itemsPerPage: 10, isFetching: false, allLoaded: false };
 
-    // 로딩 표시
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;font-size:16px;color:#999;">뉴스를 불러오는 중...</div>';
+async function loadPortalNews(category, isLoadMore = false) {
+    const container = document.getElementById('portalContainer');
+    if (!container) return;
+
+    if (!isLoadMore) {
+        window.portalState.currentCategory = category;
+        window.portalState.offset = 0;
+        window.portalState.allLoaded = false;
+        container.innerHTML = '<div style="padding:60px;text-align:center;color:#999;">뉴스를 불러오는 중...</div>';
+    } else {
+        const btn = document.getElementById('portalLoadMoreBtn');
+        if (btn) btn.innerText = '불러오는 중...';
+    }
+
+    if (window.portalState.isFetching) return;
+    window.portalState.isFetching = true;
 
     try {
-        let query = supabaseClient
-            .from('news')
-            .select('*')
-            .order('pub_date', { ascending: false })
-            .limit(12);
-
-        // 카테고리 필터 (전체기사면 필터 없음)
-        if (category !== '전체기사') {
-            // DB에 해당 서브카테고리가 없으므로 전체를 로드
-            // 향후 DB 정비 후 query.eq('sub_category', category) 사용 가능
-        }
-
+        let query = supabaseClient.from('news').select('*').order('pub_date', { ascending: false });
+        
+        // 카테고리 필터 (기존처럼 일단 전체기사 유지, 필요시 로직 확장)
+        
+        // 페이징 처리
+        const from = window.portalState.offset;
+        // 초기 로딩이면 상단 하이라이트(1개) + 우측 작은기사(4개) + 좌측 리스트(itemsPerPage) = 총 5+itemsPerPage 개수 요구
+        const fetchCount = isLoadMore ? window.portalState.itemsPerPage : (5 + window.portalState.itemsPerPage);
+        const to = from + fetchCount - 1;
+        
+        query = query.range(from, to);
         const { data, error } = await query;
         if (error) throw error;
 
+        // 더 이상 데이터가 없으면
         if (!data || data.length === 0) {
-            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#999;">표시할 뉴스가 없습니다.</div>';
+            if (!isLoadMore) container.innerHTML = '<div style="padding:60px;text-align:center;color:#999;">표시할 뉴스가 없습니다.</div>';
+            else {
+                const btn = document.getElementById('portalLoadMoreBtn');
+                if (btn) { btn.innerText = '모든 기사를 불러왔습니다'; btn.disabled = true; }
+            }
+            window.portalState.allLoaded = true;
+            window.portalState.isFetching = false;
             return;
         }
+        
+        if (data.length < fetchCount) window.portalState.allLoaded = true;
+        window.portalState.offset += data.length;
 
-        grid.innerHTML = data.map(news => {
-            const date = new Date(news.pub_date).toLocaleDateString('ko-KR');
-            const imgSection = news.image_url
-                ? `<img src="${news.image_url}" class="portal-card-img" onerror="this.parentNode.innerHTML='<div class=portal-card-img-placeholder>📰</div>'"/>`
-                : `<div class="portal-card-img-placeholder">📰</div>`;
-            const desc = (news.description || '').substring(0, 100) + '...';
-            const tag = news.category === '공실뉴스' ? '부동산' : (news.category || '뉴스');
+        // 첫 로딩일 경우 2단 레이아웃 (Layout 생성)
+        if (!isLoadMore) {
+            let leftHtml = '';
+            let rightSideTopHtml = '';
+            let listStartIndex = 0;
 
-            return `
-                <div class="portal-card" onclick="window.showNewsDetail(${JSON.stringify(news).replace(/"/g, '&quot;')})">
-                    ${imgSection}
-                    <div class="portal-card-body">
-                        <span class="portal-card-tag">${tag}</span>
-                        <div class="portal-card-title">${news.title}</div>
-                        <div class="portal-card-desc">${desc}</div>
-                        <div class="portal-card-meta">
-                            <span>${date} · ${news.author || '공실뉴스'}</span>
-                            <a href="${news.link}" target="_blank" class="portal-card-link">전문 보기 →</a>
+            // 1. 좌측 핫 아티클 (Top 1)
+            if (data.length > 0) {
+                const hot = data[0];
+                const img = hot.image_url ? `<img src="${hot.image_url}" class="portal-hot-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc;background:#f0f0f0;">📰</div>';
+                const escHot = JSON.stringify(hot).replace(/"/g, '&quot;');
+                leftHtml += `
+                    <a href="javascript:void(0)" class="portal-hot-article" onclick="window.showNewsDetail(${escHot})">
+                        <div class="portal-hot-title">${hot.title}</div>
+                        <div class="portal-hot-img-wrap">${img}</div>
+                        <div class="portal-hot-desc">${hot.description || ''}</div>
+                    </a>
+                    <hr class="portal-divider">
+                `;
+                listStartIndex = 1;
+            }
+
+            // 2. 우측 상단 소형 기사 (최대 4개)
+            if (data.length > 1) {
+                const sideItems = data.slice(1, Math.min(5, data.length));
+                listStartIndex += sideItems.length;
+                
+                sideItems.forEach(news => {
+                    const esc = JSON.stringify(news).replace(/"/g, '&quot;');
+                    const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
+                    rightSideTopHtml += `
+                        <a href="javascript:void(0)" class="portal-side-item" onclick="window.showNewsDetail(${esc})">
+                            <div class="portal-side-item-content">
+                                <div class="portal-side-item-title">${news.title}</div>
+                            </div>
+                            <div class="portal-side-item-img-wrap">${img}</div>
+                        </a>
+                    `;
+                });
+            }
+
+            // 3. 좌측 리스트 기사 생성
+            const listItems = data.slice(listStartIndex);
+            let listHtml = '<div id="portalListContainer">';
+            listHtml += generatePortalListHtml(listItems);
+            listHtml += '</div>';
+
+            // 4. 많이 본 뉴스 더미 (일단 랜덤이나 최신 5개로 구성)
+            const popularItems = data.slice(0, 5).map((n, i) => `
+                <li onclick="window.showNewsDetail(${JSON.stringify(n).replace(/"/g, '&quot;')})">
+                    <span class="portal-popular-num">${i+1}</span>
+                    <span class="portal-popular-text">${n.title}</span>
+                </li>
+            `).join('');
+
+            // 전체 레이아웃 조합
+            container.innerHTML = `
+                <div class="portal-layout">
+                    <!-- 좌측 영역 -->
+                    <div class="portal-main">
+                        ${leftHtml}
+                        ${listHtml}
+                        ${window.portalState.allLoaded ? '' : '<button id="portalLoadMoreBtn" class="portal-btn-more" onclick="loadPortalNews(\'\', true)">기사 더보기 ↓</button>'}
+                    </div>
+
+                    <!-- 우측 사이드바 영역 -->
+                    <div class="portal-side">
+                        <div class="portal-side-top">
+                            ${rightSideTopHtml}
+                        </div>
+                        <div class="portal-banner">
+                            <!-- 광고 배너 공간 (더미) -->
+                            <div style="padding:40px;">YOU HAVE ONLY 2 MOVES<br><span>(광고 영역)</span></div>
+                        </div>
+                        <div class="portal-popular">
+                            <div class="portal-popular-title">가장 많이 본 기사</div>
+                            <ul class="portal-popular-list">
+                                ${popularItems}
+                            </ul>
+                        </div>
+                        <div class="portal-banner" style="min-height:300px; background:#fffcf0; border-color:#ffe0b2;">
+                            <div style="padding:40px; color:#ff9f1c;">부동산·주식·재테크<br>프리미엄 리포트</div>
                         </div>
                     </div>
                 </div>
             `;
-        }).join('');
+        } else {
+            // 더보기 클릭 시: 기존 리스트 하단에 항목 추가
+            const listContainer = document.getElementById('portalListContainer');
+            if (listContainer) {
+                listContainer.insertAdjacentHTML('beforeend', generatePortalListHtml(data));
+            }
+            const btn = document.getElementById('portalLoadMoreBtn');
+            if (btn) {
+                if (window.portalState.allLoaded) {
+                    btn.innerText = '모든 기사를 불러왔습니다';
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.style.cursor = 'default';
+                } else {
+                    btn.innerText = '기사 더보기 ↓';
+                }
+            }
+        }
 
     } catch (err) {
         console.error('포털 뉴스 로딩 오류:', err);
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#e74c3c;">뉴스를 불러오지 못했습니다.</div>';
+        if (!isLoadMore) container.innerHTML = '<div style="padding:60px;color:#e74c3c;text-align:center;">뉴스를 불러오지 못했습니다.</div>';
+    } finally {
+        window.portalState.isFetching = false;
     }
+}
+
+// 좌측 리스트 항목 HTML 생성 헬퍼 함수
+function generatePortalListHtml(newsList) {
+    if (!newsList || newsList.length === 0) return '';
+    return newsList.map(news => {
+        const esc = JSON.stringify(news).replace(/"/g, '&quot;');
+        const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
+        const date = new Date(news.pub_date).toLocaleDateString('ko-KR');
+        return `
+            <a href="javascript:void(0)" class="portal-list-item" onclick="window.showNewsDetail(${esc})">
+                <div class="portal-list-content">
+                    <div class="portal-list-title">${news.title}</div>
+                    <div class="portal-list-desc">${news.description ? news.description.substring(0, 100) + '...' : ''}</div>
+                    <div class="portal-list-meta">${news.author || '공실뉴스'} · ${date}</div>
+                </div>
+                <div class="portal-list-img-wrap">${img}</div>
+            </a>
+        `;
+    }).join('');
 }
 
 // 뉴스 1, 2단 네비게이션 연동
