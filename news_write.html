@@ -607,6 +607,40 @@
         </div>
     </div>
 
+    <!-- 동영상 추가 모달 -->
+    <div class="modal-overlay" id="videoModal">
+        <div class="modal-window" style="width: 540px;">
+            <div class="modal-header">
+                동영상추가
+                <span class="modal-close" onclick="closeVideoModal()">✕</span>
+            </div>
+            <div class="modal-body">
+                
+                <!-- 1. 영상URL/태그 -->
+                <div class="modal-row align-top">
+                    <div class="modal-label" style="padding-top:10px;">영상URL/태그</div>
+                    <div class="modal-content">
+                        <textarea class="modal-textarea" style="height: 100px; color:#aaa; line-height:1.4;" placeholder='&lt;iframe width="854" height="480" src="https://www.youtube.com/embed/_0xlsSss-nxuc" frameborder="0" allowfullscreen&gt;&lt;/iframe&gt;'></textarea>
+                    </div>
+                </div>
+
+                <!-- 2. 캡션 -->
+                <div class="modal-row align-top">
+                    <div class="modal-label" style="padding-top:10px;">캡션</div>
+                    <div class="modal-content">
+                        <textarea class="modal-textarea" placeholder="동영상설명입력"></textarea>
+                    </div>
+                </div>
+
+            </div>
+            
+            <div class="modal-footer" style="padding-bottom: 30px;">
+                <button class="btn-confirm" style="background:#5c7cfa;" onclick="closeVideoModal()">✓ 확인</button>
+                <button class="btn-cancel" onclick="closeVideoModal()">✕ 취소</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // 간단한 자바라(아코디언) 토글 스크립트 기능 추가
         function toggleSection() {
@@ -623,20 +657,26 @@
             }
         }
 
-        // 모달 열기/닫기 스크립트
-        function openPhotoModal() {
-            document.getElementById('photoModal').style.display = 'flex';
-        }
-        function closePhotoModal() {
-            document.getElementById('photoModal').style.display = 'none';
-        }
+        // 사진 모달 스크립트
+        function openPhotoModal() { document.getElementById('photoModal').style.display = 'flex'; }
+        function closePhotoModal() { document.getElementById('photoModal').style.display = 'none'; }
 
-        // 좌측 도구 모음의 첫 번째 버튼에 클릭 이벤트 추가
+        // 동영상 모달 스크립트
+        function openVideoModal() { document.getElementById('videoModal').style.display = 'flex'; }
+        function closeVideoModal() { document.getElementById('videoModal').style.display = 'none'; }
+
+        // 좌측 도구 모음 아이콘 이벤트
         document.addEventListener('DOMContentLoaded', () => {
-            const photoIcon = document.querySelector('.tools-grid .tool-icon:first-child');
-            if(photoIcon) {
-                photoIcon.style.cursor = 'pointer';
-                photoIcon.onclick = openPhotoModal;
+            const icons = document.querySelectorAll('.tools-grid .tool-icon');
+            // 사진 (1번째)
+            if(icons[0]) {
+                icons[0].style.cursor = 'pointer';
+                icons[0].onclick = openPhotoModal;
+            }
+            // 영상 (2번째)
+            if(icons[1]) {
+                icons[1].style.cursor = 'pointer';
+                icons[1].onclick = openVideoModal;
             }
         });
     </script>
