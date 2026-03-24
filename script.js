@@ -900,6 +900,7 @@ function renderSidebar(newsList) {
         if (displayCategory === '공실뉴스') displayCategory = '우리동네부동산';
         const categoryBadge = displayCategory ? `[${displayCategory}] ` : '';
 
+        const escNews = JSON.stringify(news).replace(/"/g, '&quot;');
         const bodyContent = `
             <div class="card-body">
                 <div class="news-tag">${categoryBadge}NEWS ${locationBadge}</div>
@@ -907,7 +908,7 @@ function renderSidebar(newsList) {
                 <p class="news-desc">${news.description ? news.description.substring(0, 80) + '...' : ''}</p>
                 <div class="news-meta">
                     <span>${date} · ${news.author || '공실뉴스'}</span>
-                    <a href="javascript:void(0)" class="news-link">자세히 보기 &rarr;</a>
+                    <a href="javascript:void(0)" onclick="event.stopPropagation(); window.showNewsDetail(${escNews});" class="news-link">자세히 보기 &rarr;</a>
                 </div>
             </div>
         `;
@@ -984,6 +985,7 @@ function renderMarkers(newsList) {
                     displayTitle = displayTitle.substring(0, 25) + '...';
                 }
 
+                const escNews = JSON.stringify(news).replace(/"/g, '&quot;');
                 const content = `
                     <div class="overlay-wrap" style="width: 300px; background: #ffffff; border-radius: 20px; padding: 24px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); border: 1px solid rgba(0,0,0,0.05); text-align: left; font-family: 'Pretendard', sans-serif; position: relative; z-index: 9999 !important;">
                         <div class="overlay-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
@@ -994,7 +996,7 @@ function renderMarkers(newsList) {
                             <div class="overlay-desc" style="font-size: 13px; color: #666; margin-bottom: 12px; display: block;">${(news.description || '').length > 29 ? (news.description || '').substring(0, 29) + '...' : (news.description || '')}</div>
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <div class="overlay-meta" style="font-size: 12px; color: #888; font-weight: 400; margin: 0;">${date} | ${news.author || '공실뉴스'}</div>
-                                <a href="javascript:void(0)" onclick='window.showNewsDetail()' class="overlay-link" style="display: block; text-align: right; font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: 600; margin: 0;">기사 보러가기 →</a>
+                                <a href="javascript:void(0)" onclick='window.showNewsDetail(${escNews})' class="overlay-link" style="display: block; text-align: right; font-size: 12px; color: #3b82f6; text-decoration: none; font-weight: 600; margin: 0;">기사 보러가기 →</a>
                             </div>
                         </div>
                         <div style="position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 10px solid #ffffff; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.05));"></div>
