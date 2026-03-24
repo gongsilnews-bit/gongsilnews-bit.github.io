@@ -1026,14 +1026,21 @@ function renderMarkers(newsList) {
 // 뉴스 상세 보기 표시 함수
 window.showNewsDetail = function(news) {
     const detailView = document.getElementById('news-detail-view');
+    const closeBtn = document.getElementById('btnCloseDetail');
     if (!detailView || !news) return;
 
     // 포털 모드인지 확인하여 렌더링 위치 및 기존 컨텐츠 숨김 제어
     if (document.body.classList.contains('portal-mode')) {
+        detailView.classList.remove('map-floating-mode');
+        if (closeBtn) closeBtn.innerHTML = '목록 보기 ✕';
+        
         const portalBody = document.querySelector('.portal-body');
         if (portalBody) portalBody.style.display = 'none'; // 목록 숨기기
         document.getElementById('portal-view').appendChild(detailView);
     } else {
+        detailView.classList.add('map-floating-mode');
+        if (closeBtn) closeBtn.innerHTML = '닫기 ✕';
+        
         const mapWrapper = document.querySelector('.map-wrapper');
         if (mapWrapper) mapWrapper.appendChild(detailView);
     }

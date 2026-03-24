@@ -97,6 +97,7 @@
         }
 
         .btn-close-detail { 
+            position: absolute;
             background: #222; 
             color: #fff; 
             border-radius: 40px; 
@@ -108,9 +109,44 @@
             justify-content: center;
             cursor: pointer; 
             transition: all 0.2s;
-            margin-bottom: 20px;
+            z-index: 2100;
         }
         .btn-close-detail:hover { background: #000; }
+
+        /* 우리동네부동산 맵 위 플로팅 모드 (단일 단 레이아웃) */
+        #news-detail-view.map-floating-mode {
+            width: 550px;
+            height: 100%;
+            border-right: 1px solid #ddd;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+            animation: slideRight 0.3s ease;
+        }
+        
+        @keyframes slideRight {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        #news-detail-view.map-floating-mode .detail-container {
+            display: block; /* 우측 광고 영역 무시하고 1단으로 */
+            padding: 40px 30px;
+            max-width: none;
+        }
+        
+        #news-detail-view.map-floating-mode .detail-sidebar {
+            display: none !important; /* 플로팅 시 우측 광고영역 완전히 숨김 */
+        }
+
+        #news-detail-view.map-floating-mode .detail-title {
+            font-size: 26px; /* 좁은 폭에 맞게 제목 폰트 살짝 축소 */
+        }
+
+        #news-detail-view.map-floating-mode .btn-close-detail {
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 13px;
+        }
 
         /* ========================================
            포털 뉴스 그리드 전용 레이어 스타일
@@ -485,6 +521,7 @@
         <div class="map-wrapper">
             <!-- 뉴스 상세 페이지 (레이아웃) -->
             <div id="news-detail-view">
+                <div class="btn-close-detail" id="btnCloseDetail" onclick="closeNewsDetail()">지도 보기 ✕</div>
                 <div class="detail-container">
                     <div class="detail-content">
                         <div class="detail-breadcrumb" id="detailCategory">뉴스/칼럼 > 부동산·주식·재테크</div>
@@ -519,9 +556,6 @@
                     </div>
                     
                     <div class="detail-sidebar">
-                        <div style="text-align: right;">
-                            <div class="btn-close-detail" onclick="closeNewsDetail()">지도 보기 ✕</div>
-                        </div>
                         
                         <div class="ad-banner">
                             <div style="font-weight:bold; font-size:15px; color:#ff9f1c; margin-bottom:10px;">HOT 매물/광고</div>
