@@ -702,3 +702,98 @@ body {
 .estate-btn:hover {
     background: var(--hover-color);
 }
+
+/* ---------------------------------------------------- */
+/* News Portal Grid Mode (Powered by Antigravity) */
+/* ---------------------------------------------------- */
+.portal-mode .map-wrapper { display: none !important; }
+.portal-mode .sidebar { 
+    width: 100% !important; 
+    max-width: 1200px !important; 
+    margin: 0 auto !important; 
+    border-right: none !important; 
+    position: relative !important; 
+    background: #fff !important; 
+    overflow-y: visible !important; 
+    padding: 40px 10px !important; 
+}
+.portal-mode .news-list { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; 
+    gap: 30px !important; 
+    padding: 20px !important; 
+}
+.portal-mode .news-card { 
+    border: 1px solid #e0e0e0 !important; 
+    border-radius: 16px !important; 
+    padding: 0 !important; 
+    overflow: hidden !important; 
+    height: 100% !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    background: #fff !important;
+}
+.portal-mode .news-card:hover { 
+    transform: translateY(-8px) !important; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important; 
+    border-color: #ff9f1c !important; 
+}
+.portal-mode .card-img-wrap { 
+    width: 100% !important; 
+    height: 200px !important; 
+    overflow: hidden !important; 
+    background: #f8f9fa !important; 
+    position: relative !important;
+}
+.portal-mode .card-img { 
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: cover !important; 
+    transition: transform 0.3s ease !important;
+}
+.portal-mode .news-card:hover .card-img {
+    transform: scale(1.05) !important;
+}
+.portal-mode .card-body { 
+    padding: 24px !important; 
+    flex: 1 !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+}
+.portal-mode .news-tag { 
+    margin-top: 0 !important; 
+    margin-bottom: 12px !important; 
+    background: #fff8f1 !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+}
+.portal-mode .news-card-title { 
+    font-size: 20px !important; 
+    line-height: 1.4 !important; 
+    font-weight: 800 !important;
+    margin-bottom: 15px !important; 
+    color: #111 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    height: 56px !important;
+}
+.portal-mode .news-desc { 
+    font-size: 14px !important; 
+    line-height: 1.6 !important;
+    color: #666 !important;
+    margin-bottom: 20px !important; 
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+.portal-mode .news-meta {
+    margin-top: auto !important;
+    border-top: 1px solid #f1f3f5 !important;
+    padding-top: 15px !important;
+}

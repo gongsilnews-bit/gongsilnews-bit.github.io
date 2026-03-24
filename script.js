@@ -658,10 +658,13 @@ function renderSidebar(newsList) {
     newsList.forEach((news, index) => {
         const date = new Date(news.pub_date).toLocaleDateString();
         const card = document.createElement('div');
-        card.className = 'news-card';
+        card.classList.add('news-card'); // classList 사용으로 안정성 강화
         card.id = `news-card-${index}`;
 
         const isPortal = document.body.classList.contains('portal-mode');
+        // 디버깅용 확인 (브라우저 콘솔에서 확인 가능)
+        if (index === 0) console.log("Card render mode (isPortal):", isPortal);
+
         const imgHtml = (isPortal && news.image_url) ? `
             <div class="card-img-wrap">
                 <img src="${news.image_url}" class="card-img" onerror="this.src='https://via.placeholder.com/300x180?text=Gongsil+News'">
