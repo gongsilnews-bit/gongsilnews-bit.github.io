@@ -515,27 +515,47 @@
             <button class="btn-save-large">💾 저장</button>
         </main>
 
-        <!-- 3. 우측 라이브러리 -->
-        <div class="right-lib">
-            <h3 class="lib-title">라이브러리</h3>
-            <div class="search-wrap">
-                <input type="text" class="search-input" placeholder="간편검색">
-                <div class="search-icon" style="cursor: pointer;" onclick="openPhotodbModal()">🔍</div>
+        <!-- 3. 우측 라이브러리 (스티키) -->
+        <aside class="col-library">
+            <div class="library-title">라이브러리</div>
+            <div class="search-box">
+                <input type="text" placeholder="포토DB 간편검색">
+                <span class="icon" style="cursor:pointer;" onclick="openPhotodbModal()">🔍</span>
             </div>
 
             <div class="lib-section">
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <strong style="font-size:14px;">사진</strong>
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
+                </div>
+                <label class="dash-drop-box" style="cursor: pointer;">
+                    <input type="file" accept="image/*" style="display:none;" onchange="alert('사진이 선택되었습니다: ' + (this.files[0]?this.files[0].name:''))">
+                    <div><span style="color:#aaa;">🖺</span> 마우스로 이미지를 끌어오거나, 클릭해주세요.</div>
+                    <div style="margin-top:4px;">(허용용량 10MB)</div>
+                </label>
+            </div>
+
+            <div class="lib-section" style="margin-top: 25px;">
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <strong style="font-size:14px;">영상</strong>
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
+                </div>
+                <div style="display:flex; border:1px solid #6b7280; border-radius:4px; overflow:hidden;">
+                    <input type="text" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
+                    <button class="btn" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
                 </div>
             </div>
 
-            <div class="lib-section" style="margin-bottom: 0;">
-                <div class="lib-header">
-                    <strong>파일</strong>
-                    <div class="lib-toggle">－</div>
+            <div class="lib-section" style="margin-top: 25px;">
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <strong style="font-size:14px;">파일</strong>
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
                 </div>
-                <div class="dash-drop-box">
-                    마우스로 파일을 끌어오거나, 클릭해주세요.<br>
-                    (허용용량 2MB)
-                </div>
+                <label class="dash-drop-box" style="cursor: pointer;">
+                    <input type="file" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" style="display:none;" onchange="alert('파일이 선택되었습니다: ' + (this.files[0]?this.files[0].name:''))">
+                    <div><span style="color:#aaa;">🖺</span> 마우스로 파일을 끌어오거나, 클릭해주세요.</div>
+                    <div style="margin-top:4px;">(허용용량 2MB)</div>
+                </label>
             </div>
         </aside>
 
