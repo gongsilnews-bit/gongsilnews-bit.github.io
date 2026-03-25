@@ -388,7 +388,7 @@ function render() {
                '</div>'+
                '<div style="display: flex; gap: 8px; align-items: center;">'+
                     '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="shareArticle()">🔗 주소복사</button>'+
-                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="window.open(\'index.html?articleId=\'+articleId, \'_blank\')">💻 미리보기</button>'+
+                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="window.open(\'index.html?article_id=\'+articleId, \'_blank\')">💻 미리보기</button>'+
                '</div>'+
             '</div>'+
           '</div>'+
@@ -513,7 +513,7 @@ async function deleteArticle() {
 function approveArticle() { changeStatus('published'); }
 
 function shareArticle() {
-    var url = window.location.origin + window.location.pathname.replace(/article_view\.html$/, 'index.html') + '?articleId=' + articleId;
+    var url = window.location.origin + window.location.pathname.replace(/article_view\.html$/, 'index.html') + '?article_id=' + articleId;
     if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(function() { alert('URL이 클립보드에 복사되었습니다.\\n' + url); });
     } else { prompt('아래 URL을 복사하세요:', url); }

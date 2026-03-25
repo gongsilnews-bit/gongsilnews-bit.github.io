@@ -1254,7 +1254,7 @@ window.showNewsDetail = async function(news) {
                 relatedHtml += '<span style="color:#ea580c; font-size:16px;">▶</span> 관련기사</div>';
                 relatedHtml += '<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">';
                 news.related_articles.forEach(r => {
-                    relatedHtml += '<li style="display:flex; gap:8px; font-size:15px; cursor:pointer;" onclick="window.location.href=\'index.html?articleId=' + r.id + '\'">'
+                    relatedHtml += '<li style="display:flex; gap:8px; font-size:15px; cursor:pointer;" onclick="window.location.href=\'index.html?article_id=' + r.id + '\'">'
                         + '<span style="color:#aaa;">ㄴ</span>'
                         + '<span style="color:#333; font-weight:600; text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'; this.style.color=\'#ea580c\';" onmouseout="this.style.textDecoration=\'none\'; this.style.color=\'#333\';">' + (r.title||'제목 없음') + '</span>'
                         + '</li>';
