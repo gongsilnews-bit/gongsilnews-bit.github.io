@@ -548,7 +548,7 @@
                     <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
                 </div>
                 <label class="dash-drop-box" style="cursor: pointer;">
-                    <input type="file" accept="image/*" style="display:none;" onchange="alert('사진이 선택되었습니다: ' + (this.files[0]?this.files[0].name:''))">
+                    <input type="file" accept="image/*" style="display:none;" onchange="insertLibraryImage(this)">
                     <div><span style="color:#aaa;">🖺</span> 마우스로 이미지를 끌어오거나, 클릭해주세요.</div>
                     <div style="margin-top:4px;">(허용용량 10MB)</div>
                 </label>
@@ -560,8 +560,8 @@
                     <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
                 </div>
                 <div style="display:flex; border:1px solid #6b7280; border-radius:4px; overflow:hidden;">
-                    <input type="text" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
-                    <button class="btn" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
+                    <input type="text" id="libYoutubeInput" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
+                    <button type="button" class="btn" onclick="insertYoutubeEmbed()" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
                 </div>
             </div>
 
@@ -1334,6 +1334,55 @@
                 icons[5].onclick = () => window.open('https://pixlr.com/kr/editor/', '_blank'); 
             }
         });
+
+        // ==========================================
+        // 우측 라이브러리 기능 (사진 / 유튜브 본문 삽입)
+        // ==========================================
+        function insertLibraryImage(inputTarget) {
+            if (inputTarget.files && inputTarget.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const imgUrl = e.target.result;
+                    // 이미지 태그를 생성해서 중앙 정렬 스타일과 함께 에디터 삽입
+                    const imgHtml = `<p style="text-align: center;"><img src="${imgUrl}" style="max-width: 100%; border-radius: 8px;"></p>`;
+                    $('#summernote').summernote('pasteHTML', imgHtml);
+                    
+                    inputTarget.value = ''; // 선택 초기화 (같은 파일 또 삽입 가능하도록)
+                }
+                reader.readAsDataURL(inputTarget.files[0]);
+            }
+        }
+
+        function insertYoutubeEmbed() {
+            const ytInput = document.getElementById('libYoutubeInput');
+            const ytUrl = ytInput.value.trim();
+            if (!ytUrl) {
+                alert("YouTube 영상 링크를 입력해주세요 (예: https://youtu.be/...)");
+                return;
+            }
+            
+            // 유튜브 URL에서 Video ID 추출 정규식
+            let videoId = "";
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = ytUrl.match(regExp);
+            if (match && match[2].length === 11) {
+                videoId = match[2];
+            } else {
+                alert("유효한 YouTube 링크 형식이 아닙니다.\n올바른 공유 링크를 복사해 주세요.");
+                return;
+            }
+
+            // 반응형 iFrame 래퍼 HTML 생성
+            const iframeHtml = `
+                <div style="position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 8px;">
+                    <iframe src="https://www.youtube.com/embed/${videoId}" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <p><br></p>
+            `;
+            $('#summernote').summernote('pasteHTML', iframeHtml);
+            
+            ytInput.value = ''; // 입력창 초기화
+        }
 
         // -------------------------
         // 전문 작성 에디터 (Summernote) 초기화
