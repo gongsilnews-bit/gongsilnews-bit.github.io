@@ -1357,14 +1357,16 @@ window.shareArticleUrl = function() {
 
 // 이전/다음 기사 탐색
 window.navigateArticle = function(direction) {
-    if (!window.portalState || !window.portalState.articles || window.portalState.articles.length === 0) {
+    const isPortal = document.body.classList.contains('portal-mode');
+    const navArr = isPortal ? (window.portalState && window.portalState.articles ? window.portalState.articles : []) : (typeof allNewsData !== 'undefined' ? allNewsData : []);
+
+    if (!navArr || navArr.length === 0) {
         alert('이전/다음 기사 정보가 없습니다.');
         return;
     }
     const currentId = window.currentArticleId;
     if (!currentId) return;
 
-    const navArr = window.portalState.articles;
     const currentIndex = navArr.findIndex(a => (a.id || a.article_id) === currentId);
     
     if (currentIndex === -1) {
