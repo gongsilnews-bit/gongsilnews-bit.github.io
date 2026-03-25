@@ -707,38 +707,115 @@
                     </div>
                 </div>
 
-                <div class="detail-container-clean">
-
-                    <!-- 브레드크럼 (카테고리 경로) -->
-                    <div id="detailCategory" class="detail-clean-breadcrumb">뉴스/칼럼</div>
-
-                    <!-- 기사 제목 -->
-                    <h1 class="detail-clean-title" id="detailTitle">로딩 중...</h1>
-
-                    <!-- 작성자 / 날짜 / 조회수 -->
-                    <div class="detail-clean-meta">
-                        <span id="detailAuthor"></span>
-                        <span class="meta-sep">|</span>
-                        <span id="detailDate"></span>
-                        <span class="meta-sep">|</span>
-                        <span id="detailViews"></span>
+                <div class="detail-container">
+                    <!-- 상단 헤더 영역 (그리드 전체 폭 차지) -->
+                    <div class="detail-header-full" style="grid-column: 1 / -1; margin-bottom: 0;">
+                        <div class="detail-breadcrumb" id="detailCategory" style="font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600;">뉴스/칼럼 > 부동산·주식·재테크</div>
+                        <h1 class="detail-title" id="detailTitle" style="font-size: 36px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 16px; letter-spacing:-1.5px; word-break:keep-all;">로딩 중...</h1>
+                        <div class="detail-meta" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 0;">
+                            <div class="meta-info" style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">
+                                <span id="detailAuthor" style="color: #111; font-weight: bold;">공실뉴스</span>
+                                <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                                <span id="detailDate">입력 2026.03.19 10:51</span>
+                                <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                                <span id="detailViews">조회수 0</span>
+                            </div>
+                            <div class="meta-stats" style="display: flex; gap: 16px; align-items: center; color: #333; font-size: 20px;">
+                                <span style="display:flex; align-items:center; cursor:pointer;" title="스크랩"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"></path></svg></span>
+                                <span style="display:flex; align-items:center; cursor:pointer;" title="공유" onclick="window.shareArticleUrl()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 본문 -->
-                    <div class="detail-clean-body" id="detailBody">
-                        <div style="padding:60px;text-align:center;color:#aaa;">본문을 불러오는 중...</div>
+                    <!-- 좌측 본문 영역 -->
+                    <div class="detail-content" style="padding-top: 0;">
+                        <div class="article-body" id="detailBody">
+                            <!-- JS에서 내용 채움 -->
+                        </div>
+
+                        <!-- 하단 관련 기사 추천 -->
+                        <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid #111;">
+                            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 25px;">함께 보면 좋은 뉴스</h3>
+                            <div id="relatedNewsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">은마·목동 등 재건축 단지 불확실성 해소 전망...</div>
+                                </div>
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">2024년 부동산 전망 전문가 심층 토론회 개최...</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                    
+                    <div class="detail-sidebar">
+                        
+                        <!-- 포털 모드 전용 사이드바 (광고, 배너, 많이 본 기사) -->
+                        <div class="portal-sidebar-content">
+                            <div class="ad-banner">
+                                <div style="font-weight:bold; font-size:15px; color:#ff9f1c; margin-bottom:10px;">HOT 매물/광고</div>
+                                <div style="width:100%; height:140px; background:#e0e0e0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">공실가이드맵 (지도 이미지)</div>
+                                <div style="background:#333; color:#fff; text-align:center; padding:8px; font-size:12px; margin-top:8px; border-radius:4px;">강남구 역삼동 신축 빌딩 (수익률 6%)</div>
+                            </div>
+                            
+                            <div style="background:#00b894; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:14px; cursor:pointer;">
+                                공실알림<br><span style="font-size:12px;font-weight:normal;">(관심도 1,000개 부동산 가입)</span>
+                            </div>
+                            <div style="background:#00cec9; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:30px; font-weight:bold; font-size:14px; cursor:pointer;">
+                                신축/분양/권리조회<br><span style="font-size:12px;font-weight:normal;">(부동산 전문가에게 의뢰)</span>
+                            </div>
 
-                    <!-- 함께 보면 좋은 뉴스 -->
-                    <div class="detail-clean-related">
-                        <h3>함께 보면 좋은 뉴스</h3>
-                        <div id="relatedNewsGrid" class="related-grid"></div>
+                            <h3 style="font-size:16px; font-weight:800; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:15px;">많이 본 뉴스</h3>
+                            <ul class="portal-popular-list">
+                                <li><span class="portal-popular-num">1</span><span class="portal-popular-text">대법원, 신반포2차 재건축 상가 분쟁 마침표</span></li>
+                                <li><span class="portal-popular-num">2</span><span class="portal-popular-text">부모님 자산 형태에 따른 세무 가이드</span></li>
+                                <li><span class="portal-popular-num">3</span><span class="portal-popular-text">강남 아파트값 3년 만에 최고 상승률</span></li>
+                                <li><span class="portal-popular-num">4</span><span class="portal-popular-text">5호선 연장·위례신사선 확정... 서부 호재</span></li>
+                                <li><span class="portal-popular-num">5</span><span class="portal-popular-text">다주택자 양도세 중과 완화 정책 분석</span></li>
+                            </ul>
+                        </div>
+
+                        <!-- 맵 플로팅 모드 전용 사이드바 (작성 부동산 매물) -->
+                        <div class="map-sidebar-content">
+                            <h3 style="font-size: 16px; font-weight: 800; border-bottom: 2px solid #111; padding-bottom: 10px; margin-bottom: 15px;">해당 부동산 등록 매물</h3>
+                            
+                            <!-- 더미 매물 아이템 1 -->
+                            <div style="display: flex; gap: 12px; margin-bottom: 15px; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 8px; padding: 10px; transition: 0.2s;">
+                                <div style="width: 80px; height: 80px; background: #eee url('https://via.placeholder.com/80?text=Room') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                                <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                                    <span style="font-size: 11px; font-weight: bold; color: #00ca62; border: 1px solid #00ca62; border-radius: 3px; padding: 1px 4px; align-self: flex-start; margin-bottom: 4px;">추천</span>
+                                    <div style="font-size: 14px; font-weight: 800; color: #111;">매매 5억 5천</div>
+                                    <div style="font-size: 13px; color: #666; margin-top: 2px;">전용 59㎡ · 관리비 10만</div>
+                                    <div style="font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">서울 강남구 역삼동</div>
+                                </div>
+                            </div>
+
+                            <!-- 더미 매물 아이템 2 -->
+                            <div style="display: flex; gap: 12px; margin-bottom: 15px; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 8px; padding: 10px; transition: 0.2s;">
+                                <div style="width: 80px; height: 80px; background: #eee url('https://via.placeholder.com/80?text=Bldg') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                                <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                                    <span style="font-size: 11px; font-weight: bold; color: #ff9f1c; border: 1px solid #ff9f1c; border-radius: 3px; padding: 1px 4px; align-self: flex-start; margin-bottom: 4px;">급매</span>
+                                    <div style="font-size: 14px; font-weight: 800; color: #111;">단기 300 / 300</div>
+                                    <div style="font-size: 13px; color: #666; margin-top: 2px;">전용 35㎡ · 관리비 15만</div>
+                                    <div style="font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">서울 서초구 방배동</div>
+                                </div>
+                            </div>
+                            
+                            <!-- 더미 매물 아이템 3 -->
+                            <div style="display: flex; gap: 12px; margin-bottom: 15px; cursor: pointer; border: 1px solid #f0f0f0; border-radius: 8px; padding: 10px; transition: 0.2s;">
+                                <div style="width: 80px; height: 80px; background: #eee url('https://via.placeholder.com/80?text=Office') center/cover; border-radius: 4px; flex-shrink: 0;"></div>
+                                <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 800; color: #111; margin-top: 4px;">전세 8억</div>
+                                    <div style="font-size: 13px; color: #666; margin-top: 2px;">전용 84㎡ · 아파트</div>
+                                    <div style="font-size: 12px; color: #888; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">서울 강남구 논현동</div>
+                                </div>
+                            </div>
+
+                        </div>
                     </div>
-
-                </div><!-- /.detail-container-clean -->
-
-
-            </div><!-- /.map-wrapper -->
+                </div>
+            </div>
             
             <div id="wishFloatingFilter">
                 <span class="wish-select" id="mapRegionDo" onclick="window.openRegionSelector('sido')">위치 파악중</span>
