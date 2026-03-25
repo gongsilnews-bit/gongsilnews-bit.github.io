@@ -135,9 +135,30 @@ async function loadPortalNews(category, isLoadMore = false) {
         const { data: rawData, error } = await query;
         if (error) throw error;
 
-        // _source 마킹하여 showNewsDetail에서 articles 테이블로 인식
+        // _source 마킹하여 showNewsDetail에서 articles 테이블로 인식 및 콘텐츠 파싱
         const data = (rawData || []).map(function(a) {
-            return Object.assign({}, a, { _source: 'articles', pub_date: a.created_at });
+            let imgUrl = a.image_url;
+            if (!imgUrl && a.content) {
+                const match = a.content.match(/<img[^>]+src=["']([^"'>]+)["']/);
+                if (match) imgUrl = match[1];
+            }
+            if (!imgUrl) {
+                // 더미 이미지 제공으로 리스트 화면을 예쁘게 구성
+                imgUrl = `https://picsum.photos/seed/${a.id || Math.random()}/600/400`;
+            }
+
+            let desc = a.subtitle || '';
+            if (!desc && a.content) {
+                desc = a.content.replace(/<[^>]+>/g, '').trim().substring(0, 120) + '...';
+            }
+
+            return Object.assign({}, a, { 
+                _source: 'articles', 
+                pub_date: a.created_at,
+                image_url: imgUrl,
+                description: desc,
+                author: a.reporter_name || '공실뉴스'
+            });
         });
 
         // 더 이상 데이터가 없으면
@@ -166,9 +187,11 @@ async function loadPortalNews(category, isLoadMore = false) {
                 const hot = data[0];
                 const img = hot.image_url ? `<img src="${hot.image_url}" class="portal-hot-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc;background:#f0f0f0;">📰</div>';
                 const escHot = JSON.stringify(hot).replace(/"/g, '&quot;');
+                const hotDate = hot.pub_date ? new Date(hot.pub_date).toLocaleDateString('ko-KR') : '-';
                 leftHtml += `
                     <a href="javascript:void(0)" class="portal-hot-article" onclick="window.showNewsDetail(${escHot})">
                         <div class="portal-hot-title">${hot.title}</div>
+                        <div style="font-size: 13px; color: #888; margin-bottom: 12px;">${hot.author || '공실뉴스'} · ${hotDate}</div>
                         <div class="portal-hot-img-wrap">${img}</div>
                         <div class="portal-hot-desc">${hot.description || ''}</div>
                     </a>
@@ -185,10 +208,12 @@ async function loadPortalNews(category, isLoadMore = false) {
                 sideItems.forEach(news => {
                     const esc = JSON.stringify(news).replace(/"/g, '&quot;');
                     const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
+                    const sDate = news.pub_date ? new Date(news.pub_date).toLocaleDateString('ko-KR') : '-';
                     rightSideTopHtml += `
                         <a href="javascript:void(0)" class="portal-side-item" onclick="window.showNewsDetail(${esc})">
                             <div class="portal-side-item-content">
                                 <div class="portal-side-item-title">${news.title}</div>
+                                <div style="font-size: 11px; color: #999; margin-top: 6px;">${news.author || '공실뉴스'} · ${sDate}</div>
                             </div>
                             <div class="portal-side-item-img-wrap">${img}</div>
                         </a>
