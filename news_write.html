@@ -1672,25 +1672,37 @@
         function addLibraryPhotos(inputEl) {
             const files = Array.from(inputEl.files);
             inputEl.value = '';
+            if (files.length === 0) return;
 
-            // FileReader가 비동기이므로 순차 처리해야 커서 위치가 올바르게 유지됨
-            function processNext(index) {
-                if (index >= files.length) return;
-                const file = files[index];
-                const reader = new FileReader();
+            var results = new Array(files.length).fill(null);
+            var doneCount = 0;
+
+            files.forEach(function(file, i) {
+                var reader = new FileReader();
                 reader.onload = function(e) {
-                    const id = 'photo_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-                    libPhotos.push({ id: id, dataUrl: e.target.result, caption: '' });
-                    if (!globalRepId) globalRepId = id;
-                    renderPhotoGrid();
-                    insertPhotoToEditor(id, 'center'); // 커서 위치에 삽입
-                    // 삽입 후 커서를 방금 넣은 figure 뒤로 갱신 → 다음 이미지는 그 뒤에 삽입
-                    savedRange = $('#summernote').summernote('editor.getLastRange');
-                    processNext(index + 1); // 다음 파일 처리
+                    results[i] = e.target.result;
+                    doneCount++;
+                    if (doneCount === files.length) {
+                        // 모든 파일 읽기 완료 → 한 번에 HTML 조합 후 단일 삽입
+                        var combinedHtml = '<p></p>'; // 커서 위치 앵커
+                        results.forEach(function(dataUrl, idx) {
+                            var id = 'photo_' + Date.now() + '_' + idx;
+                            libPhotos.push({ id: id, dataUrl: dataUrl, caption: '' });
+                            if (!globalRepId) globalRepId = id;
+                            // figure HTML 조합
+                            combinedHtml +=
+                                '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:center; margin:8px auto;">'
+                                + '<img src="' + dataUrl + '" style="max-width:100%; display:block; width:100%;">'
+                                + '<figcaption contenteditable="true"></figcaption>'
+                                + '</figure>'
+                                + '<p></p>'; // 각 이미지 뒤 줄바꿈
+                        });
+                        renderPhotoGrid();
+                        insertNodeAtCursor(combinedHtml); // 한 번만 삽입
+                    }
                 };
                 reader.readAsDataURL(file);
-            }
-            processNext(0);
+            });
         }
 
         function renderPhotoGrid() {
