@@ -141,8 +141,8 @@ async function loadPortalNews(category, isLoadMore = false) {
             let videoId = null;
 
             if (a.content) {
-                // 유튜브 아이디 추출 로직
-                const ytMatch = a.content.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                // 유튜브 아이디 추출 로직 (shorts 포함)
+                const ytMatch = a.content.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
                 if (ytMatch) {
                     videoId = ytMatch[1];
                     imgUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
@@ -189,6 +189,25 @@ async function loadPortalNews(category, isLoadMore = false) {
         if (data.length < fetchCount) window.portalState.allLoaded = true;
         window.portalState.offset += data.length;
 
+        // 유튜브 프리뷰 재생/정지 헬퍼 (글로벌)
+        if (!window.playYtPreview) {
+            window.playYtPreview = function(el, vid) {
+                if (!vid) return;
+                let i = el.querySelector('iframe.yt-preview');
+                if (!i) {
+                    i = document.createElement('iframe');
+                    i.className = 'yt-preview';
+                    i.src = `https://www.youtube.com/embed/${vid}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${vid}&rel=0&disablekb=1&fs=0`;
+                    i.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:10;border:none;background:#000;border-radius:inherit;';
+                    el.appendChild(i);
+                }
+            };
+            window.stopYtPreview = function(el) {
+                const i = el.querySelector('iframe.yt-preview');
+                if (i) i.remove();
+            };
+        }
+
         // 첫 로딩일 경우 2단 레이아웃 (Layout 생성)
         if (!isLoadMore) {
             let leftHtml = '';
@@ -204,14 +223,14 @@ async function loadPortalNews(category, isLoadMore = false) {
                 let playOverlay = '';
                 let hoverEvent = '';
                 if (hot.video_id) {
-                    playOverlay = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:60px; height:60px; background:rgba(0,0,0,0.6); border-radius:50%; display:flex; align-items:center; justify-content:center; padding-left:4px;"><svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg></div>';
-                    hoverEvent = `onmouseenter="if(!this.querySelector('iframe')) { const i=document.createElement('iframe'); i.src='https://www.youtube.com/embed/${hot.video_id}?autoplay=1&mute=1&controls=0&modestbranding=1&loop=1&playlist=${hot.video_id}'; i.style.cssText='position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;border:none;'; this.appendChild(i);}" onmouseleave="const i=this.querySelector('iframe'); if(i) i.remove();"`;
+                    playOverlay = '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:60px; height:60px; background:rgba(0,0,0,0.6); border-radius:50%; display:flex; align-items:center; justify-content:center; padding-left:4px; z-index:5;"><svg viewBox="0 0 24 24" width="30" height="30" fill="white"><path d="M8 5v14l11-7z"/></svg></div>';
+                    hoverEvent = `onmouseenter="window.playYtPreview(this, '${hot.video_id}')" onmouseleave="window.stopYtPreview(this)"`;
                 }
 
                 leftHtml += `
                     <a href="javascript:void(0)" class="portal-hot-article" onclick="window.showNewsDetail(${escHot})">
                         <div class="portal-hot-title">${hot.title}</div>
-                        <div class="portal-hot-img-wrap" style="position:relative; margin-bottom:0px;" ${hoverEvent}>
+                        <div class="portal-hot-img-wrap" style="position:relative; margin-bottom:0px; overflow:hidden;" ${hoverEvent}>
                             ${img}
                             ${playOverlay}
                         </div>
@@ -228,13 +247,14 @@ async function loadPortalNews(category, isLoadMore = false) {
                 sideItems.forEach(news => {
                     const esc = JSON.stringify(news).replace(/"/g, '&quot;');
                     const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
-                    let playOverlay = news.video_id ? '<div style="position:absolute; bottom:5px; left:5px; width:24px; height:24px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:2px;"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
+                    let playOverlay = news.video_id ? '<div style="position:absolute; bottom:5px; left:5px; width:24px; height:24px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:2px; z-index:5;"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
+                    let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
                     rightSideTopHtml += `
                         <a href="javascript:void(0)" class="portal-side-item" onclick="window.showNewsDetail(${esc})">
                             <div class="portal-side-item-content">
                                 <div class="portal-side-item-title">${news.title}</div>
                             </div>
-                            <div class="portal-side-item-img-wrap" style="position:relative;">
+                            <div class="portal-side-item-img-wrap" style="position:relative; overflow:hidden;" ${hoverEvent}>
                                 ${img}
                                 ${playOverlay}
                             </div>
@@ -332,13 +352,14 @@ function generatePortalListHtml(newsList) {
     return newsList.map(news => {
         const esc = JSON.stringify(news).replace(/"/g, '&quot;');
         const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
-        let playOverlay = news.video_id ? '<div style="position:absolute; bottom:8px; left:8px; width:30px; height:30px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:3px;"><svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
+        let playOverlay = news.video_id ? '<div style="position:absolute; bottom:8px; left:8px; width:30px; height:30px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:3px; z-index:5;"><svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
+        let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
         return `
             <a href="javascript:void(0)" class="portal-list-item" style="padding: 12px 0;" onclick="window.showNewsDetail(${esc})">
                 <div class="portal-list-content" style="justify-content:center;">
                     <div class="portal-list-title" style="margin-bottom:0;">${news.title}</div>
                 </div>
-                <div class="portal-list-img-wrap" style="position:relative;">
+                <div class="portal-list-img-wrap" style="position:relative; overflow:hidden;" ${hoverEvent}>
                     ${img}
                     ${playOverlay}
                 </div>
