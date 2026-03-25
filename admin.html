@@ -304,7 +304,7 @@
     <!-- ③ 액션 바 -->
     <div class="action-bar">
         <div class="left-actions">
-            <button class="btn btn-register" id="btn-add-property" onclick="window.location.href='register.html'">+ 공실등록</button>
+            <button class="btn btn-register" id="btn-add-property" onclick="window.location.href='register.html?v=' + new Date().getTime()">+ 공실등록</button>
             <button class="btn" id="btn-rank-refresh">⬆ 광고순위갱신</button>
             <button class="btn" id="btn-bulk-delete">🗑 선택삭제</button>
         </div>
@@ -560,7 +560,7 @@
     }
 
     window.editProperty = function(id) {
-        window.location.href = `register.html?id=${id}`;
+        window.location.href = `register.html?id=${id}&v=${new Date().getTime()}`;
     }
 
     document.getElementById('btn-do-search').addEventListener('click', () => {
@@ -596,7 +596,7 @@
     });
 
     document.getElementById('btn-add-property').addEventListener('click', () => {
-        window.location.href = 'register.html';
+        window.location.href = 'register.html?v=' + new Date().getTime();
     });
 </script>
 </body>
