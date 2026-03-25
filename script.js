@@ -187,13 +187,10 @@ async function loadPortalNews(category, isLoadMore = false) {
                 const hot = data[0];
                 const img = hot.image_url ? `<img src="${hot.image_url}" class="portal-hot-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;color:#ccc;background:#f0f0f0;">📰</div>';
                 const escHot = JSON.stringify(hot).replace(/"/g, '&quot;');
-                const hotDate = hot.pub_date ? new Date(hot.pub_date).toLocaleDateString('ko-KR') : '-';
                 leftHtml += `
                     <a href="javascript:void(0)" class="portal-hot-article" onclick="window.showNewsDetail(${escHot})">
                         <div class="portal-hot-title">${hot.title}</div>
-                        <div style="font-size: 13px; color: #888; margin-bottom: 12px;">${hot.author || '공실뉴스'} · ${hotDate}</div>
-                        <div class="portal-hot-img-wrap">${img}</div>
-                        <div class="portal-hot-desc">${hot.description || ''}</div>
+                        <div class="portal-hot-img-wrap" style="margin-bottom:0px;">${img}</div>
                     </a>
                 `;
                 listStartIndex = 1;
@@ -207,12 +204,10 @@ async function loadPortalNews(category, isLoadMore = false) {
                 sideItems.forEach(news => {
                     const esc = JSON.stringify(news).replace(/"/g, '&quot;');
                     const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
-                    const sDate = news.pub_date ? new Date(news.pub_date).toLocaleDateString('ko-KR') : '-';
                     rightSideTopHtml += `
-                        <a href="javascript:void(0)" class="portal-side-item" onclick="window.showNewsDetail(${esc})">
+                        <a href="javascript:void(0)" class="portal-side-item" style="margin-bottom: 12px;" onclick="window.showNewsDetail(${esc})">
                             <div class="portal-side-item-content">
                                 <div class="portal-side-item-title">${news.title}</div>
-                                <div style="font-size: 11px; color: #999; margin-top: 6px;">${news.author || '공실뉴스'} · ${sDate}</div>
                             </div>
                             <div class="portal-side-item-img-wrap">${img}</div>
                         </a>
@@ -309,13 +304,10 @@ function generatePortalListHtml(newsList) {
     return newsList.map(news => {
         const esc = JSON.stringify(news).replace(/"/g, '&quot;');
         const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onerror="this.style.display='none'">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
-        const date = new Date(news.pub_date).toLocaleDateString('ko-KR');
         return `
-            <a href="javascript:void(0)" class="portal-list-item" onclick="window.showNewsDetail(${esc})">
-                <div class="portal-list-content">
-                    <div class="portal-list-title">${news.title}</div>
-                    <div class="portal-list-desc">${news.description ? news.description.substring(0, 100) + '...' : ''}</div>
-                    <div class="portal-list-meta">${news.author || '공실뉴스'} · ${date}</div>
+            <a href="javascript:void(0)" class="portal-list-item" style="padding: 12px 0;" onclick="window.showNewsDetail(${esc})">
+                <div class="portal-list-content" style="justify-content:center;">
+                    <div class="portal-list-title" style="margin-bottom:0;">${news.title}</div>
                 </div>
                 <div class="portal-list-img-wrap">${img}</div>
             </a>
