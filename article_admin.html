@@ -341,7 +341,7 @@
             return '<tr>'
               +'<td><input type="checkbox" class="row-check" data-id="'+a.id+'"></td>'
               +'<td><span class="badge-status '+si.cls+'">'+si.label+'</span></td>'
-              +'<td class="cell-title" onclick="goEdit('+a.id+')">'+escHtml(a.title||'(제목없음)')+icon+'</td>'
+              +'<td class="cell-title" onclick="goView('+a.id+')">'+escHtml(a.title||'(제목없음)')+icon+'</td>'
               +'<td class="section-primary">'+(a.section1||'-')+'</td>'
               +'<td class="section-secondary">'+(a.section2||'-')+'</td>'
               +'<td class="date-text">'+formatDate(a.created_at)+'</td>'
@@ -383,6 +383,15 @@
         document.getElementById('filterKeyword').value='';
         activeFilter={status:'all',section1:'all',keyword:''};
         currentPage=1; loadArticles();
+    }
+
+    // 기사 뷰 페이지로 이동
+    function goView(id) {
+        if (window.parent && window.parent.loadPage) {
+            window.parent.loadPage(null, '기사뷰', 'article_view.html?id='+id);
+        } else {
+            window.location.href = 'article_view.html?id='+id;
+        }
     }
 
     // 수정 페이지로 이동
