@@ -1579,6 +1579,12 @@
                 globalRepId = libPhotos.length ? libPhotos[0].id
                             : libVideos.length ? libVideos[0].id : null;
             }
+            // 에디터내 연동된 figure 삭제
+            var editorEl = document.querySelector('.note-editable');
+            if (editorEl) {
+                var fig = editorEl.querySelector('figure[data-photo-id="' + id + '"]');
+                if (fig) fig.parentNode.removeChild(fig);
+            }
             renderPhotoGrid();
         }
 
@@ -1588,8 +1594,18 @@
             tmp.onchange = function() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    const newDataUrl = e.target.result;
                     const idx = libPhotos.findIndex(function(p) { return p.id === id; });
-                    if (idx > -1) libPhotos[idx].dataUrl = e.target.result;
+                    if (idx > -1) libPhotos[idx].dataUrl = newDataUrl;
+                    // 에디터내 연동된 figure 이미지 src 교체
+                    var editorEl = document.querySelector('.note-editable');
+                    if (editorEl) {
+                        var fig = editorEl.querySelector('figure[data-photo-id="' + id + '"]');
+                        if (fig) {
+                            var imgEl = fig.querySelector('img');
+                            if (imgEl) imgEl.src = newDataUrl;
+                        }
+                    }
                     renderPhotoGrid();
                 };
                 reader.readAsDataURL(tmp.files[0]);
@@ -1606,7 +1622,7 @@
             var textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
             var captionText = (photo.caption && photo.caption.trim()) ? photo.caption.trim() : '';
 
-            var html = '<figure class="news-figure" draggable="true" data-type="lib-img" style="text-align:' + textAlign + '; margin:8px auto;">'
+            var html = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + textAlign + '; margin:8px auto;">'
                 + '<img src="' + photo.dataUrl + '" style="max-width:100%; display:block; width:100%;">'
                 + '<figcaption contenteditable="true">' + captionText + '</figcaption>'
                 + '</figure>';
