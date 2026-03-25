@@ -1270,11 +1270,9 @@ window.showNewsDetail = async function(news) {
         } catch(err) {
             bodyContainer.innerHTML = '<p style="color:#e11d48;">본문 로드 오류: ' + err.message + '</p>';
         }
-        return;
-    }
-
-    // ── news 테이블 기사 (RSS / 기존) ──────────────────────────────
-    let rssContentHtml = '';
+    } else {
+        // ── news 테이블 기사 (RSS / 기존) ──────────────────────────────
+        let rssContentHtml = '';
     
     if (news.image_url) {
         rssContentHtml += `
@@ -1295,7 +1293,8 @@ window.showNewsDetail = async function(news) {
         </p>
     `;
 
-    bodyContainer.innerHTML = rssContentHtml;
+        bodyContainer.innerHTML = rssContentHtml;
+    }
     
     // ── 공통 하단 푸터 (태그, 기자명, 댓글) 처리 ──
     const articleFooter = document.getElementById('articleFooterArea');
