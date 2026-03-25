@@ -1160,10 +1160,10 @@ window.showNewsDetail = async function(news) {
     }
 
     // ── news 테이블 기사 (RSS / 기존) ──────────────────────────────
-    let contentHtml = '';
+    let rssContentHtml = '';
     
     if (news.image_url) {
-        contentHtml += `
+        rssContentHtml += `
             <div class="article-img-wrap">
                 <img src="${news.image_url}" class="article-img" alt="기사 이미지">
             </div>
@@ -1171,17 +1171,17 @@ window.showNewsDetail = async function(news) {
     }
 
     if (news.description) {
-        contentHtml += `<b>${news.description}</b>`;
+        rssContentHtml += `<b>${news.description}</b>`;
     }
 
-    contentHtml += `
+    rssContentHtml += `
         <p>본 기사는 공실뉴스의 공식 기사입니다. 전문을 확인하시려면 아래 공식 링크를 통해 확인하실 수 있습니다.</p>
         <p style="margin-top:20px;">
             <a href="${news.link}" target="_blank" style="color:#ff9f1c; font-weight:bold; text-decoration:underline;">[기사 전문 보기] ${news.link}</a>
         </p>
     `;
 
-    bodyContainer.innerHTML = contentHtml;
+    bodyContainer.innerHTML = rssContentHtml;
 };
 
 // 뉴스 상세 보기 닫기 함수
