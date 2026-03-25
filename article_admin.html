@@ -1,10 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>기사관리 - 공실뉴스 Admin</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
     <style>
         :root {
             --primary-color: #ff9f1c;
@@ -182,10 +185,10 @@
     <div class="card-header">
         <h2>기사관리</h2>
         <div class="count-info">
-            ( <span class="count-approve">승인 <span class="bold">35</span>건</span> / 
-            <span class="count-pending">승인신청 <span class="bold">6</span>건</span> / 
-            <span class="count-draft">작성중 <span class="bold">3</span>건</span> / 
-            <span class="count-reject">반려 <span class="bold">2</span>건</span> )
+            ( <span class="count-approve">승인 <span class="bold" id="cntApprove">0</span>건</span> / 
+            <span class="count-pending">승인신청 <span class="bold" id="cntPending">0</span>건</span> / 
+            <span class="count-draft">작성중 <span class="bold" id="cntDraft">0</span>건</span> / 
+            <span class="count-reject">반려 <span class="bold" id="cntReject">0</span>건</span> )
         </div>
     </div>
 
@@ -193,12 +196,12 @@
     <div class="filter-container">
         <div class="filter-group">
             <span class="filter-label">진행상황</span>
-            <select class="filter-input">
+            <select class="filter-input" id="filterStatus">
                 <option value="all">전체</option>
-                <option value="approval">승인</option>
+                <option value="published">승인</option>
                 <option value="pending">승인신청</option>
                 <option value="draft">작성중</option>
-                <option value="reject">반려중</option>
+                <option value="hidden">반려중</option>
             </select>
         </div>
         
@@ -220,11 +223,11 @@
         </div>
 
         <div class="filter-group" style="flex:1;">
-            <input type="text" class="filter-input" placeholder="검색어를 입력하세요." style="width: 100%; max-width: 250px;">
+            <input type="text" id="filterKeyword" class="filter-input" placeholder="검색어를 입력하세요." style="width: 100%; max-width: 250px;">
         </div>
 
-        <button class="btn-search">🔍 검색</button>
-        <button class="btn-reset">초기화</button>
+        <button class="btn-search" onclick="applyFilter()">🔍 검색</button>
+        <button class="btn-reset" onclick="resetFilter()">초기화</button>
     </div>
 
     <!-- 액션 및 유틸 버튼 영역 -->
@@ -251,109 +254,148 @@
                     <th style="width: 150px;">승인일자</th>
                 </tr>
             </thead>
-            <tbody>
-                <!-- Row 1: 반려중 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-reject">반려중</span></td>
-                    <td class="cell-title">수서역·힐튼호텔... 대형 복합개발 다시 시동 <span class="comment-count">💬 5</span></td>
-                    <td class="section-primary">-</td>
-                    <td class="section-secondary">-</td>
-                    <td class="date-text">2026-06-09 17:28</td>
-                </tr>
-                <!-- Row 2: 작성중 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-draft">작성중</span></td>
-                    <td class="cell-title">토지거래허가제 '약발 끝' 조짐... 강남3구 아파트 거래량 반등 <span class="comment-count">💬 6</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">우리동네부동산</td>
-                    <td class="section-secondary">아파트·오피스텔</td>
-                    <td class="date-text">2026-06-09 14:45</td>
-                </tr>
-                <!-- Row 3: 승인신청 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-pending">승인신청</span></td>
-                    <td class="cell-title">한국, 25조 원 규모 체코 원전 수출 최종 성사... <span class="comment-count">💬 5</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">뉴스칼럼</td>
-                    <td class="section-secondary">정치·경제·사회</td>
-                    <td class="date-text">2026-06-05 18:25</td>
-                </tr>
-                <!-- Row 4: 승인신청 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-pending">승인신청</span></td>
-                    <td class="cell-title">강남 아파트값 3년 만에 최대폭 하락... 거래절벽 <span class="comment-count">💬 4</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">우리동네부동산</td>
-                    <td class="section-secondary">빌라·주택</td>
-                    <td class="date-text">2026-06-05 17:46</td>
-                </tr>
-                <!-- Row 5: 승인 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-approve">승인</span></td>
-                    <td class="cell-title">대법원, 신반포2차 재건축 상가 분쟁에 마침표... <span class="comment-count">💬 93</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">우리동네부동산</td>
-                    <td class="section-secondary">상가·업무·공장·토지</td>
-                    <td class="date-text">2026-03-19 10:51</td>
-                </tr>
-                <!-- Row 6: 승인 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-approve">승인</span></td>
-                    <td class="cell-title">5호선 김포 연장·위례신사선 확정... 수도권 서부·동남부 <span class="comment-count">💬 95</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">뉴스칼럼</td>
-                    <td class="section-secondary">부동산·주식·재테크</td>
-                    <td class="date-text">2026-03-12 09:58</td>
-                </tr>
-                <!-- Row 7: 승인 -->
-                <tr>
-                    <td><input type="checkbox"></td>
-                    <td><span class="badge-status status-approve">승인</span></td>
-                    <td class="cell-title">전입신고 즉시 대항력 발생... 정부, '시간차 전세사기' 원천 차단 <span class="comment-count">💬 208</span> <span class="icon-img">🖼️</span></td>
-                    <td class="section-primary">뉴스칼럼</td>
-                    <td class="section-secondary">세무·법률</td>
-                    <td class="date-text">2026-03-12 09:30</td>
-                </tr>
+            <tbody id="articleTableBody">
+                <tr><td colspan="6" style="text-align:center; color:#aaa; padding:40px;">로딩 중...</td></tr>
             </tbody>
         </table>
     </div>
 
     <!-- 페이징 마크업 -->
-    <div class="pagination">
-        <a href="#" class="page-link" style="border:none;">&lt;</a>
-        <a href="#" class="page-link active">1</a>
-        <a href="#" class="page-link">2</a>
-        <a href="#" class="page-link">3</a>
-        <a href="#" class="page-link">4</a>
-        <a href="#" class="page-link">5</a>
-        <a href="#" class="page-link" style="border:none;">&gt;</a>
+    <div class="pagination" id="paginationArea">
+        <a href="#" class="page-link" style="border:none;" onclick="changePage(currentPage-1); return false;">&lt;</a>
+        <span id="pageLinks"></span>
+        <a href="#" class="page-link" style="border:none;" onclick="changePage(currentPage+1); return false;">&gt;</a>
     </div>
 </div>
 
 <script>
-    // 1차 섹션 변경 시 2차 섹션 드롭다운 내용 동적 변경
-    const secondaryOptions = {
-        '우리동네부동산': ['아파트·오피스텔', '빌라·주택', '원룸·투룸', '상가·업무·공장·토지', '분양'],
-        '뉴스칼럼': ['부동산·주식·재테크', '정치·경제·사회', '세무·법률', '여행·맛집', '건강·헬스', 'IT·가전·가구', '스포츠·연예·Car', '인물·미션·기타']
-    };
+    var sb = window.gongsiClient;
+    var PAGE_SIZE = 10;
+    var currentPage = 1;
+    var totalCount  = 0;
+    var activeFilter = { status: 'all', section1: 'all', keyword: '' };
 
-    function updateSecondaryOptions() {
-        const primary = document.getElementById('primarySection').value;
-        const secondarySelect = document.getElementById('secondarySection');
-        
-        // 옵션 초기화
-        secondarySelect.innerHTML = '<option value="all">전체</option>';
+    function statusInfo(s) {
+        var map = {
+            published: { cls: 'status-approve', label: '승인' },
+            pending:   { cls: 'status-pending', label: '승인신청' },
+            draft:     { cls: 'status-draft',   label: '작성중' },
+            hidden:    { cls: 'status-reject',  label: '반려중' }
+        };
+        return map[s] || { cls: 'status-draft', label: s };
+    }
 
-        if (secondaryOptions[primary]) {
-            secondaryOptions[primary].forEach(option => {
-                const optElement = document.createElement('option');
-                optElement.value = option;
-                optElement.textContent = option;
-                secondarySelect.appendChild(optElement);
-            });
+    function formatDate(dt) {
+        if (!dt) return '-';
+        var d = new Date(dt);
+        var pad = function(n){ return n < 10 ? '0'+n : n; };
+        return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+
+    async function loadCounts() {
+        if (!sb) return;
+        var pairs = [['published','cntApprove'],['pending','cntPending'],['draft','cntDraft'],['hidden','cntReject']];
+        for (var i=0;i<pairs.length;i++) {
+            var res = await sb.from('articles').select('id',{count:'exact',head:true}).eq('status',pairs[i][0]);
+            var el = document.getElementById(pairs[i][1]);
+            if (el) el.textContent = res.count || 0;
         }
     }
+
+    async function loadArticles() {
+        if (!sb) {
+            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e11d48;padding:40px;">Supabase 클라이언트 초기화 실패. 세션을 확인하세요.</td></tr>';
+            return;
+        }
+        document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:40px;">로딩 중...</td></tr>';
+
+        var from = (currentPage-1)*PAGE_SIZE, to = from+PAGE_SIZE-1;
+        var q = sb.from('articles')
+            .select('id,status,article_type,title,section1,section2,reporter_name,created_at,view_count',{count:'exact'})
+            .order('created_at',{ascending:false})
+            .range(from,to);
+        if (activeFilter.status  !== 'all') q = q.eq('status',  activeFilter.status);
+        if (activeFilter.section1 !== 'all') q = q.eq('section1',activeFilter.section1);
+        if (activeFilter.keyword) q = q.ilike('title','%'+activeFilter.keyword+'%');
+
+        var res = await q;
+        if (res.error) {
+            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:#e11d48;padding:40px;">로딩 오류: '+res.error.message+'</td></tr>';
+            return;
+        }
+        totalCount = res.count || 0;
+        renderTable(res.data || []);
+        renderPagination();
+    }
+
+    function renderTable(rows) {
+        var tbody = document.getElementById('articleTableBody');
+        if (!rows.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#aaa;padding:40px;">등록된 기사가 없습니다.</td></tr>';
+            return;
+        }
+        tbody.innerHTML = rows.map(function(a){
+            var si = statusInfo(a.status);
+            var icon = (a.article_type !== 'normal') ? ' 🖼️' : '';
+            return '<tr>'
+              +'<td><input type="checkbox" data-id="'+a.id+'"></td>'
+              +'<td><span class="badge-status '+si.cls+'">'+si.label+'</span></td>'
+              +'<td class="cell-title" onclick="editArticle('+a.id+')">'+escHtml(a.title||'(제목없음)')+icon+'</td>'
+              +'<td class="section-primary">'+(a.section1||'-')+'</td>'
+              +'<td class="section-secondary">'+(a.section2||'-')+'</td>'
+              +'<td class="date-text">'+formatDate(a.created_at)+'</td>'
+              +'</tr>';
+        }).join('');
+    }
+
+    function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+    function renderPagination() {
+        var total = Math.ceil(totalCount/PAGE_SIZE);
+        var html = '';
+        for (var p=1;p<=total;p++){
+            html += '<a href="#" class="page-link'+(p===currentPage?' active':'')
+              +'" onclick="changePage('+p+');return false;">'+p+'</a>';
+        }
+        document.getElementById('pageLinks').innerHTML = html;
+    }
+
+    function changePage(p){
+        var total=Math.ceil(totalCount/PAGE_SIZE); if(p<1||p>total) return;
+        currentPage=p; loadArticles();
+    }
+
+    function applyFilter(){
+        activeFilter.status   = document.getElementById('filterStatus').value;
+        activeFilter.section1 = document.getElementById('primarySection').value;
+        activeFilter.keyword  = document.getElementById('filterKeyword').value.trim();
+        currentPage=1; loadArticles();
+    }
+
+    function resetFilter(){
+        document.getElementById('filterStatus').value='all';
+        document.getElementById('primarySection').value='all';
+        document.getElementById('filterKeyword').value='';
+        activeFilter={status:'all',section1:'all',keyword:''};
+        currentPage=1; loadArticles();
+    }
+
+    function editArticle(id){ alert('기사 ID '+id+' 수정 기능은 전로 준비 중입니다.'); }
+
+    var secondaryOptions = {
+        '우리동네부동산':['아파트·오피스텔','빌라·주택','원룸·투룸','상가·업무·공장·토지','분양'],
+        '뉴스칼럼':['부동산·주식·재테크','정치·경제·사회','세무·법률','여행·맛집','건강·헬스','IT·가전·가구','스포츠·연예·Car','인물·미션·기타']
+    };
+    function updateSecondaryOptions(){
+        var p=document.getElementById('primarySection').value;
+        var s=document.getElementById('secondarySection');
+        s.innerHTML='<option value="all">전체</option>';
+        (secondaryOptions[p]||[]).forEach(function(o){var e=document.createElement('option');e.value=o;e.textContent=o;s.appendChild(e);});
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        setTimeout(function(){ sb=window.gongsiClient; loadCounts(); loadArticles(); }, 400);
+    });
 </script>
 </body>
 </html>
