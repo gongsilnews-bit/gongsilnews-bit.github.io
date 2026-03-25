@@ -413,6 +413,14 @@
             display: flex; align-items: center; justify-content: center;
         }
         .lib-align-bar button:hover { background: rgba(255,255,255,0.5); }
+        /* 캐션 입력창 */
+        .lib-caption {
+            width: 100%; box-sizing: border-box;
+            padding: 6px 8px; border: none; border-top: 1px solid #e5e7eb;
+            font-size: 12px; color: #555; resize: none; outline: none;
+            min-height: 34px; background: #fafafa; font-family: inherit;
+        }
+        .lib-caption::placeholder { color: #bbb; }
 
     </style>
 </head>
@@ -1467,20 +1475,27 @@
         // ==========================================
         // 라이브러리 카드 관리 (사진 / 유튜브)
         // ==========================================
-        var libPhotos = [];    // { id, dataUrl }
-        var libVideos = [];    // { id, videoId }
-        var repPhotoId = null; // 대표사진 id
-        var repVideoId = null; // 대표영상 id
+        var libPhotos = [];      // { id, dataUrl, caption }
+        var libVideos = [];      // { id, videoId, caption }
+        var globalRepId = null;  // 사진+영상 통합 대표 1개
 
+        function setGlobalRep(id) {
+            globalRepId = id;
+            renderPhotoGrid();
+            renderVideoGrid();
+        }
+
+        // === 사진 ===
         function addLibraryPhotos(inputEl) {
             const files = Array.from(inputEl.files);
             files.forEach(function(file) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const id = 'photo_' + Date.now() + Math.random();
-                    libPhotos.push({ id: id, dataUrl: e.target.result });
-                    if (!repPhotoId) repPhotoId = id; // 첫 사진은 자동 대표
+                    const id = 'photo_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
+                    libPhotos.push({ id: id, dataUrl: e.target.result, caption: '' });
+                    if (!globalRepId) globalRepId = id; // 첫 미디어 자동 대표
                     renderPhotoGrid();
+                    insertPhotoToEditor(id, 'center'); // 첨부 즉시 커서 위치 삽입
                 };
                 reader.readAsDataURL(file);
             });
@@ -1491,47 +1506,59 @@
             const grid = document.getElementById('libPhotoGrid');
             grid.innerHTML = '';
             libPhotos.forEach(function(photo) {
-                const isRep = photo.id === repPhotoId;
+                const isRep = photo.id === globalRepId;
                 const card = document.createElement('div');
                 card.className = 'lib-card' + (isRep ? ' representative' : '');
-                card.innerHTML = `
-                    <img src="${photo.dataUrl}" class="lib-thumb">
-                    ${isRep ? '<span class="lib-badge">대표</span>' : ''}
-                    <div class="lib-overlay">
-                        <div class="lib-overlay-top">
-                            <button title="대체" onclick="replacePhoto('${photo.id}')">&#x2699;</button>
-                            <button title="삭제" onclick="removePhoto('${photo.id}')">&times;</button>
-                        </div>
-                        <div>
-                            <button class="lib-overlay-rep" onclick="setRepPhoto('${photo.id}')">${isRep ? '✓ 대표지정됨' : '대표로 설정'}</button>
-                        </div>
-                        <div class="lib-align-bar">
-                            <button title="좌측정렬" onclick="insertPhotoToEditor('${photo.id}','left')">←</button>
-                            <button title="중앙정렬" onclick="insertPhotoToEditor('${photo.id}','center')">&#8203;&#x25A0;</button>
-                            <button title="우측정렬" onclick="insertPhotoToEditor('${photo.id}','right')">→</button>
-                        </div>
-                    </div>
-                `;
+                card.innerHTML =
+                    '<img src="' + photo.dataUrl + '" class="lib-thumb">' +
+                    (isRep ? '<span class="lib-badge">대표</span>' : '') +
+                    '<div class="lib-overlay">' +
+                      '<div class="lib-overlay-top">' +
+                        '<button title="대체" onclick="replacePhoto(\'' + photo.id + '\')">&#x2699;</button>' +
+                        '<button title="삭제" onclick="removePhoto(\'' + photo.id + '\')">&times;</button>' +
+                      '</div>' +
+                      '<div>' +
+                        '<button class="lib-overlay-rep" onclick="setGlobalRep(\'' + photo.id + '\')">' +
+                          (isRep ? '✓ 대표지정됨' : '대표로 설정') +
+                        '</button>' +
+                      '</div>' +
+                      '<div class="lib-align-bar">' +
+                        '<button title="좌측정렬" onclick="insertPhotoToEditor(\'' + photo.id + '\',\'left\')">←</button>' +
+                        '<button title="중앙정렬" onclick="insertPhotoToEditor(\'' + photo.id + '\',\'center\')">■</button>' +
+                        '<button title="우측정렬" onclick="insertPhotoToEditor(\'' + photo.id + '\',\'right\')">→</button>' +
+                      '</div>' +
+                    '</div>';
+
+                // 캡션 입력창
+                const captionBox = document.createElement('textarea');
+                captionBox.className = 'lib-caption';
+                captionBox.placeholder = '캡션 설명 (선택사항)';
+                captionBox.value = photo.caption || '';
+                captionBox.oninput = function() {
+                    const idx = libPhotos.findIndex(function(p) { return p.id === photo.id; });
+                    if (idx > -1) libPhotos[idx].caption = this.value;
+                };
+                card.appendChild(captionBox);
                 grid.appendChild(card);
             });
         }
 
-        function setRepPhoto(id) { repPhotoId = id; renderPhotoGrid(); }
-
         function removePhoto(id) {
-            libPhotos = libPhotos.filter(p => p.id !== id);
-            if (repPhotoId === id) repPhotoId = libPhotos.length ? libPhotos[0].id : null;
+            libPhotos = libPhotos.filter(function(p) { return p.id !== id; });
+            if (globalRepId === id) {
+                globalRepId = libPhotos.length ? libPhotos[0].id
+                            : libVideos.length ? libVideos[0].id : null;
+            }
             renderPhotoGrid();
         }
 
         function replacePhoto(id) {
-            // 파일 선택 다이얼로그 열기 후 해당 ID 사진 교체
             const tmp = document.createElement('input');
             tmp.type = 'file'; tmp.accept = 'image/*';
             tmp.onchange = function() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const idx = libPhotos.findIndex(p => p.id === id);
+                    const idx = libPhotos.findIndex(function(p) { return p.id === id; });
                     if (idx > -1) libPhotos[idx].dataUrl = e.target.result;
                     renderPhotoGrid();
                 };
@@ -1541,10 +1568,17 @@
         }
 
         function insertPhotoToEditor(id, align) {
-            const photo = libPhotos.find(p => p.id === id);
+            align = align || 'center';
+            const photo = libPhotos.find(function(p) { return p.id === id; });
             if (!photo) return;
-            const textAlign = align === 'left' ? 'left' : align === 'right' ? 'right' : 'center';
-            insertNodeAtCursor(`<img src="${photo.dataUrl}" style="max-width:100%; display:block; margin: 8px ${align==='center'?'auto':align==='right'?'0 0 0 auto':'0 auto 0 0'}; border-radius:8px;">`);
+            const margin = align === 'center' ? '8px auto'
+                         : align === 'right'  ? '8px 0 8px auto'
+                         : '8px auto 8px 0';
+            let html = '<img src="' + photo.dataUrl + '" style="max-width:100%; display:block; margin:' + margin + '; border-radius:8px;">';
+            if (photo.caption && photo.caption.trim()) {
+                html += '<p style="text-align:' + align + '; font-size:13px; color:#888; margin:2px 0 12px;">' + photo.caption.trim() + '</p>';
+            }
+            insertNodeAtCursor(html);
         }
 
         // === 유튜브 카드 ===
@@ -1560,9 +1594,10 @@
             }
             const videoId = match[2];
             const id = 'video_' + Date.now();
-            libVideos.push({ id, videoId });
-            if (!repVideoId) repVideoId = id;
+            libVideos.push({ id: id, videoId: videoId, caption: '' });
+            if (!globalRepId) globalRepId = id;
             renderVideoGrid();
+            insertVideoToEditor(id); // 첨부 즉시 커서 위치 삽입
             ytInput.value = '';
         }
 
@@ -1570,43 +1605,60 @@
             const grid = document.getElementById('libVideoGrid');
             grid.innerHTML = '';
             libVideos.forEach(function(vid) {
-                const isRep = vid.id === repVideoId;
-                const thumbUrl = `https://img.youtube.com/vi/${vid.videoId}/mqdefault.jpg`;
+                const isRep = vid.id === globalRepId;
+                const thumbUrl = 'https://img.youtube.com/vi/' + vid.videoId + '/mqdefault.jpg';
                 const card = document.createElement('div');
                 card.className = 'lib-card' + (isRep ? ' representative' : '');
-                card.innerHTML = `
-                    <img src="${thumbUrl}" class="lib-thumb">
-                    ${isRep ? '<span class="lib-badge">대표</span>' : ''}
-                    <div class="lib-overlay">
-                        <div class="lib-overlay-top">
-                            <button title="삭제" onclick="removeVideo('${vid.id}')">&times;</button>
-                        </div>
-                        <div>
-                            <button class="lib-overlay-rep" onclick="setRepVideo('${vid.id}')">${isRep ? '✓ 대표지정됨' : '대표로 설정'}</button>
-                        </div>
-                        <div class="lib-align-bar">
-                            <button title="콘텐츠에 삽입" onclick="insertVideoToEditor('${vid.id}')">▶ 삽입</button>
-                        </div>
-                    </div>
-                `;
+                card.innerHTML =
+                    '<img src="' + thumbUrl + '" class="lib-thumb">' +
+                    (isRep ? '<span class="lib-badge">대표</span>' : '') +
+                    '<div class="lib-overlay">' +
+                      '<div class="lib-overlay-top">' +
+                        '<button title="삭제" onclick="removeVideo(\'' + vid.id + '\')">&times;</button>' +
+                      '</div>' +
+                      '<div>' +
+                        '<button class="lib-overlay-rep" onclick="setGlobalRep(\'' + vid.id + '\')">' +
+                          (isRep ? '✓ 대표지정됨' : '대표로 설정') +
+                        '</button>' +
+                      '</div>' +
+                      '<div class="lib-align-bar">' +
+                        '<button onclick="insertVideoToEditor(\'' + vid.id + '\')">▶ 재삽입</button>' +
+                      '</div>' +
+                    '</div>';
+
+                // 캡션 입력창
+                const captionBox = document.createElement('textarea');
+                captionBox.className = 'lib-caption';
+                captionBox.placeholder = '캡션 설명 (선택사항)';
+                captionBox.value = vid.caption || '';
+                captionBox.oninput = function() {
+                    const idx = libVideos.findIndex(function(v) { return v.id === vid.id; });
+                    if (idx > -1) libVideos[idx].caption = this.value;
+                };
+                card.appendChild(captionBox);
                 grid.appendChild(card);
             });
         }
 
-        function setRepVideo(id) { repVideoId = id; renderVideoGrid(); }
-
         function removeVideo(id) {
-            libVideos = libVideos.filter(v => v.id !== id);
-            if (repVideoId === id) repVideoId = libVideos.length ? libVideos[0].id : null;
+            libVideos = libVideos.filter(function(v) { return v.id !== id; });
+            if (globalRepId === id) {
+                globalRepId = libVideos.length ? libVideos[0].id
+                            : libPhotos.length ? libPhotos[0].id : null;
+            }
             renderVideoGrid();
         }
 
         function insertVideoToEditor(id) {
-            const vid = libVideos.find(v => v.id === id);
+            const vid = libVideos.find(function(v) { return v.id === id; });
             if (!vid) return;
-            const iframeHtml = `<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;border-radius:8px;"><iframe src="https://www.youtube.com/embed/${vid.videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>`;
-            insertNodeAtCursor(iframeHtml);
+            let html = '<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;max-width:100%;border-radius:8px;"><iframe src="https://www.youtube.com/embed/' + vid.videoId + '" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>';
+            if (vid.caption && vid.caption.trim()) {
+                html += '<p style="text-align:center; font-size:13px; color:#888; margin:2px 0 12px;">' + vid.caption.trim() + '</p>';
+            }
+            insertNodeAtCursor(html);
         }
+
 
         // -------------------------
         // 전문 작성 에디터 (Summernote) 초기화
