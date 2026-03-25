@@ -341,12 +341,18 @@ function render() {
         }).join('');
     }
 
-    // 승인/숨기기 텍스트
-    var approveBtnHtml = '';
+    // 상단 상태 변경 버튼 (승인신청 / 승인)
+    var statusBtnHtml = '';
     if (a.status === 'published') {
-        approveBtnHtml = '<button class="meta-action-btn" data-action="hidden" onclick="changeStatus(this.dataset.action)" style="background:#f3f4f6;">🚫 숨기기</button>';
+        // 이미 승인됨
+        statusBtnHtml = '<button style="padding:4px 12px; border-radius:4px; font-size:13px; background:#111; border:1px solid #111; color:#fff; font-weight:bold; cursor:default;">승인</button>';
+    } else if (a.status === 'pending') {
+        // 승인신청 버튼 누른 후 (색상 켜짐)
+        // 임시로 관리자가 다시 누르면 승인되도록 'published' 상태 변경 함수도 숨겨두거나, 일단은 대기중 표시만 (임시로 개발 편의상 published로 갈 수 있게 해둠)
+        statusBtnHtml = '<button style="padding:4px 12px; border-radius:4px; font-size:13px; background:#f59e0b; border:1px solid #f59e0b; color:#fff; font-weight:bold; cursor:pointer;" onclick="changeStatus(\'published\')" title="임시: 클릭 시 바로 승인(추후 최고관리자 기능으로 분리)">승인신청</button>';
     } else {
-        approveBtnHtml = '<button class="meta-action-btn" data-action="published" onclick="changeStatus(this.dataset.action)" style="background:#f3f4f6;color:#111;font-weight:600;">체크 승인</button>';
+        // 기사 작성 중 (draft 등) - 승인 신청 버튼
+        statusBtnHtml = '<button style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #111; color:#111; font-weight:bold; cursor:pointer;" onclick="changeStatus(\'pending\')">승인신청</button>';
     }
 
     // ── 서브타이틀 (요약문 지정) ──
@@ -454,6 +460,7 @@ function render() {
                '<div style="display: flex; gap: 8px; align-items: center;">'+
                     '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="shareArticle()">🔗 주소복사</button>'+
                     '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="window.open(\'index.html?article_id=\'+articleId, \'_blank\')">💻 미리보기</button>'+
+                    statusBtnHtml +
                '</div>'+
             '</div>'+
           '</div>'+
@@ -471,7 +478,6 @@ function render() {
         '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
           '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">⚙️ 기사 관리</div>'+
           '<div class="admin-actions">'+
-            approveBtnHtml +
             '<div style="display:flex; gap:6px; margin-top:8px;">'+
               '<button class="btn-full btn-edit" onclick="goEdit()" style="flex:1; background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe; padding:8px 0; border-radius:4px; cursor:pointer;">기사 수정</button>'+
               '<button class="btn-full btn-delete" onclick="deleteArticle()" style="flex:1; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:8px 0; border-radius:4px; cursor:pointer;">기사 삭제</button>'+
@@ -559,7 +565,7 @@ function goEdit() {
 }
 
 async function changeStatus(newStatus) {
-    var label = { published: '승인', hidden: '숨기기' }[newStatus] || newStatus;
+    var label = { published: '승인', pending: '승인신청', hidden: '숨기기' }[newStatus] || newStatus;
     if (!confirm('기사를 [' + label + '] 상태로 변경하시겠습니까?')) return;
     var res = await sb.from('articles').update({ status: newStatus }).eq('id', articleId);
     if (res.error) { alert('상태 변경 실패: ' + res.error.message); return; }
