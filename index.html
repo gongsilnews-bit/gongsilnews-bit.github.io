@@ -373,17 +373,25 @@
         .portal-side-top { margin-bottom: 30px; }
         .portal-side-item {
             display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 16px;
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
             cursor: pointer;
             text-decoration: none;
+            align-items: center;
         }
-        .portal-side-item-content { flex: 1; min-width: 0; }
+        .portal-side-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .portal-side-item-content { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; }
         .portal-side-item-title {
-            font-size: 14px;
+            font-size: 16px;
             font-weight: 700;
-            color: #222;
-            line-height: 1.4;
+            color: #111;
+            line-height: 1.45;
             display: -webkit-box;
             -webkit-line-clamp: 3;
             -webkit-box-orient: vertical;
@@ -392,8 +400,8 @@
         }
         .portal-side-item:hover .portal-side-item-title { color: #555; text-decoration: none; }
         .portal-side-item-img-wrap {
-            width: 100px;
-            height: 70px;
+            width: 120px;
+            height: 80px;
             border-radius: 4px;
             background: #eee;
             flex-shrink: 0;
