@@ -405,6 +405,9 @@
             padding: 3px 8px; cursor: pointer; text-align: center;
         }
         .lib-overlay-rep:hover { background: rgba(59,130,246,0.8); border-color: #3b82f6; }
+        /* \uc5d0\ub514\ud130 \ub0b4\ubd80 \uc720\ud29c\ube0c \ubc18\uc751\ud615 */
+        .note-editable .yt-block { width: 100% !important; display: block; }
+        .note-editable .yt-ratio-box { width: 100% !important; }
         /* 정렬 버튼 그룹 */
         .lib-align-bar {
             display: flex; justify-content: center; gap: 4px;
@@ -425,17 +428,19 @@
         }
         .lib-caption::placeholder { color: #bbb; }
         /* 유튜브 드래그 핵들 */
-        .yt-block { margin: 8px 0; border-radius: 8px; overflow: hidden; }
+        .yt-block { margin: 8px 0; border-radius: 8px; overflow: hidden; width: 100%; }
         .yt-drag-handle {
-            background: #374151; color: #d1d5db; padding: 5px 12px;
+            background: #374151; color: #d1d5db; padding: 4px 10px;
             font-size: 11px; cursor: grab; -webkit-user-select: none; user-select: none;
-            display: flex; align-items: center; gap: 6px;
+            display: flex; align-items: center; gap: 4px;
             border-radius: 8px 8px 0 0;
         }
         .yt-drag-handle:active { cursor: grabbing; }
         .yt-drag-handle .drag-icon { font-size: 14px; opacity: 0.7; }
-        .yt-ratio-box { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; }
-        .yt-ratio-box iframe { position:absolute; top:0; left:0; width:100%; height:100%; }
+        /* 드래그 핸들 텍스트 취소 */
+        .yt-drag-handle .drag-label { display: none; }
+        .yt-ratio-box { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; width:100%; }
+        .yt-ratio-box iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; }
         /* 에디터 내부 이미지 주석 구조 */
         .news-figure {
             display: block; margin: 8px 0; padding: 0;
@@ -1877,8 +1882,8 @@
         function insertVideoToEditor(id) {
             const vid = libVideos.find(function(v) { return v.id === id; });
             if (!vid) return;
-            let html = '<div class="yt-block" draggable="true" data-type="lib-video" contenteditable="false">'
-                + '<div class="yt-drag-handle"><span class="drag-icon">&#x2630;</span> 드래그하여 위치 이동</div>'
+            let html = '<div class="yt-block" draggable="true" data-type="lib-video" contenteditable="false" data-video-id="' + vid.id + '">'
+                + '<div class="yt-drag-handle"><span class="drag-icon">&#x2630;</span></div>'
                 + '<div class="yt-ratio-box"><iframe src="https://www.youtube.com/embed/' + vid.videoId + '" frameborder="0" allowfullscreen></iframe></div>'
                 + '</div>';
             if (vid.caption && vid.caption.trim()) {
