@@ -1151,6 +1151,14 @@ window.showNewsDetail = async function(news) {
     const closeBtn = document.getElementById('btnCloseDetail');
     if (!detailView || !news) return;
 
+    // 현재 열린 기사 식별자 저장 및 URL 기록 추가 (딥링킹)
+    window.currentArticleId = news.id || news.article_id;
+    if (window.currentArticleId) {
+        const url = new URL(window.location);
+        url.searchParams.set('article_id', window.currentArticleId);
+        window.history.pushState({ articleId: window.currentArticleId }, '', url);
+    }
+
     // 포털 모드인지 확인하여 렌더링 위치 및 기존 컨텐츠 숨김 제어
     if (document.body.classList.contains('portal-mode')) {
         detailView.classList.remove('map-floating-mode');
@@ -1309,6 +1317,37 @@ window.closeNewsDetail = function() {
             if (portalBody) portalBody.style.display = 'block';
         }
     }
+    
+    // URL 파라미터 복구 (초기화)
+    if (window.currentArticleId) {
+        const url = new URL(window.location);
+        url.searchParams.delete('article_id');
+        window.history.pushState({}, '', url);
+        window.currentArticleId = null;
+    }
+};
+
+// URL 공유 기능
+window.shareArticleUrl = function() {
+    if (!window.currentArticleId) return;
+    const url = new URL(window.location);
+    url.searchParams.set('article_id', window.currentArticleId);
+    
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url.toString()).then(() => {
+            alert('기사 주소가 복사되었습니다.\n' + url.toString());
+        }).catch(err => {
+            alert('주소 복사에 실패했습니다.');
+        });
+    } else {
+        const tempInput = document.createElement('input');
+        tempInput.value = url.toString();
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        alert('기사 주소가 복사되었습니다.\n' + url.toString());
+    }
 };
 
 // 초기화 완료 및 스크롤 인디케이터 로직
@@ -1346,6 +1385,25 @@ document.addEventListener('DOMContentLoaded', () => {
             progressInd.style.width = progress + '%';
         });
     }
+
+    // 초기 URL 딥링킹(공유된 기사 링크로 진입 시) 검사
+    setTimeout(async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const sharedArticleId = urlParams.get('article_id');
+        if (sharedArticleId && window.supabase) {
+            // 일단 포털 모드로 강제 지정
+            if (!document.body.classList.contains('portal-mode')) {
+                document.body.classList.add('portal-mode');
+            }
+            try {
+                const { data, error } = await supabase.from('articles').select('*').eq('id', sharedArticleId).single();
+                if (data && !error) {
+                    data._source = 'articles';
+                    window.showNewsDetail(data);
+                }
+            } catch(e) {}
+        }
+    }, 1000); // supabase 로드 후 실행 대기
 });
 
 // 폰트 확대/축소 기능
