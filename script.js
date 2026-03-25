@@ -114,7 +114,8 @@ async function loadPortalNews(category, isLoadMore = false) {
 
     try {
         // articles 테이블에서 published 기사 로드 (실제 작성 기사)
-        let query = supabaseClient.from('articles')
+        let sb = window.gongsiClient || supabaseClient;
+        let query = sb.from('articles')
             .select('id, title, subtitle, content, section1, section2, article_type, reporter_name, reporter_email, keywords, view_count, created_at, rep_media_id')
             .eq('status', 'published')
             .order('created_at', { ascending: false });
@@ -726,7 +727,8 @@ async function loadNews(category) {
             dbCategory = '전체기사'; 
         }
 
-        let query = supabaseClient
+        let sb = window.gongsiClient || supabaseClient;
+        let query = sb
             .from('articles')
             .select('*')
             .eq('status', 'published')
