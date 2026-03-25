@@ -682,8 +682,8 @@
             <div class="form-row">
                 <div class="form-label">기자명</div>
                 <div class="form-content">
-                    <input type="text" class="input-text" style="width:150px;" value="공실뉴스">
-                    <input type="text" class="input-text" style="width:250px;" value="webmaster@gongsilnews.com">
+                    <input type="text" id="reporterName" class="input-text" style="width:150px;" placeholder="이름">
+                    <input type="text" id="reporterEmail" class="input-text" style="width:250px;" placeholder="이메일">
                 </div>
             </div>
 
@@ -2198,6 +2198,66 @@
                     if (currentArticleType === 'gallery') renderGallery();
                 };
             }
+        });
+
+        // ==========================================
+        // 기자명 / 이메일 자동 입력
+        // ==========================================
+        async function fillReporterInfo() {
+            var nameEl  = document.getElementById('reporterName');
+            var emailEl = document.getElementById('reporterEmail');
+            if (!nameEl || !emailEl) return;
+
+            var userName  = '';
+            var userEmail = '';
+
+            // 1) window.currentUser (Supabase 실시간 세션)
+            if (window.currentUser) {
+                var profile = window.currentUser.profile;
+                userName  = (profile && (profile.username || profile.name || profile.full_name)) || '';
+                userEmail = window.currentUser.email || '';
+            }
+
+            // 2) localStorage 폴백
+            if (!userName || !userEmail) {
+                try {
+                    var stored = JSON.parse(localStorage.getItem('gongsil_user') || 'null');
+                    if (stored) {
+                        var p = stored.profile;
+                        if (!userName)  userName  = (p && (p.username || p.name || p.full_name)) || '';
+                        if (!userEmail) userEmail = stored.email || '';
+                    }
+                } catch(e) {}
+            }
+
+            // 3) Supabase 직접 세션 조회 (위 두 방법 모두 실패 시)
+            if ((!userName || !userEmail) && window.gongsiClient) {
+                try {
+                    var resp = await window.gongsiClient.auth.getSession();
+                    var sess = resp.data && resp.data.session;
+                    if (sess && sess.user) {
+                        userEmail = sess.user.email || userEmail;
+                        var meta = sess.user.user_metadata || {};
+                        if (!userName) userName = meta.full_name || meta.name || userEmail.split('@')[0] || '';
+                        // members 테이블에서 username 조회
+                        var mResp = await window.gongsiClient.from('members').select('username,name').eq('email', userEmail).maybeSingle();
+                        if (mResp.data) {
+                            userName = mResp.data.username || mResp.data.name || userName;
+                        }
+                    }
+                } catch(e) {}
+            }
+
+            if (userName)  nameEl.value  = userName;
+            if (userEmail) emailEl.value = userEmail;
+        }
+
+        // DOMContentLoaded 이후 실행 (Supabase 세션 로드 여유시간 포함)
+        document.addEventListener('DOMContentLoaded', function() {
+            // 즉시 1회 시도
+            fillReporterInfo();
+            // onAuthStateChange가 한 박자 늦을 수 있으므로 1초 후 재시도
+            setTimeout(fillReporterInfo, 1200);
         });
 
     </script>
