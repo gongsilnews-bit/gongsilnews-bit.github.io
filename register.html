@@ -960,44 +960,64 @@
         }
 
         // --- 추가: 옵션 렌더링 로직 ---
-        const OPTION_DATA = {
-            '아파트·오피스텔': [
-                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' }, 
-                { name: '붙박이장', icon: '🚪' }, { name: '싱크대', icon: '🚰' }, { name: '비데', icon: '🚽' }, 
-                { name: '엘리베이터', icon: '🛗' }, { name: '보안시스템', icon: '🛡️' },
-                { name: '전자레인지', icon: '🍲' }, { name: '인덕션', icon: '⚡' }, { name: 'TV', icon: '📺' },
+        const OPTION_TEMPLATES = {
+            'APT': [
+                { name: '에어컨', icon: '❄️' }, { name: '비데', icon: '🚽' }, { name: '붙박이장', icon: '🚪' }, 
+                { name: '싱크대', icon: '🚰' }, { name: '엘리베이터', icon: '🛗' }, { name: '보안시스템', icon: '🛡️' },
                 { name: '급매', icon: '💰' }, { name: '올수리', icon: '🔨' }, { name: '세안고', icon: '🤝' }, { name: '역세권', icon: '🚉' }
             ],
-            '빌라·주택': [
-                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
-                { name: '가스레인지', icon: '🔥' }, { name: '신발장', icon: '👟' }, { name: 'CCTV', icon: '📹' },
-                { name: '주차가능', icon: '🚗' }, { name: '올수리', icon: '🔨' }, { name: '마당', icon: '🏡' }, 
-                { name: '급매', icon: '💰' }, { name: '세안고', icon: '🤝' }
-            ],
-            '원룸·투룸': [
+            'OFFICETEL': [
                 { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
                 { name: '전자레인지', icon: '🍲' }, { name: '인덕션', icon: '⚡' }, { name: '책상', icon: '💻' },
                 { name: '침대', icon: '🛏️' }, { name: '옷장', icon: '👔' }, { name: 'TV', icon: '📺' },
-                { name: '전자도어락', icon: '🔢' }, { name: '주차가능', icon: '🚗' }, { name: '역세권', icon: '🚉' }
+                { name: '무인택배함', icon: '📦' }, { name: '주차가능', icon: '🚗' }, { name: '역세권', icon: '🚉' }
             ],
-            '상가·업무·공장·토지': [
-                { name: '엘리베이터', icon: '🛗' }, { name: '개별냉난방', icon: '🌡️' }, { name: '중앙냉난방', icon: '❄️' },
-                { name: '내부화장실', icon: '🚻' }, { name: '창고공간', icon: '📦' }, { name: '탕비실', icon: '🍵' }, 
-                { name: '전면통유리', icon: '🪟' }, { name: '층고높음', icon: '⬆️' }, { name: '대형차진입', icon: '🚛' },
-                { name: '호이스트', icon: '🏗️' },
-                { name: '주차가능', icon: '🚗' }, { name: '급매', icon: '💰' }, { name: '큰길가', icon: '🛣️' }, { name: '역세권', icon: '🚉' }
+            'VILLA': [
+                { name: '에어컨', icon: '❄️' }, { name: '세탁기', icon: '🧺' }, { name: '가스레인지', icon: '🔥' }, 
+                { name: '신발장', icon: '👟' }, { name: 'CCTV', icon: '📹' }, { name: '주차가능', icon: '🚗' }, 
+                { name: '마당', icon: '🏡' }, { name: '올수리', icon: '🔨' }, { name: '급매', icon: '💰' }, { name: '세안고', icon: '🤝' }
             ],
-            '분양': [
-                // 입주예정
-                { name: '1년이내', icon: '📆' }, { name: '2년이내', icon: '📆' }, { name: '3년이내', icon: '📆' },
-                // 청약통장
-                { name: '주택청약종합저축', icon: '🏦' }, { name: '청약예금', icon: '🏦' }, { name: '청약부금', icon: '🏦' }, { name: '청약저축', icon: '🏦' },
-                // 브랜드
-                { name: '자이', icon: '🏙️' }, { name: '푸르지오', icon: '🏙️' }, { name: '래미안', icon: '🏙️' }, 
-                { name: '힐스테이트', icon: '🏙️' }, { name: '더샵', icon: '🏙️' }, { name: 'e편한세상', icon: '🏙️' }, 
-                { name: '롯데캐슬', icon: '🏙️' }, { name: '아이파크', icon: '🏙️' }, { name: '수자인', icon: '🏙️' }, { name: '호반써밋', icon: '🏙️' }
+            'ONEROOM': [
+                { name: '에어컨', icon: '❄️' }, { name: '냉장고', icon: '🧊' }, { name: '세탁기', icon: '🧺' },
+                { name: '전자레인지', icon: '🍲' }, { name: '인덕션', icon: '⚡' }, { name: '침대', icon: '🛏️' }, 
+                { name: '옷장', icon: '👔' }, { name: 'TV', icon: '📺' }, { name: '전자도어락', icon: '🔢' },
+                { name: '주차가능', icon: '🚗' }, { name: '역세권', icon: '🚉' }
+            ],
+            'STORE_OFFICE': [
+                { name: '엘리베이터', icon: '🛗' }, { name: '개별냉난방', icon: '🌡️' }, { name: '내부화장실', icon: '🚻' },
+                { name: '전면통유리', icon: '🪟' }, { name: '탕비실', icon: '🍵' }, { name: '주차가능', icon: '🚗' }, 
+                { name: '급매', icon: '💰' }, { name: '큰길가', icon: '🛣️' }, { name: '역세권', icon: '🚉' }
+            ],
+            'FACTORY': [
+                { name: '층고높음', icon: '⬆️' }, { name: '대형차진입', icon: '🚛' }, { name: '호이스트', icon: '🏗️' }, 
+                { name: '창고공간', icon: '📦' }, { name: '마당있음', icon: '🏡' }, { name: '주차가능', icon: '🚗' }
             ]
         };
+
+        const BUNYANG_EXTRAS = [
+            { name: '1년이내', icon: '📆' }, { name: '2년이내', icon: '📆' }, { name: '3년이내', icon: '📆' },
+            { name: '주택청약종합저축', icon: '🏦' }, { name: '청약예금', icon: '🏦' }, { name: '청약부금', icon: '🏦' }, { name: '청약저축', icon: '🏦' },
+            { name: '자이', icon: '🏙️' }, { name: '푸르지오', icon: '🏙️' }, { name: '래미안', icon: '🏙️' }, 
+            { name: '힐스테이트', icon: '🏙️' }, { name: '더샵', icon: '🏙️' }, { name: 'e편한세상', icon: '🏙️' }, 
+            { name: '롯데캐슬', icon: '🏙️' }, { name: '아이파크', icon: '🏙️' }, { name: '수자인', icon: '🏙️' }, { name: '호반써밋', icon: '🏙️' }
+        ];
+
+        window.getOptionsForType = function(mainType, subType) {
+            let opts = [];
+            if (['아파트', '아파트분양권', '재건축', '재개발'].includes(subType)) opts = [...OPTION_TEMPLATES.APT];
+            else if (['오피스텔', '오피스텔분양권', '도시형생활주택', '생활숙박시설'].includes(subType)) opts = [...OPTION_TEMPLATES.OFFICETEL];
+            else if (['빌라/연립', '단독/다가구', '전원주택', '상가주택', '빌라'].includes(subType)) opts = [...OPTION_TEMPLATES.VILLA];
+            else if (['원룸', '투룸'].includes(subType)) opts = [...OPTION_TEMPLATES.ONEROOM];
+            else if (['상가', '사무실', '상가/업무', '건물'].includes(subType)) opts = [...OPTION_TEMPLATES.STORE_OFFICE];
+            else if (['공장/창고', '토지', '지식산업센터'].includes(subType)) opts = [...OPTION_TEMPLATES.FACTORY];
+            else opts = [...OPTION_TEMPLATES.APT];
+
+            // 분양 대분류인 경우 분양 특화 카테고리 추가
+            if (mainType === '분양') {
+                opts = [...opts, ...BUNYANG_EXTRAS];
+            }
+            return opts;
+        }
 
         let selectedOptionsSet = new Set();
 
@@ -1007,7 +1027,14 @@
             const section = document.getElementById('optionSection');
             const container = document.getElementById('optionContainer');
             
-            if (!mainType || !propertyType || !OPTION_DATA[mainType]) {
+            // 2차(propertyType)까지 모두 선택된 경우에만 표시 (1차만 선택시에는 숨김)
+            if (!mainType || !propertyType) {
+                section.style.display = 'none';
+                return;
+            }
+
+            const activeOptions = window.getOptionsForType(mainType, propertyType);
+            if (!activeOptions || activeOptions.length === 0) {
                 section.style.display = 'none';
                 return;
             }
@@ -1017,7 +1044,7 @@
             selectedOptionsSet.clear();
             updateSelectedOptionsInput();
 
-            OPTION_DATA[mainType].forEach(opt => {
+            activeOptions.forEach(opt => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'option-btn';
