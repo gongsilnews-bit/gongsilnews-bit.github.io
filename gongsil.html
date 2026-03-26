@@ -2048,6 +2048,19 @@
                     cntSpans.forEach(span => span.textContent = '0개');
                     return;
                 }
+
+                // 작성자 정보(name, email) 한 번에 불러오기
+                let memberMap = {};
+                const authorIds = [...new Set(inquiries.map(i => i.author_id))];
+                if (authorIds.length > 0) {
+                    const { data: memberData } = await window.gongsiClient
+                        .from('members')
+                        .select('id, name, email')
+                        .in('id', authorIds);
+                    if (memberData) {
+                        memberData.forEach(m => memberMap[m.id] = m);
+                    }
+                }
                 
                 listEls.forEach((listEl, idx) => {
                     let visibleCount = 0;
@@ -2062,6 +2075,26 @@
                         }
                         
                         visibleCount++;
+
+                        const authorInfo = memberMap[inq.author_id] || { name: '알수없음', email: '' };
+                        const maskName = (name) => {
+                            if (!name) return '익명';
+                            if (name.length <= 2) return name.charAt(0) + '*';
+                            return name.charAt(0) + '*'.repeat(name.length - 2) + name.charAt(name.length - 1);
+                        };
+                        const maskEmail = (email) => {
+                            if (!email) return '';
+                            const parts = email.split('@');
+                            if (parts.length !== 2) return email;
+                            const id = parts[0];
+                            const maskedId = id.length > 3 ? id.substring(0, 3) + '*'.repeat(id.length - 3) : id.substring(0, 1) + '**';
+                            return maskedId + '@' + parts[1];
+                        };
+                        
+                        // 매물등록자(isRealtor)는 마스킹 없이 원본을, 그 외는 마스킹 처리하여 노출
+                        const displayStr = isRealtor 
+                            ? `${authorInfo.name} (${authorInfo.email})`
+                            : `${maskName(authorInfo.name)} (${maskEmail(authorInfo.email)})`;
 
                         let answerHtml = '';
                         if (inq.answer) {
@@ -2091,12 +2124,13 @@
                             `;
                         }
                         
-                        const headerText = isMyInquiry ? '<span style="color:#1a73e8; font-weight:bold;">나의 문의</span> <span style="font-size:12px; color:#888;">🔒 비밀</span>' : '<span style="color:#1a73e8; font-weight:bold;">고객 문의</span> <span style="font-size:12px; color:#888;">🔒 비밀</span>';
+                        const headerBadge = isMyInquiry ? '<span style="color:#1a73e8; font-weight:bold;">나의 문의</span>' : '<span style="color:#1a73e8; font-weight:bold;">고객 문의</span>';
+                        const headerText = `${headerBadge} <span style="font-size:12px; color:#555; margin-left:6px; font-weight:normal;">${displayStr}</span> <span style="font-size:12px; color:#888; margin-left:4px;">🔒 비밀</span>`;
                         
                         const itemHtml = `
                             <div style="background: #fff; border-bottom: 1px solid #f0f0f0; padding: 15px 0;">
                                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                                    <div style="font-size: 13px; color: #111; display:flex; align-items:center; gap:6px;">${headerText}</div>
+                                    <div style="font-size: 13px; color: #111; display:flex; align-items:center; gap:2px;">${headerText}</div>
                                     <div style="font-size: 12px; color: #aaa;">${dateStr}</div>
                                 </div>
                                 <div style="font-size: 14px; color: #333; line-height: 1.5; white-space: pre-wrap;">${inq.content}</div>
