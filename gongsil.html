@@ -1103,6 +1103,13 @@
                 }
 
                 try {
+                    let userRole = 'guest';
+                    const { data: { session } } = await supabaseClient.auth.getSession();
+                    if (session && session.user) {
+                        const { data: profile } = await supabaseClient.from('members').select('role').eq('id', session.user.id).maybeSingle();
+                        if (profile) userRole = profile.role;
+                    }
+
                     const { data, error } = await supabaseClient
                         .from('properties')
                         .select('*')
@@ -1111,7 +1118,12 @@
 
                     if (error) throw error;
 
-                    allActiveProperties = data || [];
+                    let filteredData = data || [];
+                    if (userRole !== 'realtor' && userRole !== 'admin') {
+                        filteredData = filteredData.filter(p => !p.exposure_target || p.exposure_target === 'all');
+                    }
+
+                    allActiveProperties = filteredData;
                     console.log("Active properties loaded:", allActiveProperties.length);
                     
                     if (countHeader) countHeader.textContent = `설정 중... (총 ${allActiveProperties.length}개)`;

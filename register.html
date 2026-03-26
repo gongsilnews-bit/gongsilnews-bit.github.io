@@ -268,6 +268,23 @@
             font-size: 18px;
         }
 
+        /* 노출선택 버튼 스타일 */
+        .exposure-btn-group {
+            display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;
+        }
+        .exposure-btn {
+            flex: 1; padding: 15px; border: 1px solid #ced4da; border-radius: 6px;
+            background: #fff; cursor: pointer; transition: all 0.2s; text-align: left;
+            min-width: 200px;
+        }
+        .exposure-btn:hover { border-color: #3b82f6; }
+        .exposure-btn.active {
+            background: #f1f7ff; border-color: #3b82f6; box-shadow: 0 0 0 1px #3b82f6;
+        }
+        .exposure-btn .main-text { font-weight: bold; font-size: 14px; color: #333; margin-bottom: 5px; }
+        .exposure-btn .sub-text { font-size: 11px; color: #666; line-height: 1.4; }
+        .exposure-btn.active .main-text, .exposure-btn.active .sub-text { color: #3b82f6; }
+
     </style>
     <!-- 카카오 우편번호 서비스 SDK -->
     <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
@@ -518,6 +535,22 @@
                 </div>
             </div>
 
+            <!-- 노출선택 섹션 (부동산 회원 전용 메뉴) -->
+            <div class="form-group" id="exposureGroup" style="display: none; margin-top: 30px;">
+                <label class="form-label">노출선택 <span>*</span></label>
+                <input type="hidden" id="exposureTarget" value="all">
+                <div class="exposure-btn-group">
+                    <div class="exposure-btn active" onclick="selectExposure('all', this)">
+                        <div class="main-text">부동산노출 + 일반인노출</div>
+                        <div class="sub-text">모두에게 노출</div>
+                    </div>
+                    <div class="exposure-btn" onclick="selectExposure('realtor_only', this)">
+                        <div class="main-text">부동산노출</div>
+                        <div class="sub-text">비로그인, 일반회원로그인시 매물상세보기는 부동산만 열람가능하고<br>비회원 일반인에게는 비공개</div>
+                    </div>
+                </div>
+            </div>
+
             <hr style="border:0; border-top:1px dashed #ddd; margin: 30px 0;">
 
             <!-- 섹션 3: 의뢰인 정보 -->
@@ -613,6 +646,13 @@
         let selectedFiles = []; // 업로드할 파일 리스트
         let editPropertyId = null; // 수정모드 판단용 ID
         let existingImages = []; // 수정모드 기존 이미지 보관
+
+        window.selectExposure = function(target, element) {
+            document.getElementById('exposureTarget').value = target;
+            const btns = element.parentElement.querySelectorAll('.exposure-btn');
+            btns.forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+        };
 
         // --- 이미지 선택 및 압축 처리 로직 ---
         window.addEventListener('load', () => {
@@ -749,6 +789,7 @@
                     brokerage_fee: brokerageFee,
                     images: imageUrls,
                     status: 'active',
+                    exposure_target: document.getElementById('exposureTarget') ? document.getElementById('exposureTarget').value : 'all',
                     agree_promo: document.getElementById('agreePromo').checked
                 };
 
@@ -1368,6 +1409,17 @@
                 
                 if(data.agree_promo) document.getElementById('agreePromo').checked = data.agree_promo;
                 
+                // Exposure Target
+                if (data.exposure_target) {
+                    setTimeout(() => {
+                        const exposureBtns = document.querySelectorAll('.exposure-btn');
+                        const targetBtn = Array.from(exposureBtns).find(btn => btn.getAttribute('onclick').includes(`'${data.exposure_target}'`));
+                        if (targetBtn && !targetBtn.classList.contains('active')) {
+                            targetBtn.click();
+                        }
+                    }, 500);
+                }
+
                 // Brokerage fee
                 setTimeout(() => {
                     const feeBtns = Array.from(document.querySelectorAll('#brokerageBtns button'));
@@ -1422,6 +1474,9 @@
                 // 부동산 회원인 경우 추가 정보 노출
                 if (profile.role === 'realtor') {
                     document.getElementById('realtorSection').style.display = 'block';
+                    const expGroup = document.getElementById('exposureGroup');
+                    if (expGroup) expGroup.style.display = 'block';
+                    
                     document.getElementById('companyName').value = profile.company_name || '';
                     document.getElementById('companyRegNo').value = profile.company_reg_no || '';
                     document.getElementById('ceoName').value = profile.ceo_name || '';

@@ -60,6 +60,13 @@ async function loadActiveProperties() {
     }
 
     try {
+        let userRole = 'guest';
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && session.user) {
+            const { data: profile } = await supabase.from('members').select('role').eq('id', session.user.id).maybeSingle();
+            if (profile) userRole = profile.role;
+        }
+
         const { data, error } = await supabase
             .from('properties')
             .select('*')
@@ -68,7 +75,12 @@ async function loadActiveProperties() {
 
         if (error) throw error;
 
-        allActiveProperties = data || [];
+        let filteredData = data || [];
+        if (userRole !== 'realtor' && userRole !== 'admin') {
+            filteredData = filteredData.filter(p => !p.exposure_target || p.exposure_target === 'all');
+        }
+
+        allActiveProperties = filteredData;
         console.log("Loaded properties:", allActiveProperties.length);
         
         if (countHeader) countHeader.textContent = `지역 목록 ${allActiveProperties.length}개`;

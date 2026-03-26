@@ -82,6 +82,10 @@ CREATE TABLE public.properties (
     brokerage_fee   text            NOT NULL,
     -- 예: '공동중개 0%', '물건수수료지급 25%', '물건수수료지급 50%', '물건수수료지급 100%'
 
+    -- ── 노출 선택 ─────────────────────────────────────────────
+    exposure_target text            NOT NULL DEFAULT 'all'
+                                    CHECK (exposure_target IN ('all', 'realtor_only')),
+
     -- ── 의뢰인 정보 ───────────────────────────────────────────
     author_name     text            NOT NULL,              -- 의뢰인명
     author_phone    text            NOT NULL,              -- 의뢰인 연락처
