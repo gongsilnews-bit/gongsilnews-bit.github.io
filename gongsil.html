@@ -2046,14 +2046,15 @@
                 const user = session ? session.user : null;
                 
                 const { data: inquiries, error } = await window.gongsiClient
-                    .from('property_inquiries')
-                    .select('*')
-                    .eq('property_id', propertyId)
-                    .order('created_at', { ascending: false });
+                    .rpc('get_masked_inquiries', { p_property_id: propertyId });
                     
                 if (error) {
                     if (error.code === '42P01') {
                         listEls.forEach(el => el.innerHTML = '<div style="text-align:center; padding:30px; color:#888; font-size:13px; line-height:1.5;">DB 테이블이 준비되지 않았습니다.</div>');
+                        return;
+                    } else if (error.code === 'PGRST202') {
+                        // RPC function doesn't exist yet
+                        listEls.forEach(el => el.innerHTML = '<div style="text-align:center; padding:30px; color:#888; font-size:13px; line-height:1.5;">RPC 함수가 필요합니다.<br>(setup_inquiries_rpc.sql을 실행해주세요)</div>');
                         return;
                     }
                     throw error;
