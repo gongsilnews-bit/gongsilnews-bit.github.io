@@ -1071,6 +1071,9 @@ function renderSidebar(newsList) {
             card.classList.add('active');
 
             if (!isPortal && map && news.lat && news.lng) {
+                // 우리동네부동산: 리스트 클릭 시 기존에 열려있던 상세보기 기사창 닫기
+                window.closeNewsDetail();
+
                 const moveLatLon = new kakao.maps.LatLng(news.lat, news.lng);
                 map.panTo(moveLatLon);
                 map.setLevel(4);
@@ -1200,6 +1203,12 @@ window.showNewsDetail = async function(news) {
     const detailView = document.getElementById('news-detail-view');
     const closeBtn = document.getElementById('btnCloseDetail');
     if (!detailView || !news) return;
+
+    // 기사 변경/열림 시 스크롤 최상단으로 리셋
+    detailView.scrollTop = 0;
+    if (document.body.classList.contains('portal-mode')) {
+        window.scrollTo(0, 0);
+    }
 
     window.currentArticleId = news.id || news.article_id;
 
