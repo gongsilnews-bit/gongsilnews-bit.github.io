@@ -139,19 +139,23 @@ async function loadPortalNews(category, isLoadMore = false) {
         const { data: rawData, error } = await query;
         if (error) throw error;
 
-        // article_media 별도 조회 (대표 미디어 썸네일용)
+        // article_media 별도 조회 (대표 미디어 썸네일용) - 실패해도 무시
         let mediaByArticleId = {};
         if (rawData && rawData.length > 0) {
-            const articleIds = rawData.map(a => a.id);
-            const { data: mediaRows } = await sb
-                .from('article_media')
-                .select('article_id, url, media_type, is_representative')
-                .in('article_id', articleIds);
-            if (mediaRows) {
-                mediaRows.forEach(m => {
-                    if (!mediaByArticleId[m.article_id]) mediaByArticleId[m.article_id] = [];
-                    mediaByArticleId[m.article_id].push(m);
-                });
+            try {
+                const articleIds = rawData.map(a => a.id);
+                const { data: mediaRows, error: mediaErr } = await sb
+                    .from('article_media')
+                    .select('article_id, url, media_type, is_representative')
+                    .in('article_id', articleIds);
+                if (!mediaErr && mediaRows) {
+                    mediaRows.forEach(m => {
+                        if (!mediaByArticleId[m.article_id]) mediaByArticleId[m.article_id] = [];
+                        mediaByArticleId[m.article_id].push(m);
+                    });
+                }
+            } catch(e) {
+                console.warn('article_media 조회 실패 (썸네일은 content에서 추출):', e);
             }
         }
 
@@ -406,7 +410,8 @@ async function loadPortalNews(category, isLoadMore = false) {
 
     } catch (err) {
         console.error('포털 뉴스 로딩 오류:', err);
-        if (!isLoadMore) container.innerHTML = '<div style="padding:60px;color:#e74c3c;text-align:center;">뉴스를 불러오지 못했습니다.</div>';
+        const errMsg = err?.message || err?.details || JSON.stringify(err);
+        if (!isLoadMore) container.innerHTML = `<div style="padding:60px;color:#e74c3c;text-align:center;">뉴스를 불러오지 못했습니다.<br><small style="font-size:11px;color:#999;">${errMsg}</small></div>`;
     } finally {
         window.portalState.isFetching = false;
     }
