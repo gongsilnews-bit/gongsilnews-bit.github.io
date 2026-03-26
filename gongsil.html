@@ -399,11 +399,7 @@
                 });
                 midHtml += `<div class="v-divider"></div>`;
                 config.basicFilters.forEach(f => {
-                    if (f === '거래방식') {
-                        midHtml += `<button class="filter-dropdown" id="btnTradeType" onclick="window.toggleTradeTypeDropdown(event)">${f} <span class="arrow">▼</span></button>`;
-                    } else {
-                        midHtml += `<button class="filter-dropdown">${f} <span class="arrow">▼</span></button>`;
-                    }
+                    midHtml += window.getFilterBtnHtml ? window.getFilterBtnHtml(f) : `<button class="filter-dropdown">${f} <span class="arrow">▼</span></button>`;
                 });
                 if (config.showToggle) {
                     midHtml += `<button class="btn-detail-toggle" onclick="toggleDetailRow()">상세조건검색 +</button>`;
@@ -419,7 +415,7 @@
             detailRow.classList.remove('active'); // 일단 닫기
             let detailHtml = '';
             config.detailFilters.forEach(f => {
-                detailHtml += `<button class="filter-dropdown">${f} <span class="arrow">▼</span></button>`;
+                detailHtml += window.getFilterBtnHtml ? window.getFilterBtnHtml(f) : `<button class="filter-dropdown">${f} <span class="arrow">▼</span></button>`;
             });
             detailRow.innerHTML = detailHtml;
             
@@ -558,22 +554,22 @@
             <button class="mid-tab-rect" onclick="this.classList.toggle('active'); if(window.filterAndRenderMap) window.filterAndRenderMap();">오피스텔분양권</button>
             <button class="mid-tab" onclick="this.classList.toggle('active'); if(window.filterAndRenderMap) window.filterAndRenderMap();">재개발</button>
             <div class="v-divider"></div>
-            <button class="filter-dropdown" id="btnTradeType" onclick="window.toggleTradeTypeDropdown(event)">거래방식 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">가격대 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">면적 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">사용승인일 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">세대수 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnTradeType" onclick="window.toggleGenericDropdown(event, 'tradeTypeDropdownLayer')">거래방식 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnPrice" onclick="window.toggleGenericDropdown(event, 'priceDropdownLayer')">가격대 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnArea" onclick="window.toggleGenericDropdown(event, 'areaDropdownLayer')">면적 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnAge" onclick="window.toggleGenericDropdown(event, 'ageDropdownLayer')">사용승인일 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnHousehold" onclick="window.toggleGenericDropdown(event, 'householdDropdownLayer')">세대수 <span class="arrow">▼</span></button>
             <button class="btn-detail-toggle" onclick="toggleDetailRow()">상세매물검색 +</button>
             <button class="btn-refresh" style="margin-left: auto;">↻ 초기화</button>
         </div>
 
         <div class="detail-filter-row" id="detailFilterRow">
             <!-- JS dynamic render -->
-            <button class="filter-dropdown">층수 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">방/욕실수 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">방향 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">융자금 <span class="arrow">▼</span></button>
-            <button class="filter-dropdown">기타옵션 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnFloor" onclick="window.toggleGenericDropdown(event, 'floorDropdownLayer')">층수 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnRoom" onclick="window.toggleGenericDropdown(event, 'roomDropdownLayer')">방/욕실수 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnDirection" onclick="window.toggleGenericDropdown(event, 'directionDropdownLayer')">방향 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnLoan" onclick="window.toggleGenericDropdown(event, 'loanDropdownLayer')">융자금 <span class="arrow">▼</span></button>
+            <button class="filter-dropdown" id="btnOptions" onclick="window.toggleGenericDropdown(event, 'optionsDropdownLayer')">기타옵션 <span class="arrow">▼</span></button>
         </div>
     </div>
 
@@ -1398,13 +1394,76 @@
                         if (!activeSubs.includes(p.property_type)) return false;
                     }
 
-                    // 3차 거래방식 필터 매칭 로직
+                    // 3차 전체 필터 매칭 로직 (거래방식, 가격대, 방, 연식, 면적, 기타옵션)
                     if (activeMain !== 'MY관심') {
-                        const checkedTradeTypes = Array.from(document.querySelectorAll('.chk-trade-type:checked')).map(c => c.value);
-                        if (checkedTradeTypes.length === 0) return false;
-                        const isAllChecked = document.getElementById('chkTradeTypeAll') && document.getElementById('chkTradeTypeAll').checked;
-                        if (!isAllChecked) {
-                            if (!p.trade_type || !checkedTradeTypes.includes(p.trade_type)) return false;
+                        // 1. 거래방식
+                        if (document.getElementById('chkTradeTypeAll')) {
+                            const checkedTradeTypes = Array.from(document.querySelectorAll('.chk-trade-type:checked')).map(c => c.value);
+                            if (checkedTradeTypes.length === 0) return false;
+                            if (!document.getElementById('chkTradeTypeAll').checked) {
+                                if (!p.trade_type || !checkedTradeTypes.includes(p.trade_type)) return false;
+                            }
+                        }
+                        
+                        // 2. 가격대 (deposit, sale_price 기준)
+                        const priceRdo = document.querySelector('.radios-price:checked');
+                        const priceVal = priceRdo ? priceRdo.value : '전체';
+                        if (priceVal !== '전체') {
+                            const valMap = {'1억미만': [0, 10000], '1억~5억': [10000, 50000], '5억~10억': [50000, 100000], '10억이상': [100000, 99999999]};
+                            const range = valMap[priceVal];
+                            if (range) {
+                                const price = parseInt(p.deposit) || 0;
+                                if (price < range[0] || price > range[1]) return false;
+                            }
+                        }
+                        
+                        // 3. 면적 (area 기준)
+                        const areaRdo = document.querySelector('.radios-area:checked');
+                        const areaVal = areaRdo ? areaRdo.value : '전체';
+                        if (areaVal !== '전체') {
+                            const valMap = {'66미만': [0, 66], '66~99': [66, 99], '99~132': [99, 132], '132이상': [132, 99999999]};
+                            const range = valMap[areaVal];
+                            if (range) {
+                                const area = parseFloat(p.area) || 0;
+                                if (area < range[0] || Math.ceil(area) >= range[1]) return false;
+                            }
+                        }
+                        
+                        // 4. 방/욕실수 (방 위주, room_count)
+                        const roomRdo = document.querySelector('.radios-room:checked');
+                        const roomVal = roomRdo ? roomRdo.value : '전체';
+                        if (roomVal !== '전체') {
+                            const r = parseInt(p.room_count) || 0;
+                            if (roomVal === '1개' && r !== 1) return false;
+                            if (roomVal === '2개' && r !== 2) return false;
+                            if (roomVal === '3개' && r !== 3) return false;
+                            if (roomVal === '4개이상' && r < 4) return false;
+                        }
+                        
+                        // 5. 사용승인일
+                        const ageRdo = document.querySelector('.radios-age:checked');
+                        const ageVal = ageRdo ? ageRdo.value : '전체';
+                        if (ageVal !== '전체') {
+                            const yearStr = (p.approval_date || p.created_at || '').split('-')[0];
+                            if (yearStr && yearStr.length === 4) {
+                                const age = new Date().getFullYear() - parseInt(yearStr);
+                                if (ageVal === '5년이내' && age > 5) return false;
+                                if (ageVal === '10년이내' && age > 10) return false;
+                                if (ageVal === '15년이내' && age > 15) return false;
+                            } else {
+                                return false; // 연식 정보 없음
+                            }
+                        }
+                        
+                        // 6. 기타옵션
+                        if (document.querySelector('.chk-options')) {
+                            const optVals = Array.from(document.querySelectorAll('.chk-options:checked')).map(c => c.value);
+                            if (optVals.length > 0) {
+                                const pOptsStr = Array.isArray(p.options) ? p.options.join(',') : (p.options||'');
+                                for (const opt of optVals) {
+                                    if (!pOptsStr.includes(opt)) return false;
+                                }
+                            }
                         }
                     }
 
@@ -1539,6 +1598,154 @@
             ⓘ 중복선택이 가능합니다.
         </div>
     </div>
+    
+    <!-- 추가 필터 레이어들 -->
+    <div id="priceDropdownLayer" class="filter-dropdown-layer" style="display:none; position:absolute; z-index:100; background:#fff; border:1px solid #111; border-radius:4px; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:200px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:bold; font-size:15px; color:#111;">
+            <span>가격대</span>
+            <button onclick="document.getElementById('priceDropdownLayer').style.display='none'" style="background:none; border:none; font-size:16px; cursor:pointer; color:#666;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#333;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoPrice" value="전체" class="radios-price" checked onchange="window.onGenericFilterChange('price')" style="margin:0; width:16px; height:16px;"> 전체</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoPrice" value="1억미만" class="radios-price" onchange="window.onGenericFilterChange('price')" style="margin:0; width:16px; height:16px;"> 1억 미만(1만 미만)</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoPrice" value="1억~5억" class="radios-price" onchange="window.onGenericFilterChange('price')" style="margin:0; width:16px; height:16px;"> 1억 ~ 5억</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoPrice" value="5억~10억" class="radios-price" onchange="window.onGenericFilterChange('price')" style="margin:0; width:16px; height:16px;"> 5억 ~ 10억</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoPrice" value="10억이상" class="radios-price" onchange="window.onGenericFilterChange('price')" style="margin:0; width:16px; height:16px;"> 10억 이상</label>
+        </div>
+    </div>
+    
+    <div id="areaDropdownLayer" class="filter-dropdown-layer" style="display:none; position:absolute; z-index:100; background:#fff; border:1px solid #111; border-radius:4px; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:180px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:bold; font-size:15px; color:#111;">
+            <span>면적</span>
+            <button onclick="document.getElementById('areaDropdownLayer').style.display='none'" style="background:none; border:none; font-size:16px; cursor:pointer; color:#666;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#333;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoArea" value="전체" class="radios-area" checked onchange="window.onGenericFilterChange('area')" style="margin:0; width:16px; height:16px;"> 전체</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoArea" value="66미만" class="radios-area" onchange="window.onGenericFilterChange('area')" style="margin:0; width:16px; height:16px;"> 66㎡ 미만</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoArea" value="66~99" class="radios-area" onchange="window.onGenericFilterChange('area')" style="margin:0; width:16px; height:16px;"> 66㎡ ~ 99㎡</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoArea" value="99~132" class="radios-area" onchange="window.onGenericFilterChange('area')" style="margin:0; width:16px; height:16px;"> 99㎡ ~ 132㎡</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoArea" value="132이상" class="radios-area" onchange="window.onGenericFilterChange('area')" style="margin:0; width:16px; height:16px;"> 132㎡ 이상</label>
+        </div>
+    </div>
+    
+    <div id="roomDropdownLayer" class="filter-dropdown-layer" style="display:none; position:absolute; z-index:100; background:#fff; border:1px solid #111; border-radius:4px; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:180px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:bold; font-size:15px; color:#111;">
+            <span>방/욕실수</span>
+            <button onclick="document.getElementById('roomDropdownLayer').style.display='none'" style="background:none; border:none; font-size:16px; cursor:pointer; color:#666;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#333;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoRoom" value="전체" class="radios-room" checked onchange="window.onGenericFilterChange('room')" style="margin:0; width:16px; height:16px;"> 전체</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoRoom" value="1개" class="radios-room" onchange="window.onGenericFilterChange('room')" style="margin:0; width:16px; height:16px;"> 방 1개</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoRoom" value="2개" class="radios-room" onchange="window.onGenericFilterChange('room')" style="margin:0; width:16px; height:16px;"> 방 2개</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoRoom" value="3개" class="radios-room" onchange="window.onGenericFilterChange('room')" style="margin:0; width:16px; height:16px;"> 방 3개</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoRoom" value="4개이상" class="radios-room" onchange="window.onGenericFilterChange('room')" style="margin:0; width:16px; height:16px;"> 방 4개 이상</label>
+        </div>
+    </div>
+
+    <div id="ageDropdownLayer" class="filter-dropdown-layer" style="display:none; position:absolute; z-index:100; background:#fff; border:1px solid #111; border-radius:4px; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:180px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:bold; font-size:15px; color:#111;">
+            <span>사용승인일</span>
+            <button onclick="document.getElementById('ageDropdownLayer').style.display='none'" style="background:none; border:none; font-size:16px; cursor:pointer; color:#666;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#333;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoAge" value="전체" class="radios-age" checked onchange="window.onGenericFilterChange('age')" style="margin:0; width:16px; height:16px;"> 전체</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoAge" value="5년이내" class="radios-age" onchange="window.onGenericFilterChange('age')" style="margin:0; width:16px; height:16px;"> 5년 이내</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoAge" value="10년이내" class="radios-age" onchange="window.onGenericFilterChange('age')" style="margin:0; width:16px; height:16px;"> 10년 이내</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="radio" name="rdoAge" value="15년이내" class="radios-age" onchange="window.onGenericFilterChange('age')" style="margin:0; width:16px; height:16px;"> 15년 이내</label>
+        </div>
+    </div>
+
+    <div id="optionsDropdownLayer" class="filter-dropdown-layer" style="display:none; position:absolute; z-index:100; background:#fff; border:1px solid #111; border-radius:4px; padding:15px; box-shadow:0 4px 12px rgba(0,0,0,0.15); width:180px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-weight:bold; font-size:15px; color:#111;">
+            <span>기타옵션</span>
+            <button onclick="document.getElementById('optionsDropdownLayer').style.display='none'" style="background:none; border:none; font-size:16px; cursor:pointer; color:#666;">✕</button>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:10px; font-size:14px; color:#333;">
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" value="주차가능" class="chk-options" onchange="window.onGenericFilterChange('options')" style="margin:0; width:16px; height:16px;"> 주차가능</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" value="에어컨" class="chk-options" onchange="window.onGenericFilterChange('options')" style="margin:0; width:16px; height:16px;"> 에어컨</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" value="엘리베이터" class="chk-options" onchange="window.onGenericFilterChange('options')" style="margin:0; width:16px; height:16px;"> 엘리베이터</label>
+            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" value="반려동물" class="chk-options" onchange="window.onGenericFilterChange('options')" style="margin:0; width:16px; height:16px;"> 반려동물</label>
+        </div>
+    </div>
+
+    <script>
+        window.getFilterBtnHtml = function(f) {
+            const m = {
+                '거래방식': { id: 'btnTradeType', layer: 'tradeTypeDropdownLayer' },
+                '가격대': { id: 'btnPrice', layer: 'priceDropdownLayer' },
+                '면적': { id: 'btnArea', layer: 'areaDropdownLayer' },
+                '방/욕실수': { id: 'btnRoom', layer: 'roomDropdownLayer' },
+                '사용승인일': { id: 'btnAge', layer: 'ageDropdownLayer' },
+                '기타옵션': { id: 'btnOptions', layer: 'optionsDropdownLayer' }
+            };
+            if (m[f]) return `<button class="filter-dropdown" id="${m[f].id}" onclick="window.toggleGenericDropdown(event, '${m[f].layer}')">${f} <span class="arrow">▼</span></button>`;
+            return `<button class="filter-dropdown">${f} <span class="arrow">▼</span></button>`;
+        };
+
+        window.toggleGenericDropdown = function(e, layerId) {
+            if (layerId === 'tradeTypeDropdownLayer' && window.toggleTradeTypeDropdown) {
+                // fall back to previous logic but effectively it's the same. We use the event directly.
+                window.toggleTradeTypeDropdown(e);
+                return;
+            }
+            const btn = e.currentTarget;
+            if (!btn) return;
+            const layer = document.getElementById(layerId);
+            if (!layer) return;
+
+            if (layer.style.display === 'block') {
+                layer.style.display = 'none';
+                return;
+            }
+            document.querySelectorAll('.filter-dropdown-layer').forEach(l => l.style.display = 'none');
+            
+            const rect = btn.getBoundingClientRect();
+            layer.style.top = (rect.bottom + window.scrollY + 5) + 'px';
+            layer.style.left = (rect.left + window.scrollX) + 'px';
+            layer.style.display = 'block';
+        };
+
+        window.onGenericFilterChange = function(type) {
+            let name = '옵션';
+            let selCount = 0;
+            let val = '전체';
+            let isAll = false;
+            let btnId = '';
+            
+            if (type === 'price') { btnId = 'btnPrice'; val = document.querySelector('.radios-price:checked').value; name = val; isAll = (val === '전체'); }
+            if (type === 'area') { btnId = 'btnArea'; val = document.querySelector('.radios-area:checked').value; name = val; isAll = (val === '전체'); }
+            if (type === 'room') { btnId = 'btnRoom'; val = document.querySelector('.radios-room:checked').value; name = val; isAll = (val === '전체'); }
+            if (type === 'age') { btnId = 'btnAge'; val = document.querySelector('.radios-age:checked').value; name = val; isAll = (val === '전체'); }
+            if (type === 'options') { 
+                btnId = 'btnOptions'; 
+                const chks = document.querySelectorAll('.chk-options:checked');
+                selCount = chks.length;
+                if(selCount > 0) name = (selCount===1) ? chks[0].value : `${chks[0].value} 외 ${selCount-1}`;
+                isAll = (selCount === 0);
+            }
+            
+            const btn = document.getElementById(btnId);
+            if (btn) {
+                if (isAll) {
+                    let dftName = '가격대';
+                    if (type === 'area') dftName = '면적';
+                    if (type === 'room') dftName = '방/욕실수';
+                    if (type === 'age') dftName = '사용승인일';
+                    if (type === 'options') dftName = '기타옵션';
+                    btn.innerHTML = `${dftName} <span class="arrow">▼</span>`;
+                    btn.classList.remove('active');
+                    btn.style.color = ''; btn.style.fontWeight = '';
+                } else {
+                    btn.innerHTML = `${name} <span class="arrow">▼</span>`;
+                    btn.classList.add('active');
+                    btn.style.color = 'var(--primary-color)'; btn.style.fontWeight = 'bold';
+                }
+            }
+            if (window.filterAndRenderMap) window.filterAndRenderMap();
+        };
+
+        // Note: document click listener for auto-hide was already added in the previous step
+    </script>
 </body>
 
 </html>
