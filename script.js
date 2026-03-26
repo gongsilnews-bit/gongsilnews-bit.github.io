@@ -1,17 +1,31 @@
-
 // [뉴스 프로젝트] RSS 뉴스 및 지도 전용 Supabase 설정 (기존 프로젝트 유지)
 const NEWS_SUPABASE_URL = 'https://imtdijfseaninhvjoklp.supabase.co';
 const NEWS_SUPABASE_KEY = 'sb_publishable_fY0K_-WP3PyG5ihvxgCPSw_bYewHmnR';
 
 const supabaseClient = window.supabase.createClient(NEWS_SUPABASE_URL, NEWS_SUPABASE_KEY);
 
-let map, clusterer;
+let map;
+let clusterer;
 let allNewsData = []; // 로드된 뉴스 데이터를 저장
 let allMarkers = []; // 지도에 표시된 마커들 (사이드바 연동용)
 let currentCategory = '전체기사'; // 현재 선택된 카테고리
 let currentPeriod = 'all'; // 현재 선택된 기간 필터
 let ps; // 장소 검색 객체
 let currentOverlay = null; // 현재 열린 오버레이
+
+// 간단한 토스트 메시지 띄우기 함수
+window.showToast = function(msg) {
+    let t = document.getElementById('gongsil-toast');
+    if (!t) {
+        t = document.createElement('div');
+        t.id = 'gongsil-toast';
+        t.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        document.body.appendChild(t);
+    }
+    t.innerText = msg;
+    t.style.opacity = '1';
+    setTimeout(() => { t.style.opacity = '0'; }, 3000);
+};
 
 // 뉴스 네비게이션 설정
 const NEWS_NAV_CONFIG = {
@@ -895,46 +909,56 @@ async function loadNews(category) {
             }
         }
 
-        let dbCategory = category;
-        // 카테고리 매핑 로직 고도화
-        const COLUMN_SUBS = NEWS_NAV_CONFIG['column'].subs;
-        
-        if (category === '우리동네부동산') {
-            dbCategory = '공실뉴스';
-        } else if (COLUMN_SUBS.includes(category)) {
-            // 뉴스/칼럼의 서브 카테고리들은 일단 '전체기사' 혹은 '뉴스칼럼'에서 가져오도록 함
-            // 향후 DB에 정교한 카테고리가 생기면 query.eq('subcategory', category) 등으로 확장 가능
-            dbCategory = '전체기사'; 
-        }
-
         let sb = window.gongsiClient || supabaseClient;
-        let query = sb
-            .from('articles')
-            .select('*')
-            .eq('status', 'published')
-            .order('created_at', { ascending: false });
+        let query = sb.from('articles').select('*').eq('status', 'published');
 
-        // 기간 필터 적용
-        if (currentPeriod !== 'all') {
-            const now = new Date();
-            let targetDate = new Date();
-            if (currentPeriod === 'today') targetDate.setHours(0, 0, 0, 0);
-            else if (currentPeriod === 'week') targetDate.setDate(now.getDate() - 7);
-            else if (currentPeriod === 'month') targetDate.setMonth(now.getMonth() - 1);
-            else if (currentPeriod === '6month') targetDate.setMonth(now.getMonth() - 6);
-            query = query.gte('created_at', targetDate.toISOString());
-        }
-
-        query = query.limit(100);
-
-        if (dbCategory !== '전체기사') {
-            // 여러 카테고리 동시 선택(다중 필터)된 경우 지원
-            const categories = dbCategory.split(',').map(s => s.trim()).filter(Boolean);
-            if (categories.length > 0) {
-                // 각 카테고리를 따옴표로 감싸서 안전하게 IN 쿼리에 넣음
-                const escaped = categories.map(c => `"${c}"`).join(',');
-                query = query.or(`section1.in.(${escaped}),section2.in.(${escaped})`);
+        if (category === '찜한기사' || category === '최근본기사') {
+            const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+            const prefix = category === '찜한기사' ? 'gongsil_article_scraps_' : 'gongsil_article_recent_';
+            const storageKey = ud.id ? prefix + ud.id : prefix + 'guest';
+            const ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            
+            if (ids.length === 0) {
+                renderSidebar([]);
+                renderMarkers([]);
+                const content = document.getElementById('news-content');
+                if (content) content.innerHTML = '<div style="padding:20px;text-align:center;color:#999;font-size:14px;">'+(category==='찜한기사'?'찜한 기사가 없습니다.':'최근 본 기사가 없습니다.')+'</div>';
+                return;
             }
+            query = query.in('id', ids);
+            // 순서 강제 유지를 위해 DB 조회 후 JS에서 정렬
+        } else {
+            query = query.order('created_at', { ascending: false });
+            
+            // 일반 카테고리 매핑 로직
+            let dbCategory = category;
+            const COLUMN_SUBS = NEWS_NAV_CONFIG['column'].subs;
+            
+            if (category === '우리동네부동산') {
+                dbCategory = '공실뉴스';
+            } else if (COLUMN_SUBS.includes(category)) {
+                dbCategory = '전체기사'; 
+            }
+
+            // 기간 필터 적용
+            if (currentPeriod !== 'all') {
+                const now = new Date();
+                let targetDate = new Date();
+                if (currentPeriod === 'today') targetDate.setHours(0, 0, 0, 0);
+                else if (currentPeriod === 'week') targetDate.setDate(now.getDate() - 7);
+                else if (currentPeriod === 'month') targetDate.setMonth(now.getMonth() - 1);
+                else if (currentPeriod === '6month') targetDate.setMonth(now.getMonth() - 6);
+                query = query.gte('created_at', targetDate.toISOString());
+            }
+
+            if (dbCategory !== '전체기사') {
+                const categories = dbCategory.split(',').map(s => s.trim()).filter(Boolean);
+                if (categories.length > 0) {
+                    const escaped = categories.map(c => `"${c}"`).join(',');
+                    query = query.or(`section1.in.(${escaped}),section2.in.(${escaped})`);
+                }
+            }
+            query = query.limit(100);
         }
 
         const { data: rawArticles, error } = await query;
@@ -944,7 +968,7 @@ async function loadNews(category) {
         const baseLat = 37.5665; // 서울시청 기준
         const baseLng = 126.9780;
 
-        const newsList = (rawArticles || []).map((a, i) => {
+        let finalNewsList = (rawArticles || []).map((a, i) => {
             // 강남역, 잠실, 지역 임의 산포 (테스트/초기 화면용)
             let mLat = a.lat || (baseLat + (Math.random() - 0.5) * 0.1);
             let mLng = a.lng || (baseLng + (Math.random() - 0.5) * 0.1);
@@ -965,10 +989,24 @@ async function loadNews(category) {
             };
         });
 
-        allNewsData = newsList;
+        if (category === '찜한기사' || category === '최근본기사') {
+            const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+            const prefix = category === '찜한기사' ? 'gongsil_article_scraps_' : 'gongsil_article_recent_';
+            const storageKey = ud.id ? prefix + ud.id : prefix + 'guest';
+            const ids = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            
+            // 저장된 순서(최신순)대로 정렬
+            finalNewsList.sort((a, b) => {
+                const idxA = ids.indexOf(a.id);
+                const idxB = ids.indexOf(b.id);
+                return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
+            });
+        }
 
-        renderSidebar(newsList);
-        renderMarkers(newsList);
+        allNewsData = finalNewsList;
+
+        renderSidebar(finalNewsList);
+        renderMarkers(finalNewsList);
 
     } catch (err) {
         console.error('Error:', err);
@@ -1261,6 +1299,26 @@ window.toggleNewsDetail = function(event, news) {
     }
 };
 
+window.scrapArticle = function() {
+    const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+    if (!ud.id) {
+        alert("로그인 후 이용 가능합니다.");
+        return;
+    }
+    if (!window.currentArticleId) return;
+
+    const storageKey = 'gongsil_article_scraps_' + ud.id;
+    let scraps = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    
+    if (!scraps.includes(window.currentArticleId)) {
+        scraps.unshift(window.currentArticleId);
+        localStorage.setItem(storageKey, JSON.stringify(scraps));
+        showToast("✓ 뉴스 스크랩을 완료했습니다.");
+    } else {
+        showToast("이미 스크랩한 기사입니다.");
+    }
+};
+
 window.showNewsDetail = async function(news) {
     const detailView = document.getElementById('news-detail-view');
     const closeBtn = document.getElementById('btnCloseDetail');
@@ -1273,6 +1331,17 @@ window.showNewsDetail = async function(news) {
     }
 
     window.currentArticleId = news.id || news.article_id;
+
+    // 최근 본 기사 저장 로직 추가
+    if (window.currentArticleId) {
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const recentKey = ud.id ? 'gongsil_article_recent_' + ud.id : 'gongsil_article_recent_guest';
+        let recents = JSON.parse(localStorage.getItem(recentKey) || '[]');
+        recents = recents.filter(id => id !== window.currentArticleId);
+        recents.unshift(window.currentArticleId);
+        if (recents.length > 50) recents.pop();
+        localStorage.setItem(recentKey, JSON.stringify(recents));
+    }
 
     // 모든 링크 텍스트를 기본값으로 초기화
     document.querySelectorAll('.news-link').forEach(link => {
