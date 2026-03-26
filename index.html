@@ -125,12 +125,12 @@
 
         #news-detail-view:not(.map-floating-mode) .detail-container {
             background-color: #ffffff;
-            max-width: 1200px; /* portal-body와 동일하게 폭 확장! (좌우 위치 완벽 일치) */
-            margin: 40px auto; /* 상하 여백 40px */
+            max-width: 1100px; /* 우리동네부동산 상세폭(1100px)과 정확히 맞춤 */
+            margin: 20px auto 40px; /* 상단 여백 축소하여 위아래 과도한 갭 줄임 */
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             border: 1px solid #e1e4e8;
-            padding: 40px; /* portal-body와 동일한 내부 여백 */
+            padding: 30px 40px; /* 내부 좌우 패딩을 기존 40px로 복구, 위아래 30px */
         }
 
         /* 우리동네부동산 맵 위 플로팅 모드 (뉴스/칼럼과 동일한 레이아웃 + 지도 노출) */
@@ -230,10 +230,10 @@
         body.portal-mode #portal-view { display: block !important; }
 
         .portal-body {
-            max-width: 1200px;
-            margin: 40px auto; 
-            padding: 40px;
-            background: #fff; /* 박스를 하얀색으로 카드처럼 분리 */
+            max-width: 1100px; /* 우리동네부동산 상세폭(1100px)과 정확히 맞춤 */
+            margin: 20px auto 40px; /* 상단 여백 축소하여 위아래 과도한 갭 줄임 */
+            padding: 30px 40px; /* 내부 좌우 여백을 기존 디폴트와 맞춤 */
+            background: #fff;
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             border: 1px solid #e1e4e8;
