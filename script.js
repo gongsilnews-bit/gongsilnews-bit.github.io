@@ -153,8 +153,13 @@ async function loadPortalNews(category, isLoadMore = false) {
                 }
 
                 if (!videoId && !imgUrl) {
-                    const match = a.content.match(/<img[^>]+src=["']([^"'>]+)["']/);
-                    if (match) imgUrl = match[1];
+                    // 써머노트 기본 동영상 플레이스홀더 이미지(note-video-clip) 제외
+                    const div = document.createElement('div');
+                    div.innerHTML = a.content;
+                    const imgNode = div.querySelector('img:not(.note-video-clip)');
+                    if (imgNode && imgNode.src && !imgNode.src.includes('video-placeholder')) {
+                        imgUrl = imgNode.src;
+                    }
                 }
             }
 
@@ -227,7 +232,7 @@ async function loadPortalNews(category, isLoadMore = false) {
             // 1. 좌측 핫 아티클 (Top 1)
             if (data.length > 0) {
                 const hot = data[0];
-                const img = hot.image_url ? `<img src="${hot.image_url}" class="portal-hot-img" onerror="this.src='https://picsum.photos/seed/${hot.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
+                const img = hot.image_url ? `<img src="${hot.image_url}" class="portal-hot-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://picsum.photos/seed/${hot.id||Math.random()}/600/400'; this.onload=null; }" onerror="this.src='https://picsum.photos/seed/${hot.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
                 const escHot = JSON.stringify(hot).replace(/"/g, '&quot;');
                 
                 let playOverlay = '';
@@ -256,7 +261,7 @@ async function loadPortalNews(category, isLoadMore = false) {
                 
                 sideItems.forEach(news => {
                     const esc = JSON.stringify(news).replace(/"/g, '&quot;');
-                    const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
+                    const img = news.image_url ? `<img src="${news.image_url}" class="portal-side-item-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400'; this.onload=null; }" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#eee;"></div>';
                     let playOverlay = news.video_id ? '<div style="position:absolute; bottom:5px; left:5px; width:24px; height:24px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:2px; z-index:5;"><svg viewBox="0 0 24 24" width="14" height="14" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
                     let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
                     rightSideTopHtml += `
@@ -361,7 +366,7 @@ function generatePortalListHtml(newsList) {
     if (!newsList || newsList.length === 0) return '';
     return newsList.map(news => {
         const esc = JSON.stringify(news).replace(/"/g, '&quot;');
-        const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
+        const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400'; this.onload=null; }" onerror="this.src='https://picsum.photos/seed/${news.id||Math.random()}/600/400';">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
         let playOverlay = news.video_id ? '<div style="position:absolute; bottom:8px; left:8px; width:30px; height:30px; background:rgba(0,0,0,0.7); border-radius:4px; display:flex; align-items:center; justify-content:center; padding-left:3px; z-index:5;"><svg viewBox="0 0 24 24" width="18" height="18" fill="white"><path d="M8 5v14l11-7z"/></svg></div>' : '';
         let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
         const date = news.pub_date ? new Date(news.pub_date).toLocaleDateString('ko-KR') : '-';
@@ -1042,7 +1047,7 @@ function renderSidebar(newsList) {
 
         const imgHtml = (isPortal && news.image_url) ? `
             <div class="card-img-wrap">
-                <img src="${news.image_url}" class="card-img" onerror="this.src='https://via.placeholder.com/300x180?text=Gongsil+News'">
+                <img src="${news.image_url}" class="card-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://via.placeholder.com/300x180?text=Gongsil+News'; this.onload=null; }" onerror="this.src='https://via.placeholder.com/300x180?text=Gongsil+News'">
             </div>
         ` : '';
 
