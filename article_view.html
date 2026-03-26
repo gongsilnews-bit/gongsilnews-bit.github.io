@@ -382,15 +382,15 @@ function render() {
         '</div>'+
         '<div class="comments-section" style="margin-bottom: 60px;">'+
             '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">'+
-                '<div style="font-size:22px; font-weight:800;">1개의 댓글</div>'+
+                '<div style="font-size:22px; font-weight:800;" id="portalCommentCount">0개의 댓글</div>'+
                 '<div style="font-size:14px; color:#555; cursor:pointer;">내 댓글 〉</div>'+
             '</div>'+
             '<div style="border:1px solid #ddd; border-radius:6px; padding:15px; margin-bottom:30px; background:#fff;">'+
-                '<div style="font-weight:bold; margin-bottom:12px; color:#333; font-size:14px;">관리자 (미리보기)</div>'+
-                '<textarea placeholder="댓글을 남겨보세요" style="width:100%; height:80px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;" readonly></textarea>'+
+                '<div style="font-weight:bold; margin-bottom:12px; color:#333; font-size:14px;" id="commentUserName">관리자 (미리보기)</div>'+
+                '<textarea id="commentInput" placeholder="댓글을 남겨보세요" style="width:100%; height:80px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>'+
                 '<div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px; margin-top:8px;">'+
-                    '<div style="font-size:13px; color:#999;"><span style="font-weight:bold; color:#111;">0</span> / 400</div>'+
-                    '<button style="background:#f59e0b; color:#fff; border:none; border-radius:4px; padding:8px 24px; font-weight:bold; font-size:14px; opacity:0.8; cursor:not-allowed;">등록</button>'+
+                    '<div style="font-size:13px; color:#999;"><span style="font-weight:bold; color:#111;" id="commentLength">0</span> / 400</div>'+
+                    '<button style="background:#f59e0b; color:#fff; border:none; border-radius:4px; padding:8px 24px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="submitPortalComment()">등록</button>'+
                 '</div>'+
             '</div>'+
             '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:12px; border-bottom:1px solid #eee;">'+
@@ -403,27 +403,8 @@ function render() {
                     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg> BEST댓글 '+
                 '</div>'+
             '</div>'+
-            '<div style="display:flex; gap:14px; margin-bottom:25px; border-bottom:1px solid #f9f9f9; padding-bottom:20px;">'+
-                '<div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0;">'+
-                    '<div style="width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent; border-left:14px solid #f59e0b; margin-left:4px;"></div>'+
-                '</div>'+
-                '<div style="flex:1;">'+
-                    '<div style="display:flex; justify-content:space-between; margin-bottom:8px;">'+
-                        '<div style="display:flex; align-items:center; gap:8px; font-size:13px;">'+
-                            '<span style="font-weight:bold; color:#111;">공실뉴ㅇ</span>'+
-                            '<span style="color:#999;">(go**)</span><span style="color:#ddd;">|</span><span style="color:#999;">방금전</span><span style="font-size:10px; border:1px solid #ddd; padding:1px 5px; border-radius:3px; color:#aaa;">IP</span>'+
-                        '</div>'+
-                        '<div style="font-size:13px; color:#aaa; cursor:pointer;">삭제</div>'+
-                    '</div>'+
-                    '<div style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px;">유용한 기사 감사합니다! 잘 읽었습니다. 도움이 많이 되네요.</div>'+
-                    '<div style="display:flex; gap:15px; align-items:center; font-size:13px; color:#888;">'+
-                        '<span style="cursor:pointer;">답글 작성</span>'+
-                        '<div style="display:flex; gap:12px;">'+
-                            '<span style="cursor:pointer; display:flex; align-items:center; gap:4px;">👍 0</span>'+
-                            '<span style="cursor:pointer; display:flex; align-items:center; gap:4px;">👎 0</span>'+
-                        '</div>'+
-                    '</div>'+
-                '</div>'+
+            '<div id="portalCommentList">'+
+                '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>'+
             '</div>'+
         '</div>'+
     '</div>';
@@ -505,8 +486,48 @@ function render() {
         '</div>'+
       '</div>'+
     '</div>';
+    
+    // 렌더링 후 댓글 데이터 로드
+    setTimeout(function() {
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const profile = ud.profile || {};
+        const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '');
+        
+        const commentUserNameEl = document.getElementById('commentUserName');
+        const commentInputEl = document.getElementById('commentInput');
+        
+        if (commentUserNameEl) {
+            if (ud.email) {
+                commentUserNameEl.innerText = userName;
+                commentUserNameEl.style.color = '#333';
+            } else {
+                commentUserNameEl.innerText = '로그인이 필요합니다';
+                commentUserNameEl.style.color = '#999';
+            }
+        }
+        
+        if (commentInputEl) {
+            if (ud.email) {
+                commentInputEl.disabled = false;
+                commentInputEl.placeholder = '댓글을 남겨보세요';
+            } else {
+                commentInputEl.disabled = true;
+                commentInputEl.placeholder = '로그인 후 댓글을 달 수 있습니다.';
+            }
+            commentInputEl.value = '';
+            const lenEl = document.getElementById('commentLength');
+            if (lenEl) lenEl.innerText = '0';
+            
+            // 글자수 카운팅
+            commentInputEl.oninput = function() {
+                if (this.value.length > 400) this.value = this.value.substring(0, 400);
+                if (lenEl) lenEl.innerText = this.value.length;
+            };
+        }
+        loadPortalComments(articleId);
+    }, 100);
 
-    // 댓글 글자수 카운터
+    // 댓글 글자수 카운터 (중복이지만 만약을 위해 남김)
     var ta = document.getElementById('commentInput');
     if (ta) ta.addEventListener('input', function() {
         document.getElementById('charCount').textContent = ta.value.length + '자';
@@ -519,6 +540,114 @@ function render() {
             btn.classList.add('active');
         });
     });
+}
+
+// ── 포털 댓글 로드 및 등록 함수 (article_view.html 전용) ──
+async function loadPortalComments(articleIdNum) {
+    if (!articleIdNum) return;
+    
+    document.getElementById('portalCommentCount').innerText = '0개의 댓글';
+    const listEl = document.getElementById('portalCommentList');
+    if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">댓글을 불러오는 중...</div>';
+    
+    // DB에서 해당 기사의 댓글 가져오기
+    const { data: comments, error } = await sb.from('comments').select('*').eq('article_id', articleIdNum).order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('댓글 로드 중 오류:', error);
+        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#e11d48; font-size:14px;">댓글을 불러올 수 없습니다.</div>';
+        return;
+    }
+    
+    document.getElementById('portalCommentCount').innerText = (comments ? comments.length : 0) + '개의 댓글';
+    
+    if (!comments || comments.length === 0) {
+        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>';
+        return;
+    }
+    
+    if (listEl) {
+        listEl.innerHTML = comments.map(c => {
+            const name = c.user_name || '사용자';
+            const firstChar = name.charAt(0);
+            
+            const cd = new Date(c.created_at);
+            const diffMin = Math.floor((Date.now() - cd.getTime()) / 60000);
+            let dateStr = '';
+            if (diffMin < 60) dateStr = diffMin <= 0 ? '방금전' : diffMin + '분전';
+            else if (diffMin < 24 * 60) dateStr = Math.floor(diffMin / 60) + '시간전';
+            else dateStr = cd.getFullYear() + '.' + (cd.getMonth()+1).toString().padStart(2,'0') + '.' + cd.getDate().toString().padStart(2,'0');
+            
+            return `
+                <div style="display:flex; gap:14px; margin-bottom:25px; border-bottom:1px solid #f9f9f9; padding-bottom:20px;">
+                    <div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:bold; font-size:16px;">
+                        ${firstChar}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+                                <span style="font-weight:bold; color:#111;">${name}</span>
+                                <span style="color:#ddd;">|</span>
+                                <span style="color:#999;">${dateStr}</span>
+                            </div>
+                        </div>
+                        <div style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px; white-space:pre-wrap;">${c.content}</div>
+                        <div style="display:flex; gap:15px; align-items:center; font-size:13px; color:#888;">
+                            <span style="cursor:pointer;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'">답글 작성</span>
+                            <div style="display:flex; gap:12px;">
+                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#888'">👍 ${c.likes||0}</span>
+                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">👎 ${c.dislikes||0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+}
+
+async function submitPortalComment() {
+    if (!articleId) return;
+    
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.user) {
+        alert('로그인이 필요한 서비스입니다.');
+        return;
+    }
+    
+    const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+    const profile = ud.profile || {};
+    const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '사용자');
+    
+    const inputEl = document.getElementById('commentInput');
+    const content = inputEl ? inputEl.value.trim() : '';
+    if (!content) {
+        alert('댓글 내용을 입력하세요.');
+        return;
+    }
+    
+    const { error } = await sb.from('comments').insert([{
+        article_id: articleId,
+        user_id: session.user.id,
+        user_name: userName,
+        content: content
+    }]);
+    
+    if (error) {
+        if (error.code === '42P01') {
+            alert('댓글 테이블(comments)이 아직 생성되지 않았습니다. 관리자에게 문의하세요.');
+        } else {
+            console.error('댓글 등록 오류:', error);
+            alert('댓글 등록에 실패했습니다. (' + error.message + ')');
+        }
+        return;
+    }
+    
+    inputEl.value = '';
+    const lenEl = document.getElementById('commentLength');
+    if (lenEl) lenEl.innerText = '0';
+    
+    loadPortalComments(articleId);
 }
 
 function buildApproveBtn(status) {

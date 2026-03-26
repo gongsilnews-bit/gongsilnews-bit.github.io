@@ -1319,7 +1319,161 @@ window.showNewsDetail = async function(news) {
         if (reporterBox) {
             reporterBox.innerText = news.reporter_name || '공실뉴스';
         }
+        
+        // 댓글 로드 및 UI 설정
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const profile = ud.profile || {};
+        const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '');
+        
+        const commentUserNameEl = document.getElementById('commentUserName');
+        const commentInputEl = document.getElementById('commentInput');
+        
+        if (commentUserNameEl) {
+            if (ud.email) {
+                commentUserNameEl.innerText = userName;
+                commentUserNameEl.style.color = '#333';
+            } else {
+                commentUserNameEl.innerText = '로그인이 필요합니다';
+                commentUserNameEl.style.color = '#999';
+            }
+        }
+        
+        if (commentInputEl) {
+            if (ud.email) {
+                commentInputEl.disabled = false;
+                commentInputEl.placeholder = '댓글을 남겨보세요';
+            } else {
+                commentInputEl.disabled = true;
+                commentInputEl.placeholder = '로그인 후 댓글을 달 수 있습니다.';
+            }
+            commentInputEl.value = '';
+            const lenEl = document.getElementById('commentLength');
+            if (lenEl) lenEl.innerText = '0';
+            
+            // 글자수 카운팅
+            commentInputEl.oninput = function() {
+                if (this.value.length > 400) this.value = this.value.substring(0, 400);
+                if (lenEl) lenEl.innerText = this.value.length;
+            };
+        }
+        
+        window.loadPortalComments(news.id || news.article_id);
     }
+};
+
+// ── 포털 댓글 로드 및 등록 함수 ──
+window.loadPortalComments = async function(articleId) {
+    if (!articleId) return;
+    const sb = window.gongsiClient || window.supabaseClient;
+    if (!sb) return;
+    
+    document.getElementById('portalCommentCount').innerText = '0개의 댓글';
+    const listEl = document.getElementById('portalCommentList');
+    if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">댓글을 불러오는 중...</div>';
+    
+    // DB에서 해당 기사의 댓글 가져오기
+    const { data: comments, error } = await sb.from('comments').select('*').eq('article_id', articleId).order('created_at', { ascending: false });
+    
+    if (error) {
+        console.error('댓글 로드 중 오류:', error);
+        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#e11d48; font-size:14px;">댓글을 불러올 수 없습니다.</div>';
+        return;
+    }
+    
+    document.getElementById('portalCommentCount').innerText = (comments ? comments.length : 0) + '개의 댓글';
+    
+    if (!comments || comments.length === 0) {
+        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>';
+        return;
+    }
+    
+    if (listEl) {
+        listEl.innerHTML = comments.map(c => {
+            const name = c.user_name || '사용자';
+            const firstChar = name.charAt(0);
+            
+            // 날짜 포맷팅
+            const cd = new Date(c.created_at);
+            const diffMin = Math.floor((Date.now() - cd.getTime()) / 60000);
+            let dateStr = '';
+            if (diffMin < 60) dateStr = diffMin <= 0 ? '방금전' : diffMin + '분전';
+            else if (diffMin < 24 * 60) dateStr = Math.floor(diffMin / 60) + '시간전';
+            else dateStr = cd.getFullYear() + '.' + (cd.getMonth()+1).toString().padStart(2,'0') + '.' + cd.getDate().toString().padStart(2,'0');
+            
+            return `
+                <div style="display:flex; gap:14px; margin-bottom:25px; border-bottom:1px solid #f9f9f9; padding-bottom:20px;">
+                    <div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:bold; font-size:16px;">
+                        ${firstChar}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
+                                <span style="font-weight:bold; color:#111;">${name}</span>
+                                <span style="color:#ddd;">|</span>
+                                <span style="color:#999;">${dateStr}</span>
+                            </div>
+                        </div>
+                        <div style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px; white-space:pre-wrap;">${c.content}</div>
+                        <div style="display:flex; gap:15px; align-items:center; font-size:13px; color:#888;">
+                            <span style="cursor:pointer;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'">답글 작성</span>
+                            <div style="display:flex; gap:12px;">
+                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#888'">👍 ${c.likes||0}</span>
+                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">👎 ${c.dislikes||0}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+};
+
+window.submitPortalComment = async function() {
+    const sb = window.gongsiClient || window.supabaseClient;
+    if (!sb || !window.currentArticleId) return;
+    
+    // 로그인 체크
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.user) {
+        alert('로그인이 필요한 서비스입니다.');
+        return;
+    }
+    
+    const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+    const profile = ud.profile || {};
+    const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '사용자');
+    
+    const inputEl = document.getElementById('commentInput');
+    const content = inputEl ? inputEl.value.trim() : '';
+    if (!content) {
+        alert('댓글 내용을 입력하세요.');
+        return;
+    }
+    
+    // DB 삽입
+    const { error } = await sb.from('comments').insert([{
+        article_id: window.currentArticleId,
+        user_id: session.user.id,
+        user_name: userName,
+        content: content
+    }]);
+    
+    if (error) {
+        if (error.code === '42P01') {
+            alert('댓글 테이블(comments)이 아직 생성되지 않았습니다. 관리자에게 문의하세요.');
+        } else {
+            console.error('댓글 등록 오류:', error);
+            alert('댓글 등록에 실패했습니다. (' + error.message + ')');
+        }
+        return;
+    }
+    
+    inputEl.value = '';
+    const lenEl = document.getElementById('commentLength');
+    if (lenEl) lenEl.innerText = '0';
+    
+    // 목록 새로고침
+    window.loadPortalComments(window.currentArticleId);
 };
 
 // 뉴스 상세 보기 닫기 함수
