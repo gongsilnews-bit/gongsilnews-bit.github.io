@@ -117,11 +117,10 @@ async function loadPortalNews(category, isLoadMore = false) {
     window.portalState.isFetching = true;
 
     try {
-        // articles 테이블에서 published 기사 로드 (대표 미디어 JOIN 포함)
+        // articles 테이블에서 published 기사 로드
         let sb = window.gongsiClient || supabaseClient;
         let query = sb.from('articles')
-            .select(`id, title, subtitle, content, section1, section2, article_type, reporter_name, reporter_email, keywords, view_count, created_at, rep_media_id, image_url,
-                article_media!article_media_article_id_fkey(url, media_type, is_representative)`)
+            .select('id, title, subtitle, content, section1, section2, article_type, reporter_name, reporter_email, keywords, view_count, created_at, rep_media_id, image_url')
             .eq('status', 'published')
             .order('created_at', { ascending: false });
 
@@ -140,13 +139,29 @@ async function loadPortalNews(category, isLoadMore = false) {
         const { data: rawData, error } = await query;
         if (error) throw error;
 
-        // _source 마킹하여 showNewsDetail에서 articles 테이블로 인식 및 콘텐츠 파싱
+        // article_media 별도 조회 (대표 미디어 썸네일용)
+        let mediaByArticleId = {};
+        if (rawData && rawData.length > 0) {
+            const articleIds = rawData.map(a => a.id);
+            const { data: mediaRows } = await sb
+                .from('article_media')
+                .select('article_id, url, media_type, is_representative')
+                .in('article_id', articleIds);
+            if (mediaRows) {
+                mediaRows.forEach(m => {
+                    if (!mediaByArticleId[m.article_id]) mediaByArticleId[m.article_id] = [];
+                    mediaByArticleId[m.article_id].push(m);
+                });
+            }
+        }
+
+        // 콘텐츠 파싱하여 image_url, video_id 결정
         const data = (rawData || []).map(function(a) {
             // 1순위: article_media에서 대표(is_representative=true) 미디어 URL 사용
             let imgUrl = null;
             let videoId = null;
 
-            const mediaList = a.article_media || [];
+            const mediaList = mediaByArticleId[a.id] || [];
             const repMedia = mediaList.find(m => m.is_representative) || mediaList[0];
             if (repMedia) {
                 if (repMedia.media_type === 'youtube') {
