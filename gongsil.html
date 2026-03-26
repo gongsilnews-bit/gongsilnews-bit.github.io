@@ -1136,6 +1136,10 @@
                 const detailView = document.getElementById('propertyDetailView');
                 if (!detailView) return;
 
+                // 클릭할 때마다 스크롤을 맨 위로 초기화
+                const scrollArea = detailView.querySelector('.detail-scroll-area');
+                if (scrollArea) scrollArea.scrollTop = 0;
+
                 const priceStr = formatPriceDisplay(p);
                 
                 // Header Info
