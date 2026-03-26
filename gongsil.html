@@ -1416,62 +1416,92 @@
                 const rvSec = document.getElementById('sectionRoadview');
                 const miniMapContainer = document.getElementById('detailMiniMap');
                 const roadviewContainer = document.getElementById('detailRoadview');
-                
-                // 상세정보 노출 설정 혹은 좌표가 있을 경우 표시
-                const lat = parseFloat(p.lat);
-                const lng = parseFloat(p.lng);
-                
-                if (lat && lng) {
-                    mapSec.style.display = 'block';
-                    
-                    if (p.is_room_private && isGeneralBuilding) {
-                        rvSec.style.display = 'none'; // 로드뷰 완전히 숨김
-                        
-                        const coords = new kakao.maps.LatLng(lat, lng);
-                        miniMapContainer.innerHTML = '';
-                        setTimeout(() => { 
-                            const miniMap = new kakao.maps.StaticMap(miniMapContainer, {
-                                center: coords,
-                                level: 6,
-                                marker: false // 마커 없이 렌더링
-                            });
-                            // StaticMap은 원을 그릴 수 없지만 기본 지도를 생성할 수 있음.
-                            // 그냥 정적인 지도로 렌더링하고, 가운데 동그라미를 CSS로 씌울 수 있습니다.
-                            const circleOverlay = document.createElement('div');
-                            circleOverlay.style.cssText = "position:absolute; top:50%; left:50%; width:100px; height:100px; margin-top:-50px; margin-left:-50px; background:rgba(59,130,246,0.3); border-radius:50%; border:2px solid rgba(59,130,246,0.5); z-index:10; filter:blur(2px);";
-                            miniMapContainer.appendChild(circleOverlay);
-                        }, 50);
 
-                    } else {
-                        rvSec.style.display = 'block';
-                        const coords = new kakao.maps.LatLng(lat, lng);
-                        
-                        // 미니맵 로딩
-                        miniMapContainer.innerHTML = '';
-                        setTimeout(() => { 
-                            const miniMap = new kakao.maps.StaticMap(miniMapContainer, {
+                // 공통 지도/로드뷰 렌더 함수
+                function renderMapAndRoadview(coords, isPrivate) {
+                    miniMapContainer.innerHTML = '';
+                    mapSec.style.display = 'block';
+                    rvSec.style.display = 'block';
+
+                    setTimeout(() => {
+                        if (isPrivate) {
+                            // 비공개: 마커 없이 넓은 흐린 파란 원으로 대략 위치 표시
+                            new kakao.maps.StaticMap(miniMapContainer, {
+                                center: coords,
+                                level: 5,
+                                marker: false
+                            });
+                            const circ = document.createElement('div');
+                            circ.style.cssText = 'position:absolute; top:50%; left:50%; width:220px; height:220px; margin-top:-110px; margin-left:-110px; background:rgba(59,130,246,0.22); border-radius:50%; border:2px solid rgba(59,130,246,0.4); z-index:10; filter:blur(5px); pointer-events:none;';
+                            miniMapContainer.appendChild(circ);
+
+                            // 로드뷰: 반경 150m 이내에서 탐색
+                            roadviewContainer.innerHTML = '';
+                            const rv = new kakao.maps.Roadview(roadviewContainer);
+                            const rvClient = new kakao.maps.RoadviewClient();
+                            rvClient.getNearestPanoId(coords, 150, function(panoId) {
+                                if (panoId) {
+                                    rv.setPanoId(panoId, coords);
+                                } else {
+                                    rvSec.style.display = 'none';
+                                }
+                            });
+                        } else {
+                            // 공개: 마커 포함 정확한 위치 표시
+                            new kakao.maps.StaticMap(miniMapContainer, {
                                 center: coords,
                                 level: 4,
                                 marker: { position: coords }
                             });
-                            
-                            // 로드뷰 로딩
+
+                            // 로드뷰: 반경 50m 이내에서 탐색
                             roadviewContainer.innerHTML = '';
                             const rv = new kakao.maps.Roadview(roadviewContainer);
                             const rvClient = new kakao.maps.RoadviewClient();
                             rvClient.getNearestPanoId(coords, 50, function(panoId) {
                                 if (panoId) {
-                                    rvSec.style.display = 'block';
                                     rv.setPanoId(panoId, coords);
                                 } else {
-                                    rvSec.style.display = 'none'; // 해당 위치 로드뷰 없음
+                                    // 50m 내 없으면 150m로 재시도
+                                    rvClient.getNearestPanoId(coords, 150, function(panoId2) {
+                                        if (panoId2) {
+                                            rv.setPanoId(panoId2, coords);
+                                        } else {
+                                            rvSec.style.display = 'none';
+                                        }
+                                    });
                                 }
                             });
-                        }, 50);
-                    }
+                        }
+                    }, 50);
+                }
+
+                const lat = parseFloat(p.lat);
+                const lng = parseFloat(p.lng);
+                // 비공개 여부: 집합건물(아파트·오피스텔 등)이 아닌 경우 + is_room_private
+                const needsBlur = p.is_room_private && isGeneralBuilding;
+
+                if (lat && lng) {
+                    renderMapAndRoadview(new kakao.maps.LatLng(lat, lng), needsBlur);
                 } else {
-                    mapSec.style.display = 'none';
-                    rvSec.style.display = 'none';
+                    // 좌표 없으면 주소로 지오코딩 후 표시 (동 단위)
+                    const geocoder = window.globalGeocoder || new kakao.maps.services.Geocoder();
+                    const addrStr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''}`.trim();
+                    if (addrStr) {
+                        geocoder.addressSearch(addrStr, (result, status) => {
+                            if (status === kakao.maps.services.Status.OK) {
+                                p.lat = parseFloat(result[0].y);
+                                p.lng = parseFloat(result[0].x);
+                                renderMapAndRoadview(new kakao.maps.LatLng(p.lat, p.lng), true); // 주소 기반이므로 항상 블러
+                            } else {
+                                mapSec.style.display = 'none';
+                                rvSec.style.display = 'none';
+                            }
+                        });
+                    } else {
+                        mapSec.style.display = 'none';
+                        rvSec.style.display = 'none';
+                    }
                 }
 
                 // Bottom bar
