@@ -1457,12 +1457,15 @@
 
         // AI 마법사 모달 스크립트 분기 (부동산 매물 vs 뉴스/칼럼)
         function openAiwizardDynamic() { 
+            /*
             const sec1Val = document.getElementById('sec1').value;
             if (sec1Val === '뉴스/칼럼') {
                 document.getElementById('aiWizardModalNews').style.display = 'flex'; 
             } else {
                 document.getElementById('aiWizardModal').style.display = 'flex'; 
             }
+            */
+            document.getElementById('aiChatWidget').style.display = 'flex';
         }
         function closeAiwizardDynamic() { 
             document.getElementById('aiWizardModal').style.display = 'none'; 
@@ -2858,6 +2861,263 @@
             setTimeout(checkEditMode, 500); // 수정 모드 감지
         });
 
+    </script>
+    <!-- AI Floating Chat Widget -->
+    <style>
+    .ai-chat-widget {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 380px;
+        height: 600px;
+        background: #ffffff;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+        display: none;
+        flex-direction: column;
+        z-index: 10000;
+        overflow: hidden;
+        border: 1px solid #e5e7eb;
+        font-family: 'Pretendard Variable', 'Apple SD Gothic Neo', sans-serif;
+    }
+    .ai-chat-header {
+        background: linear-gradient(135deg, #f97316, #ea580c);
+        color: white;
+        padding: 16px 20px;
+        font-weight: 700;
+        font-size: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .ai-chat-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.8;
+    }
+    .ai-chat-close:hover { opacity: 1; }
+    .ai-chat-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: #f8fafc;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+    .chat-msg {
+        max-width: 85%;
+        line-height: 1.5;
+        font-size: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .chat-msg.bot {
+        align-self: flex-start;
+    }
+    .chat-msg.bot .bubble {
+        background: white;
+        border: 1px solid #e2e8f0;
+        color: #333;
+        padding: 12px 16px;
+        border-radius: 2px 16px 16px 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .chat-msg.user {
+        align-self: flex-end;
+    }
+    .chat-msg.user .bubble {
+        background: #f97316;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 16px 2px 16px 16px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .chat-action-btn {
+        background: #f1f5f9;
+        color: #0f172a;
+        border: 1px solid #cbd5e1;
+        padding: 8px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 8px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        transition: 0.2s;
+    }
+    .chat-action-btn:hover {
+        background: #e2e8f0;
+    }
+    .ai-chat-footer {
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e5e7eb;
+    }
+    .ai-chat-input-wrapper {
+        display: flex;
+        align-items: center;
+        background: #f1f5f9;
+        border-radius: 24px;
+        padding: 8px 16px;
+        border: 1px solid #e2e8f0;
+    }
+    .ai-chat-input-wrapper input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        outline: none;
+        font-size: 14px;
+        color: #333;
+        padding: 8px 0;
+    }
+    .ai-chat-submit {
+        background: #f97316;
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        font-size: 14px;
+        margin-left: 8px;
+    }
+    .ai-chat-submit:hover {
+        background: #ea580c;
+    }
+    /* 타이핑 인디케이터 */
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+        padding: 4px 8px;
+    }
+    .typing-indicator span {
+        width: 6px;
+        height: 6px;
+        background: #cbd5e1;
+        border-radius: 50%;
+        animation: typing 1s infinite;
+    }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-4px); }
+    }
+    </style>
+
+    <div id="aiChatWidget" class="ai-chat-widget">
+        <div class="ai-chat-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span>✨</span> 부동산 AI 마법사
+            </div>
+            <button class="ai-chat-close" onclick="closeAiChatWidget()">&times;</button>
+        </div>
+        <div class="ai-chat-body" id="aiChatBody">
+            <div class="chat-msg bot">
+                <div class="bubble">안녕하세요! 공실뉴스 부동산 AI 마법사입니다. 🪄<br><br>작성하고 싶은 기사의 주제나 참고할 매물 정보를 자유롭게 대화하듯 입력해주세요!</div>
+            </div>
+        </div>
+        <div class="ai-chat-footer">
+            <div class="ai-chat-input-wrapper">
+                <input type="text" id="aiChatInput" placeholder="무엇을 변경하거나 만들고 싶으신가요?" onkeypress="if(event.key === 'Enter') submitAiChat()">
+                <button class="ai-chat-submit" onclick="submitAiChat()">➤</button>
+            </div>
+            <div style="font-size:10px; color:#94a3b8; text-align:center; margin-top:8px;">AI가 생성한 원고는 반드시 사실 확인을 거쳐주세요.</div>
+        </div>
+    </div>
+
+    <script>
+    function closeAiChatWidget() {
+        document.getElementById('aiChatWidget').style.display = 'none';
+    }
+    function submitAiChat() {
+        const input = document.getElementById('aiChatInput');
+        const text = input.value.trim();
+        if (!text) return;
+        
+        const body = document.getElementById('aiChatBody');
+        
+        // 유저 메시지 마크업
+        const userHtml = `
+            <div class="chat-msg user" style="animation: fadeIn 0.3s;">
+                <div class="bubble">\${text}</div>
+            </div>
+        `;
+        body.insertAdjacentHTML('beforeend', userHtml);
+        input.value = '';
+        body.scrollTop = body.scrollHeight;
+        
+        // 임시 로딩(타이핑) 상태 추가
+        const typingId = 'typing_' + Date.now();
+        const typingHtml = `
+            <div class="chat-msg bot" id="\${typingId}">
+                <div class="bubble">
+                    <div class="typing-indicator"><span></span><span></span><span></span></div>
+                </div>
+            </div>
+        `;
+        body.insertAdjacentHTML('beforeend', typingHtml);
+        body.scrollTop = body.scrollHeight;
+        
+        // AI응답 스피너 대기 후 봇 메시지 띄우기 (데모 시뮬레이션)
+        setTimeout(() => {
+            const typingEl = document.getElementById(typingId);
+            if (typingEl) typingEl.remove();
+
+            const botHtml = `
+                <div class="chat-msg bot" style="animation: fadeIn 0.3s;">
+                    <div class="bubble">
+                        네, 입력하신 정보에 맞추어 초안을 준비했습니다!<br><br>
+                        <strong>[제목]</strong><br>
+                        대치동 은마아파트 급매물, 시장에 미칠 영향은?<br><br>
+                        방금 에디터에 적용해 보시겠어요?
+                    </div>
+                    <div>
+                        <button class="chat-action-btn" onclick="applyAiChatToEditor(this)">✏️ 본문에 입력</button>
+                    </div>
+                </div>
+            `;
+            body.insertAdjacentHTML('beforeend', botHtml);
+            body.scrollTop = body.scrollHeight;
+        }, 1500);
+    }
+
+    function applyAiChatToEditor(btn) {
+        // 본문 등 에디터에 적용하는 예시 로직
+        const titleTarget = document.querySelector('input[placeholder="제목을 입력하세요"]');
+        if(titleTarget) titleTarget.value = "대치동 은마아파트 급매물, 시장에 미칠 영향은?";
+        
+        const styledContentHtml = `<div style="font-family: 'Apple SD Gothic Neo', sans-serif; font-size: 16px; line-height: 1.6; color:#222;"><p>최근 대치동 은마아파트에서 급매물이 등장하여 부동산 시장의 이목이 쏠리고 있습니다. 기존 호가 대비 파격적인 가격으로 조정된 이번 매물은 재건축을 앞두고 시장의 관망세를 대변하는 중대한 사례로 꼽힙니다.</p><p><br></p></div>`;
+        
+        if (window.$ && $('#summernote').length > 0) {
+            $('#summernote').summernote('code', styledContentHtml);
+        }
+        
+        const oldText = btn.innerHTML;
+        btn.innerHTML = '✅ 입력 완료';
+        btn.style.background = '#dcfce7';
+        btn.style.color = '#166534';
+        setTimeout(() => {
+            btn.innerHTML = oldText;
+            btn.style.background = '';
+            btn.style.color = '';
+        }, 2000);
+    }
+    
+    // 추가 CSS 애니메이션
+    const animStyle = document.createElement('style');
+    animStyle.innerHTML = '@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }';
+    document.head.appendChild(animStyle);
     </script>
 </body>
 </html>
