@@ -535,7 +535,28 @@ if (typeof kakao === 'undefined') {
                     }
                 }
             });
+            if (typeof window.updateMapArticleCount === 'function') {
+                window.updateMapArticleCount();
+            }
         });
+
+        // 맵 내에 보이는 마커(기사) 갯수 업데이트 함수 (전역)
+        window.updateMapArticleCount = function() {
+            if (document.body.classList.contains('portal-mode')) return;
+            const sidebarTitle = document.getElementById('newsCategoryTitle');
+            if (!sidebarTitle || !map) return;
+            
+            const bounds = map.getBounds();
+            if (!bounds) return;
+            
+            let count = 0;
+            allMarkers.forEach(m => {
+                if (m && bounds.contain(m.getPosition())) {
+                    count++;
+                }
+            });
+            sidebarTitle.innerHTML = `현재 지도기사 <span style="color:#ff9f1c; margin-left:4px;">${count}</span>개`;
+        };
 
         window.toggleMapSearch = function() {
             const regionPanel = document.getElementById('regionSelectorPanel');
@@ -805,7 +826,11 @@ async function loadNews(category) {
         // 사이드바 제목 업데이트
         const sidebarTitle = document.querySelector('.sidebar-header h2');
         if (sidebarTitle) {
-            sidebarTitle.textContent = category === '우리동네부동산' ? '우리동네부동산' : category;
+            if (document.body.classList.contains('portal-mode')) {
+                sidebarTitle.textContent = category === '우리동네부동산' ? '우리동네부동산' : category;
+            } else {
+                sidebarTitle.innerHTML = `현재 지도기사 <span style="color:#ff9f1c; margin-left:4px;">0</span>개`;
+            }
         }
 
         let dbCategory = category;
@@ -1154,6 +1179,10 @@ function renderMarkers(newsList) {
     // 클러스터러에는 유효한 마커만 추가
     const validMarkers = allMarkers.filter(m => m !== null && m !== undefined);
     clusterer.addMarkers(validMarkers);
+
+    if (typeof window.updateMapArticleCount === 'function') {
+        window.updateMapArticleCount();
+    }
 }
 // 뉴스 상세 보기 표시 함수
 window.toggleNewsDetail = function(event, news) {
