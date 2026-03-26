@@ -724,86 +724,98 @@
                 
                 </div> <!-- tabInfoSection End -->
 
-                <!-- 탭 내용 영역 (등록자 정보 및 문의 댓글) -->
-                <div id="tabRealtorSection" style="display: none; padding: 20px; background: #fafafa; min-height: 480px;">
-                    <div style="display: flex; gap: 20px; height: 100%;">
+                <!-- 탭 내용 영역 (등록자 정보) -->
+                <div id="tabRealtorSection" style="display: none; padding: 20px; background: #fff; min-height: 480px;">
+                    <!-- 상단 중개사 정보 영역 -->
+                    <div style="margin-bottom: 25px;">
+                        <div style="font-size: 20px; font-weight: bold; color: #111; margin-bottom: 8px;" id="docRealtorName2">청실두꺼비공인중개사무소</div>
+                        <div style="font-size: 13px; color: #666; margin-bottom: 4px;">대표 <span id="docRealtorRep2">김원빈</span> | 등록번호 11680-2017-00179</div>
+                        <div style="font-size: 13px; color: #666; margin-bottom: 4px;" id="docRealtorAddr2">서울특별시 강남구 남부순환로 2917</div>
+                        <div style="font-size: 13px; font-weight: bold; color: #111; margin-bottom: 15px;"><span style="color:#666">☎</span> <span id="docRealtorPhone2">02-564-7600 / 010-8456-2730</span></div>
                         
-                        <!-- 왼쪽: 중개사 프로필 카드 -->
-                        <div style="flex: 1; max-width: 250px; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 25px 20px; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.03); display: flex; flex-direction: column;">
-                            <div style="margin-bottom: 15px;">
-                                <div style="font-size: 11px; font-weight: bold; color: #1f5edb; border: 1px solid #1f5edb; display: inline-block; padding: 3px 8px; border-radius: 20px; margin-bottom: 12px;">공식 추천 파트너</div>
+                        <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; font-size: 13px; color: #333; display: flex; gap: 15px; justify-content: center;">
+                            <span>매매 <strong style="color:#111">8</strong></span>
+                            <span style="color:#ddd">|</span>
+                            <span>전세 <strong style="color:#111">4</strong></span>
+                            <span style="color:#ddd">|</span>
+                            <span>월세 <strong style="color:#111">10</strong></span>
+                            <span style="color:#ddd">|</span>
+                            <span>단기 <strong style="color:#111">0</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- 중앙 서브 탭 -->
+                    <div style="display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px;">
+                        <div class="realtor-sub-tab active" onclick="document.querySelectorAll('.realtor-sub-tab').forEach(e=>e.classList.remove('active')); this.classList.add('active'); document.querySelectorAll('.realtor-sub-content').forEach(e=>e.style.display='none'); document.getElementById('subTabProps').style.display='block';" style="flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:bold; font-size:15px; color:#888;">공실등록현황</div>
+                        <div class="realtor-sub-tab" onclick="document.querySelectorAll('.realtor-sub-tab').forEach(e=>e.classList.remove('active')); this.classList.add('active'); document.querySelectorAll('.realtor-sub-content').forEach(e=>e.style.display='none'); document.getElementById('subTabInquiry').style.display='block';" style="flex:1; padding:12px; text-align:center; cursor:pointer; font-weight:bold; font-size:15px; color:#888;">문의하기</div>
+                    </div>
+                    <style>
+                        .realtor-sub-tab.active { color:#111 !important; border-bottom: 2px solid #111; }
+                    </style>
+
+                    <!-- 공실등록현황 내용 (기본 표시) -->
+                    <div id="subTabProps" class="realtor-sub-content" style="display:block;">
+                        <!-- 샘플 1 -->
+                        <div style="border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <div style="font-size:12px; color:#888;">주상복합/아파트 <span style="background:#f9f9f9; padding:2px 4px; border-radius:2px; font-size:11px; margin-left:4px;">확인 2024.03.26</span></div>
                             </div>
-                            <!-- 기존 프로필 이미지 ID 유지 -->
-                            <div id="docRealtorProfileImg" style="width: 80px; height: 80px; background: #eee; border-radius: 50%; margin: 0 auto 15px auto; background-position: center; background-size: cover; background-image: url('https://via.placeholder.com/80/dddddd/999999?text=프로필'); border: 2px solid #f0f0f0;"></div>
-                            
-                            <!-- 기존 텍스트 엘리먼트 ID 유지 -->
-                            <div class="realtor-name" id="docRealtorName" style="font-size: 18px; font-weight: 800; color: #111; margin-bottom: 5px; word-break: keep-all;">공실뉴스 파트너 중개사</div>
-                            <div class="realtor-rep" id="docRealtorRep" style="font-size: 13px; color: #555; margin-bottom: 20px;">대표 정보없음</div>
-                            
-                            <div style="border-top: 1px dashed #eee; padding-top: 15px; margin-top: auto; text-align: left; font-size: 13px; color: #666; line-height: 1.6;">
-                                <div class="realtor-address" id="docRealtorAddr" style="margin-bottom: 8px;">📍 위치 정보 준비중</div>
-                                <div class="realtor-phone" id="docRealtorPhone" style="font-weight: bold; color: #1f5edb;">📞 전화 010-0000-0000</div>
+                            <div style="font-size:16px; font-weight:bold; color:#111; margin-bottom:5px;">래미안대치하이스턴</div>
+                            <div style="font-size:18px; font-weight:bold; color:#111; margin-bottom:5px;">매매 36억</div>
+                            <div style="font-size:13px; color:#666;">143.6m² / 110.39m² (33.4평)</div>
+                        </div>
+                        <!-- 샘플 2 -->
+                        <div style="border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 15px;">
+                            <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                <div style="font-size:12px; color:#888;">주상복합/아파트 <span style="background:#f9f9f9; padding:2px 4px; border-radius:2px; font-size:11px; margin-left:4px;">확인 2024.03.26</span></div>
                             </div>
-                            
-                            <button style="margin-top: 20px; width: 100%; background: #1f5edb; color: white; border: none; padding: 12px 0; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.background='#1649b8'" onmouseout="this.style.background='#1f5edb'">비공개 문의 작성 🔒</button>
+                            <div style="font-size:16px; font-weight:bold; color:#111; margin-bottom:5px;">대치푸르지오써밋</div>
+                            <div style="font-size:18px; font-weight:bold; color:#111; margin-bottom:5px;">전세 21억</div>
+                            <div style="font-size:13px; color:#666;">130.4m² / 101.99m² (30평)</div>
+                        </div>
+                    </div>
+
+                    <!-- 문의하기 내용 -->
+                    <div id="subTabInquiry" class="realtor-sub-content" style="display:none;">
+                        <div style="margin-bottom: 25px;">
+                            <textarea placeholder="비공개 문의 내용을 입력해 주세요. (중개사와 작성자만 확인 가능)" style="width:100%; height:90px; padding:15px; border:1px solid #ddd; border-radius:8px; font-size:14px; resize:none; outline:none; margin-bottom:10px; background:#fbfbfb; box-sizing:border-box;"></textarea>
+                            <button style="width:100%; background:#1f5edb; color:#fff; border:none; padding:14px; border-radius:8px; font-weight:bold; font-size:15px; cursor:pointer;">문의 등록하기 🔒</button>
                         </div>
                         
-                        <!-- 오른쪽: 문의/댓글 피드 -->
-                        <div style="flex: 1; background: #fff; border: 1px solid #e5e5e5; border-radius: 12px; padding: 20px; display: flex; flex-direction: column;">
-                            <h3 style="font-size: 15px; font-weight: bold; color: #111; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #1f5edb; padding-bottom: 10px;">
-                                <span>💬 문의 내역 (비공개)</span>
-                                <span style="font-size: 12px; color: #888; font-weight: normal;">총 <strong style="color:#1f5edb;">3</strong>건</span>
-                            </h3>
+                        <!-- 댓글 리스트 -->
+                        <div style="display:flex; flex-direction:column; gap:15px;">
                             
-                            <!-- 피드 스크롤 영역 -->
-                            <div style="flex-grow: 1; overflow-y: auto; padding-right: 5px; max-height: 380px; display: flex; flex-direction: column; gap: 15px;">
-                                
-                                <!-- 샘플 1: 본인 댓글 + 답변 대기 -->
-                                <div style="background: #f8f9fa; border-radius: 8px; padding: 12px; position: relative; border: 1px solid #eee;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center;">
-                                        <div style="font-size: 12px; font-weight: bold; color: #333;"><span style="color:#f39c12">나의 문의</span> <span style="font-size:10px; opacity:0.6;">(비공개)</span> 🔒</div>
-                                        <div style="font-size: 10px; color: #999;">방금 전</div>
-                                    </div>
-                                    <div style="font-size: 13px; color: #444; line-height: 1.4; margin-bottom: 8px;">
-                                        주차공간이 넉넉한가요? 차가 큰 편이라 주차가 편한 곳을 찾고 있습니다. 🚗
-                                    </div>
-                                    <span style="display: inline-block; font-size: 10px; background: #e0e0e0; padding: 3px 6px; border-radius: 4px; color: #666; font-weight: bold;">답변 대기중</span>
+                            <!-- 본인 댓글 + 답변 완료 샘플 -->
+                            <div style="background: #fff; border: 1px solid #e5e5e5; border-radius: 8px; padding: 20px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 12px; align-items: center;">
+                                    <div style="font-size: 14px; font-weight: bold; color: #111;"><span style="color:#f39c12">나의 문의</span> 🔒</div>
+                                    <div style="font-size: 12px; color: #999;">2024.03.25</div>
+                                </div>
+                                <div style="font-size: 14px; color: #333; line-height: 1.5; margin-bottom: 18px;">
+                                    보증금을 조금 낮추고 월세를 올리는 것도 가능한가요? 가능하다면 어느 선까지 가능할까요?
                                 </div>
                                 
-                                <!-- 샘플 2: 본인 댓글 + 답변 완료 -->
-                                <div style="background: #f8f9fa; border-radius: 8px; padding: 12px; position: relative; border: 1px solid #eee; border-left: 3px solid #1f5edb;">
-                                    <div style="display: flex; justify-content: space-between; margin-bottom: 6px; align-items: center;">
-                                        <div style="font-size: 12px; font-weight: bold; color: #333;"><span style="color:#f39c12">나의 문의</span> <span style="font-size:10px; opacity:0.6;">(비공개)</span> 🔒</div>
-                                        <div style="font-size: 10px; color: #999;">2024.03.25</div>
+                                <!-- 중개사 답변 칸 -->
+                                <div style="background: #f8f9fa; border-radius: 8px; padding: 15px; border-left: 3px solid #1f5edb;">
+                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                        <div style="width: 20px; height: 20px; background: #1f5edb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: bold;">A</div>
+                                        <span style="font-size: 13px; font-weight: bold; color: #111;">중개사 답변</span>
+                                        <span style="font-size: 11px; color: #888; margin-left: auto;">2024.03.25</span>
                                     </div>
-                                    <div style="font-size: 13px; color: #444; line-height: 1.4; margin-bottom: 12px;">
-                                        보증금을 조금 낮추고 월세를 올리는 것도 가능한가요? 가능하다면 어느 선까지 가능할까요?
-                                    </div>
-                                    
-                                    <!-- 중개사 답변 칸 -->
-                                    <div style="background: #fff; border: 1px solid #dce4f5; border-radius: 6px; padding: 10px;">
-                                        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
-                                            <div style="width: 18px; height: 18px; background: #1f5edb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold;">A</div>
-                                            <span style="font-size: 11px; font-weight: bold; color: #1f5edb;">중개사 답변 완료</span>
-                                        </div>
-                                        <div style="font-size: 12px; color: #333; line-height: 1.5;">
-                                            네 고객님! 임대인분과 협의하여 보증금 1천 / 월세 +10만 원 선으로 조정이 가능할 것으로 보입니다. 편하게 전화주시면 자세히 상담해 드릴게요! 😊
-                                        </div>
+                                    <div style="font-size: 13px; color: #444; line-height: 1.5;">
+                                        네 고객님! 임대인분과 협의하여 보증금 1천 / 월세 +10만 원 선으로 조정이 가능할 것으로 보입니다. 편하게 전화주시면 자세히 상담해 드릴게요! 😊
                                     </div>
                                 </div>
-                                
-                                <!-- 샘플 3: 남이 쓴 비공개 댓글 (블라인드 처리) -->
-                                <div style="background: #fff; border: 1px dashed #ddd; border-radius: 8px; padding: 20px; text-align: center;">
-                                    <div style="font-size: 20px; color: #ccc; margin-bottom: 6px;">🔒</div>
-                                    <div style="font-size: 12px; color: #999; line-height: 1.4;">
-                                        비공개 문의입니다.<br>
-                                        작성자와 중개사만 확인할 수 있습니다.
-                                    </div>
+                            </div>
+
+                            <!-- 다른 사람 글 (블라인드) -->
+                            <div style="background: #fafafa; border: 1px dashed #ddd; border-radius: 8px; padding: 25px; text-align: center;">
+                                <div style="font-size: 24px; color: #ccc; margin-bottom: 8px;">🔒</div>
+                                <div style="font-size: 13px; color: #999; line-height: 1.4;">
+                                    비공개 문의입니다.
                                 </div>
-                                
                             </div>
                         </div>
-                        
                     </div>
                 </div>
 
