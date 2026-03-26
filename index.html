@@ -101,28 +101,36 @@
         .btn-close-detail:hover { background: #000; }
 
         #news-detail-view {
-            position: absolute; /* .map-wrapper 안에서 가득 차는 형태로 변경 */
+            position: absolute; /* 맵 래퍼 내의 디폴트 포지션 */
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: #f2f4f7; /* 배경색 네이버 뉴스처럼 옅은 파란회색 변경 */
+            background-color: #f2f4f7;
             z-index: 2000;
             overflow-y: auto;
             display: none;
             box-sizing: border-box;
-            box-shadow: -2px 0 10px rgba(0,0,0,0.1); /* 왼쪽 그림자 추가 */
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
             animation: fadeIn 0.2s ease;
         }
         
+        /* 뉴스/칼럼 (포털 모드) 일 때는 맵 플로팅이 아니며, portal-view에서 자체 스크롤 권한을 갖도록 position 해제 */
+        body.portal-mode #news-detail-view {
+            position: relative;
+            height: auto;
+            overflow-y: visible;
+            box-shadow: none;
+        }
+
         #news-detail-view:not(.map-floating-mode) .detail-container {
             background-color: #ffffff;
-            margin-top: 40px;
-            margin-bottom: 40px;
+            max-width: 1200px; /* portal-body와 동일하게 폭 확장! (좌우 위치 완벽 일치) */
+            margin: 40px auto; /* 상하 여백 40px */
             border-radius: 12px;
             box-shadow: 0 4px 15px rgba(0,0,0,0.03);
             border: 1px solid #e1e4e8;
-            padding: 40px;
+            padding: 40px; /* portal-body와 동일한 내부 여백 */
         }
 
         /* 우리동네부동산 맵 위 플로팅 모드 (뉴스/칼럼과 동일한 레이아웃 + 지도 노출) */

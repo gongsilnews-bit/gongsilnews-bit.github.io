@@ -1197,7 +1197,11 @@ window.showNewsDetail = async function(news) {
     const bodyContainer = document.getElementById('detailBody');
     bodyContainer.innerHTML = '<div style="padding:40px;text-align:center;color:#aaa;">본문을 불러오는 중...</div>';
     detailView.style.display = 'block';
-    detailView.scrollTop = 0;
+    if (document.body.classList.contains('portal-mode')) {
+        document.getElementById('portal-view').scrollTop = 0;
+    } else {
+        detailView.scrollTop = 0;
+    }
 
     // ── articles 테이블 기사 (직접 작성, article_id 또는 _source='articles') ──
     if (news._source === 'articles' || news.article_type) {
