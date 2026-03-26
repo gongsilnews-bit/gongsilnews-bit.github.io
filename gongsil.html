@@ -224,6 +224,17 @@
         }
         .btn-inquiry:hover { background: var(--hover-color, #e0484d); }
 
+        /* 책갈피·공유 아이콘 */
+        .detail-action-row { display: flex; align-items: center; gap: 6px; margin-left: auto; }
+        .btn-action-icon {
+            background: none; border: 1.5px solid #ddd; border-radius: 6px;
+            width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; transition: border-color 0.2s, color 0.2s, background 0.2s;
+            color: #666; font-size: 17px; flex-shrink: 0;
+        }
+        .btn-action-icon:hover { border-color: #1a73e8; color: #1a73e8; background: #eef4fd; }
+        .btn-action-icon.scrapped { border-color: #1a73e8; color: #1a73e8; background: #eef4fd; }
+
         /* 클러스터 커스텀 스타일 */
         .custom-cluster {
             display: flex; justify-content: center; align-items: center;
@@ -672,7 +683,17 @@
                         <span class="reg-date" id="docRegDate">-</span>
                     </div>
                     <h2 class="detail-property-type" id="docPropType">-</h2>
-                    <h1 class="detail-price-main" id="docPriceMain">-</h1>
+                    <div style="display:flex; align-items:center; justify-content:space-between;">
+                        <h1 class="detail-price-main" id="docPriceMain" style="margin:0;">-</h1>
+                        <div class="detail-action-row">
+                            <button class="btn-action-icon" id="btnBookmark" title="찜하기" onclick="window.scrapProperty && window.scrapProperty()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                            </button>
+                            <button class="btn-action-icon" id="btnShare" title="공유하기" onclick="window.shareProperty && window.shareProperty()">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                            </button>
+                        </div>
+                    </div>
                     
                     <ul class="detail-summary-list">
                         <li id="docSummaryRooms">방 -개</li>
@@ -822,10 +843,7 @@
             <!-- 고정 하단바 -->
             <div class="detail-bottom-bar">
                 <div class="bottom-price" id="docBottomPrice">-</div>
-                <div style="display: flex; gap: 10px; align-items: center;">
-                    <button class="btn-scrap" title="찜하기" onclick="if(window.scrapProperty) window.scrapProperty()" style="background:none; border:none; cursor:pointer; font-size: 24px; transition: color 0.2s;" onmouseover="this.style.color='#ff9f1c'" onmouseout="this.style.color='inherit'">🤍</button>
-                    <button class="btn-inquiry" onclick="window.switchDetailTab('realtor'); const sa = document.querySelector('.detail-scroll-area'); if(sa) sa.scrollTop = 0;">연락처 보기</button>
-                </div>
+                <button class="btn-inquiry" onclick="window.switchDetailTab('realtor'); const sa = document.querySelector('.detail-scroll-area'); if(sa) sa.scrollTop = 0;">연락처 보기</button>
             </div>
         </div>
         <!-- 우측 지도 영역 -->
@@ -1199,10 +1217,18 @@
                     }
                     card.id = `property-card-${p.id}`;
                     card.onclick = () => {
-                        window.currentlySelectedPropertyId = p.id;
-                        document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
-                        card.classList.add('active');
-                        window.showPropertyDetail(p);
+                        if (card.classList.contains('active')) {
+                            window.currentlySelectedPropertyId = null;
+                            card.classList.remove('active');
+                            const detailView = document.getElementById('propertyDetailView');
+                            if (detailView) detailView.style.display = 'none';
+                        } else {
+                            window.currentlySelectedPropertyId = p.id;
+                            document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
+                            card.classList.add('active');
+                            window.showPropertyDetail(p);
+                            if (window._syncBookmarkIcon) window._syncBookmarkIcon(p.id);
+                        }
                     };
                     
                     const priceStr = formatPriceDisplay(p);
@@ -1706,40 +1732,68 @@
 
             window.scrapProperty = function() {
                 const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
-                if (!ud.id) {
-                    alert('로그인 후 이용 가능합니다.');
-                    return;
-                }
+                if (!ud.id) { alert('로그인 후 이용 가능합니다.'); return; }
                 const pId = window.currentlySelectedPropertyId;
                 if (!pId) return;
 
                 const storageKey = 'gongsil_property_scraps_' + ud.id;
                 let scraps = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                const bookmark = document.getElementById('btnBookmark');
+
+                function showGongsilToast(msg) {
+                    let t = document.getElementById('gongsil-toast');
+                    if (!t) {
+                        t = document.createElement('div');
+                        t.id = 'gongsil-toast';
+                        t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+                        document.body.appendChild(t);
+                    }
+                    t.innerText = msg;
+                    t.style.opacity = '1';
+                    setTimeout(() => { t.style.opacity = '0'; }, 2500);
+                }
+
                 if (!scraps.includes(pId)) {
                     scraps.unshift(pId);
                     localStorage.setItem(storageKey, JSON.stringify(scraps));
-                    
-                    let toast = document.getElementById('gongsil-toast');
-                    if (!toast) {
-                        toast = document.createElement('div');
-                        toast.id = 'gongsil-toast';
-                        toast.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-                        document.body.appendChild(toast);
-                    }
-                    toast.innerText = '🤍 찜한물건에 추가되었습니다.';
-                    toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+                    if (bookmark) bookmark.classList.add('scrapped');
+                    showGongsilToast('🔖 찜한물건에 추가되었습니다.');
                 } else {
-                    let toast = document.getElementById('gongsil-toast');
-                    if (!toast) {
-                        toast = document.createElement('div');
-                        toast.id = 'gongsil-toast';
-                        toast.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.15);';
-                        document.body.appendChild(toast);
-                    }
-                    toast.innerText = '이미 찜한물건에 있습니다.';
-                    toast.style.opacity = '1';
-                    setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+                    scraps = scraps.filter(id => id !== pId);
+                    localStorage.setItem(storageKey, JSON.stringify(scraps));
+                    if (bookmark) bookmark.classList.remove('scrapped');
+                    showGongsilToast('찜한물건에서 제거되었습니다.');
+                }
+            };
+
+            window.shareProperty = function() {
+                const url = window.location.href.split('?')[0] + '?view_id=' + (window.currentlySelectedPropertyId || '');
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(url).then(() => {
+                        let t = document.getElementById('gongsil-toast');
+                        if (!t) {
+                            t = document.createElement('div');
+                            t.id = 'gongsil-toast';
+                            t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:9999;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+                            document.body.appendChild(t);
+                        }
+                        t.innerText = '🔗 링크가 복사되었습니다.';
+                        t.style.opacity = '1';
+                        setTimeout(() => { t.style.opacity = '0'; }, 2500);
+                    });
+                } else {
+                    prompt('아래 링크를 복사하세요:', url);
+                }
+            };
+
+            // 상세 열릴 때 책갈피 상태 동기화 (showPropertyDetail 이후 호출)
+            window._syncBookmarkIcon = function(pId) {
+                const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+                const storageKey = ud.id ? 'gongsil_property_scraps_' + ud.id : 'gongsil_property_scraps_guest';
+                const scraps = JSON.parse(localStorage.getItem(storageKey) || '[]');
+                const bookmark = document.getElementById('btnBookmark');
+                if (bookmark) {
+                    bookmark.classList.toggle('scrapped', scraps.includes(pId));
                 }
             };
 
@@ -1809,6 +1863,7 @@
                                     targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
                                 }
                                 window.showPropertyDetail(p);
+                                if (window._syncBookmarkIcon) window._syncBookmarkIcon(p.id);
                                 infowindow.open(window.mapInstance, marker);
                                 setTimeout(() => infowindow.close(), 3000);
                             });

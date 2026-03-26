@@ -1344,38 +1344,68 @@
                 const savedSub  = data.property_type || null;
 
                 if (savedMain && savedSub) {
-                    // 1차 버튼 클릭
-                    const mainBtns = Array.from(btnGroups[0].querySelectorAll('.trade-btn'));
-                    const mainBtn = mainBtns.find(b => b.textContent.trim() === savedMain);
-                    if (mainBtn) mainBtn.click();
+                    // ── click() 를 쓰지 않고 상태와 DOM을 직접 세팅 (부작용 제거) ──
 
-                    // 2차 버튼 클릭 (렌더링 후 클릭해야 하므로 setTimeout)
-                    setTimeout(() => {
-                        const subGroup = document.getElementById('subCategoryGroup');
-                        if (subGroup) {
-                            const subBtns = Array.from(subGroup.querySelectorAll('.trade-btn'));
-                            const subBtn = subBtns.find(b => b.textContent.trim() === savedSub);
-                            if (subBtn) subBtn.click();
-                        }
-                    }, 200);
+                    // 1차: 전역 상태 + 버튼 활성화
+                    window.currentMainCategory = savedMain;
+                    const mainBtns = Array.from(btnGroups[0].querySelectorAll('.trade-btn'));
+                    mainBtns.forEach(b => b.classList.remove('active'));
+                    const mainBtn = mainBtns.find(b => b.textContent.trim() === savedMain);
+                    if (mainBtn) mainBtn.classList.add('active');
+
+                    // 2차: 서브 버튼 직접 렌더링 + savedSub 미리 active
+                    const subContainer = document.getElementById('subCategoryContainer');
+                    const subGroup = document.getElementById('subCategoryGroup');
+                    if (subGroup && CATEGORY_MAP[savedMain]) {
+                        subGroup.innerHTML = '';
+                        CATEGORY_MAP[savedMain].forEach(subType => {
+                            const sb = document.createElement('button');
+                            sb.type = 'button';
+                            sb.className = 'trade-btn' + (subType === savedSub ? ' active' : '');
+                            sb.style.cssText = 'padding:8px 12px; font-size:13px;';
+                            sb.innerText = subType;
+                            sb.onclick = () => window.selectPropertyType(subType, sb);
+                            subGroup.appendChild(sb);
+                        });
+                    }
+                    if (subContainer) subContainer.style.display = 'block';
+
+                    // hidden input 직접 세팅
+                    document.getElementById('propertyType').value = savedSub;
+
+                    // 필드 가시성 업데이트
+                    window.updatePropertyFields();
+
                 } else if (savedSub) {
                     // 구 데이터 호환: property_type만 있는 경우
-                    let matchedMain = null, matchedSub = savedSub;
+                    let matchedMain = null;
                     for (const main in CATEGORY_MAP) {
                         if (CATEGORY_MAP[main].includes(savedSub)) { matchedMain = main; break; }
                     }
                     if (matchedMain) {
+                        window.currentMainCategory = matchedMain;
                         const mainBtns = Array.from(btnGroups[0].querySelectorAll('.trade-btn'));
+                        mainBtns.forEach(b => b.classList.remove('active'));
                         const mainBtn = mainBtns.find(b => b.textContent.trim() === matchedMain);
-                        if (mainBtn) mainBtn.click();
-                        setTimeout(() => {
-                            const subGroup = document.getElementById('subCategoryGroup');
-                            if (subGroup) {
-                                const subBtns = Array.from(subGroup.querySelectorAll('.trade-btn'));
-                                const subBtn = subBtns.find(b => b.textContent.trim() === matchedSub);
-                                if (subBtn) subBtn.click();
-                            }
-                        }, 200);
+                        if (mainBtn) mainBtn.classList.add('active');
+
+                        const subContainer = document.getElementById('subCategoryContainer');
+                        const subGroup = document.getElementById('subCategoryGroup');
+                        if (subGroup && CATEGORY_MAP[matchedMain]) {
+                            subGroup.innerHTML = '';
+                            CATEGORY_MAP[matchedMain].forEach(subType => {
+                                const sb = document.createElement('button');
+                                sb.type = 'button';
+                                sb.className = 'trade-btn' + (subType === savedSub ? ' active' : '');
+                                sb.style.cssText = 'padding:8px 12px; font-size:13px;';
+                                sb.innerText = subType;
+                                sb.onclick = () => window.selectPropertyType(subType, sb);
+                                subGroup.appendChild(sb);
+                            });
+                        }
+                        if (subContainer) subContainer.style.display = 'block';
+                        document.getElementById('propertyType').value = savedSub;
+                        window.updatePropertyFields();
                     }
                 }
                 

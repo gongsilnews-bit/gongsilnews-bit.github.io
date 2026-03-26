@@ -105,9 +105,16 @@ function renderPropertyCards(props) {
             card.className = 'property-card';
             card.id = `property-card-${p.id}`;
             card.onclick = () => {
-                document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
-                card.classList.add('active');
-                showPropertyDetail(p);
+                if (card.classList.contains('active')) {
+                    card.classList.remove('active');
+                    if (typeof window.hidePropertyDetail === 'function') {
+                        window.hidePropertyDetail();
+                    }
+                } else {
+                    document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    showPropertyDetail(p);
+                }
             };
             
             const priceStr = formatPriceDisplay(p);
