@@ -1384,6 +1384,9 @@ window.loadPortalComments = async function(articleId) {
         return;
     }
     
+    const { data: sessionData } = await sb.auth.getSession();
+    const currentUserId = sessionData?.session?.user?.id;
+    
     document.getElementById('portalCommentCount').innerText = (comments ? comments.length : 0) + '개의 댓글';
     
     if (!comments || comments.length === 0) {
@@ -1391,43 +1394,81 @@ window.loadPortalComments = async function(articleId) {
         return;
     }
     
-    if (listEl) {
-        listEl.innerHTML = comments.map(c => {
-            const name = c.user_name || '사용자';
-            const firstChar = name.charAt(0);
-            
-            // 날짜 포맷팅
-            const cd = new Date(c.created_at);
-            const diffMin = Math.floor((Date.now() - cd.getTime()) / 60000);
-            let dateStr = '';
-            if (diffMin < 60) dateStr = diffMin <= 0 ? '방금전' : diffMin + '분전';
-            else if (diffMin < 24 * 60) dateStr = Math.floor(diffMin / 60) + '시간전';
-            else dateStr = cd.getFullYear() + '.' + (cd.getMonth()+1).toString().padStart(2,'0') + '.' + cd.getDate().toString().padStart(2,'0');
-            
-            return `
-                <div style="display:flex; gap:14px; margin-bottom:25px; border-bottom:1px solid #f9f9f9; padding-bottom:20px;">
-                    <div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:bold; font-size:16px;">
-                        ${firstChar}
-                    </div>
-                    <div style="flex:1;">
-                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                            <div style="display:flex; align-items:center; gap:8px; font-size:13px;">
-                                <span style="font-weight:bold; color:#111;">${name}</span>
-                                <span style="color:#ddd;">|</span>
-                                <span style="color:#999;">${dateStr}</span>
-                            </div>
+    // 부모 댓글과 답글 분리
+    const parents = comments.filter(c => !c.parent_id);
+    const replies = comments.filter(c => c.parent_id);
+
+    function renderSingleComment(c, isReply) {
+        const name = c.user_name || '사용자';
+        const firstChar = name.charAt(0);
+        const cd = new Date(c.created_at);
+        const diffMin = Math.floor((Date.now() - cd.getTime()) / 60000);
+        let dateStr = '';
+        if (diffMin < 60) dateStr = diffMin <= 0 ? '방금전' : diffMin + '분전';
+        else if (diffMin < 24 * 60) dateStr = Math.floor(diffMin / 60) + '시간전';
+        else dateStr = cd.getFullYear() + '.' + (cd.getMonth()+1).toString().padStart(2,'0') + '.' + cd.getDate().toString().padStart(2,'0');
+
+        const isMine = currentUserId && (currentUserId === c.user_id);
+        const escContent = JSON.stringify(c.content).replace(/"/g, '&quot;');
+        
+        let actionHtml = '';
+        if (isMine) {
+            actionHtml = `
+                <span style="color:#ddd; margin:0 4px;">|</span>
+                <span style="font-size:12px; color:#999; cursor:pointer;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#999'" onclick="window.editPortalComment('${c.id}')">수정</span>
+                <span style="color:#ddd; margin:0 4px;">|</span>
+                <span style="font-size:12px; color:#ef4444; cursor:pointer;" onmouseover="this.style.color='#dc2626'" onmouseout="this.style.color='#ef4444'" onclick="window.deletePortalComment('${c.id}')">삭제</span>
+            `;
+        }
+
+        const marginLeft = isReply ? '40px' : '0px';
+        const replyTag = isReply ? '<span style="color:#ff9f1c; font-weight:bold; margin-right:4px;">↳</span>' : '';
+
+        return `
+            <div style="display:flex; gap:14px; margin-bottom:20px; border-bottom:1px solid #f2f4f7; padding-bottom:20px; margin-left:${marginLeft};">
+                <div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:bold; font-size:16px;">
+                    ${firstChar}
+                </div>
+                <div style="flex:1;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <div style="display:flex; align-items:center; font-size:13px; flex-wrap:wrap;">
+                            <span style="font-weight:bold; color:#111;">${name}</span>
+                            <span style="color:#ddd; margin: 0 8px;">|</span>
+                            <span style="color:#999;">${dateStr}</span>
+                            ${actionHtml}
                         </div>
-                        <div style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px; white-space:pre-wrap;">${c.content}</div>
-                        <div style="display:flex; gap:15px; align-items:center; font-size:13px; color:#888;">
-                            <span style="cursor:pointer;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'">답글 작성</span>
-                            <div style="display:flex; gap:12px;">
-                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#888'">👍 ${c.likes||0}</span>
-                                <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'">👎 ${c.dislikes||0}</span>
-                            </div>
+                    </div>
+                    <div id="comment-content-${c.id}" style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px; white-space:pre-wrap; word-break:break-all;">${replyTag}${c.content}</div>
+                    
+                    <div style="display:flex; gap:15px; align-items:center; font-size:13px; color:#888;">
+                        ${!isReply && currentUserId ? `<span style="cursor:pointer;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" onclick="window.toggleReplyInput('${c.id}')">답글 작성</span>` : ''}
+                        <div style="display:flex; gap:12px;">
+                            <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#3b82f6'" onmouseout="this.style.color='#888'" onclick="window.votePortalComment('${c.id}', true)">👍 <span id="like-cnt-${c.id}">${c.likes||0}</span></span>
+                            <span style="cursor:pointer; display:flex; align-items:center; gap:4px;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#888'" onclick="window.votePortalComment('${c.id}', false)">👎 <span id="dislike-cnt-${c.id}">${c.dislikes||0}</span></span>
+                        </div>
+                    </div>
+                    
+                    <!-- 답글/수정 입력 영역 (JS 동적 렌더) -->
+                    <div id="reply-container-${c.id}" data-comment='${escContent}' style="display:none; margin-top:15px; padding-left:15px; border-left:2px solid #ddd;">
+                        <textarea id="reply-input-${c.id}" style="width:100%; height:70px; padding:10px; border:1px solid #ddd; border-radius:6px; resize:none; font-family:inherit; font-size:14px; margin-bottom:10px;"></textarea>
+                        <div style="text-align:right;">
+                            <button onclick="document.getElementById('reply-container-${c.id}').style.display='none'" style="background:#eee; color:#555; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px;">취소</button>
+                            <button id="reply-submit-btn-${c.id}" style="background:#ff9f1c; color:#fff; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer;">등록</button>
                         </div>
                     </div>
                 </div>
-            `;
+            </div>
+        `;
+    }
+
+    if (listEl) {
+        listEl.innerHTML = parents.map(p => {
+            let html = renderSingleComment(p, false);
+            const childReplies = replies.filter(r => r.parent_id === p.id).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+            childReplies.forEach(r => {
+                html += renderSingleComment(r, true);
+            });
+            return html;
         }).join('');
     }
 };
@@ -1478,6 +1519,119 @@ window.submitPortalComment = async function() {
     
     // 목록 새로고침
     window.loadPortalComments(window.currentArticleId);
+};
+
+// 댓글 기능 (답글창 토글, 수정, 삭제, 추천/비공)
+window.toggleReplyInput = function(commentId) {
+    const container = document.getElementById('reply-container-' + commentId);
+    if (!container) return;
+    if (container.style.display === 'none') {
+        container.style.display = 'block';
+        const input = document.getElementById('reply-input-' + commentId);
+        input.value = '';
+        input.placeholder = '답글을 남겨보세요...';
+        const btn = document.getElementById('reply-submit-btn-' + commentId);
+        btn.innerText = '등록';
+        btn.onclick = () => window.submitPortalReply(commentId);
+        input.focus();
+    } else {
+        container.style.display = 'none';
+    }
+};
+
+window.editPortalComment = function(commentId) {
+    const container = document.getElementById('reply-container-' + commentId);
+    const contentDiv = document.getElementById('comment-content-' + commentId);
+    if (!container || !contentDiv) return;
+    
+    container.style.display = 'block';
+    const input = document.getElementById('reply-input-' + commentId);
+    input.value = JSON.parse('"' + container.getAttribute('data-comment').replace(/&quot;/g, '\\"') + '"'); // 기초 파싱
+    input.placeholder = '수정할 내용을 입력하세요...';
+    const btn = document.getElementById('reply-submit-btn-' + commentId);
+    btn.innerText = '수정 완료';
+    btn.onclick = () => window.submitPortalEdit(commentId);
+    input.focus();
+};
+
+window.submitPortalReply = async function(parentId) {
+    const sb = window.gongsiClient || window.supabaseClient;
+    const inputEl = document.getElementById('reply-input-' + parentId);
+    const content = inputEl ? inputEl.value.trim() : '';
+    if (!content) { alert('댓글 내용을 입력하세요.'); return; }
+    
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session || !session.user) { alert('로그인이 필요합니다.'); return; }
+    
+    const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+    const profile = ud.profile || {};
+    const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '사용자');
+    
+    const { error } = await sb.from('comments').insert([{
+        article_id: window.currentArticleId,
+        user_id: session.user.id,
+        user_name: userName,
+        content: content,
+        parent_id: parentId
+    }]);
+    
+    if (error) {
+        if (error.code === '42703' || (error.message && error.message.includes('parent_id'))) {
+            alert('DB에 parent_id 등 답글을 위한 컬럼이 없습니다. (우측 또는 아래 SQL 실행 필요)');
+        } else { alert('답글 등록 오류: ' + error.message); }
+        return;
+    }
+    
+    window.loadPortalComments(window.currentArticleId);
+};
+
+window.submitPortalEdit = async function(commentId) {
+    const sb = window.gongsiClient || window.supabaseClient;
+    const inputEl = document.getElementById('reply-input-' + commentId);
+    const content = inputEl ? inputEl.value.trim() : '';
+    if (!content) { alert('내용을 입력하세요.'); return; }
+    
+    const { error } = await sb.from('comments').update({ content: content }).eq('id', commentId);
+    if (error) { alert('수정 오류: ' + error.message); return; }
+    
+    window.loadPortalComments(window.currentArticleId);
+};
+
+window.deletePortalComment = async function(commentId) {
+    if (!confirm('정말 이 댓글을 삭제하시겠습니까?')) return;
+    const sb = window.gongsiClient || window.supabaseClient;
+    const { error } = await sb.from('comments').delete().eq('id', commentId);
+    if (error) { alert('삭제 오류: ' + error.message); return; }
+    window.loadPortalComments(window.currentArticleId);
+};
+
+window.votePortalComment = async function(commentId, isLike) {
+    const votedMap = JSON.parse(localStorage.getItem('gongsil_voted_comments') || '{}');
+    if (votedMap[commentId]) {
+        alert('이미 참여하셨습니다!');
+        return;
+    }
+    
+    const sb = window.gongsiClient || window.supabaseClient;
+    
+    const { data: c, error: cErr } = await sb.from('comments').select('likes, dislikes').eq('id', commentId).single();
+    if (cErr || !c) { alert('댓글을 찾을 수 없습니다.'); return; }
+    
+    let newLikes = c.likes || 0;
+    let newDislikes = c.dislikes || 0;
+    if (isLike) newLikes++; else newDislikes++;
+    
+    const { error } = await sb.from('comments').update({ likes: newLikes, dislikes: newDislikes }).eq('id', commentId);
+    if (error) {
+        alert('추천을 반영할 수 없습니다. DB의 RLS 정책 오류이거나 로그인 사용자 권한 문제입니다.\n(DB에 UPDATE 정책 추가 필요)');
+        return;
+    }
+    
+    votedMap[commentId] = true;
+    localStorage.setItem('gongsil_voted_comments', JSON.stringify(votedMap));
+    
+    if (isLike) document.getElementById('like-cnt-' + commentId).innerText = newLikes;
+    else document.getElementById('dislike-cnt-' + commentId).innerText = newDislikes;
 };
 
 // 뉴스 상세 보기 닫기 함수
