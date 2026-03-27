@@ -1069,12 +1069,22 @@
                     ⬆️ 사진 올리기
                 </label>
                 <input type="file" id="photodbUploadInput" accept="image/*" multiple style="display:none;" onchange="uploadPhotosToDb(this.files)">
-                <span id="photodbUploadStatus" style="font-size:13px; color:#92400e;"></span>
+                
+                <select id="photodbUploadFolder" style="padding:7px 10px; border:1px solid #fcd34d; border-radius:6px; font-size:13px; outline:none; color:#92400e; background:#fef3c7;">
+                    <option value="기본 폴더">기본 폴더</option>
+                    <option value="새 폴더 만들기...">+ 새 폴더 만들기</option>
+                </select>
+                <div style="font-size:12px; color:#b45309;">(선택한 폴더에 올라갑니다)</div>
+                <span id="photodbUploadStatus" style="font-size:13px; color:#92400e; margin-left:auto;"></span>
             </div>
 
             <!-- 검색 + 탭 -->
             <div style="padding:12px 20px 0; flex-shrink:0;">
                 <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <select id="photodbFilterFolder" onchange="loadPhotoDB()" style="padding:8px 10px; border:1px solid #ddd; border-radius:6px; font-size:13px; outline:none; background:#f9fafb;">
+                        <option value="all">📂 전체 폴더 보기</option>
+                        <option value="기본 폴더">기본 폴더</option>
+                    </select>
                     <input type="text" id="photodbSearchInput" placeholder="사진 설명으로 검색" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') loadPhotoDB()">
                     <button onclick="loadPhotoDB()" style="background:#334155; color:#fff; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">검색</button>
                 </div>
@@ -1085,7 +1095,7 @@
             </div>
 
             <!-- 갤러리 그리드 -->
-            <div id="photodbGrid" style="flex:1; overflow-y:auto; padding:16px 20px; display:grid; grid-template-columns:repeat(3,1fr); gap:14px; min-height:280px;">
+            <div id="photodbGrid" style="flex:1; overflow-y:auto; padding:16px 20px; display:grid; grid-template-columns:repeat(3,1fr); grid-auto-rows:min-content; align-content:start; gap:14px; min-height:280px;">
                 <div id="photodbEmpty" style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">
                     사진을 불러오는 중...
                 </div>
@@ -1100,26 +1110,85 @@
 
     <!-- 포토DB 실제 동작 스크립트 -->
     <script>
-    // ─── 포토DB 전역 상태 ───
+    // ─── 포토DB 상태 및 폴더 관리 ───
     window._pdbTab = 'all'; // 'all' | 'fav'
     window._pdbPage = 0;
     window._pdbPageSize = 12;
     window._pdbCurrentUserId = null;
 
+    async function loadPhotodbFolders() {
+        const sb = window.gongsiClient;
+        if (!sb || !window._pdbCurrentUserId) return;
+        const { data } = await sb.from('user_photos').select('folder_name').eq('user_id', window._pdbCurrentUserId).order('created_at', { ascending: false }).limit(2000);
+        
+        let folders = new Set();
+        folders.add('기본 폴더');
+        if (data) data.forEach(r => { if(r.folder_name) folders.add(r.folder_name); });
+        
+        let savedFolders = [];
+        try { savedFolders = JSON.parse(localStorage.getItem('pdb_folders_' + window._pdbCurrentUserId) || '[]'); } catch(e){}
+        savedFolders.forEach(f => folders.add(f));
+
+        const filterEl = document.getElementById('photodbFilterFolder');
+        const uploadEl = document.getElementById('photodbUploadFolder');
+        if (!filterEl || !uploadEl) return;
+        
+        const currFilter = filterEl.value;
+        const currUpload = uploadEl.value;
+
+        let filterHtml = '<option value="all">📂 전체 폴더 보기</option>';
+        let uploadHtml = '';
+        Array.from(folders).sort().forEach(f => {
+            filterHtml += `<option value="${f}">${f}</option>`;
+            uploadHtml += `<option value="${f}">${f}</option>`;
+        });
+        uploadHtml += '<option value="new">+ 새 폴더 만들기</option>';
+        
+        filterEl.innerHTML = filterHtml;
+        uploadEl.innerHTML = uploadHtml;
+
+        filterEl.value = Array.from(folders).includes(currFilter) ? currFilter : 'all';
+        uploadEl.value = Array.from(folders).includes(currUpload) ? currUpload : '기본 폴더';
+        
+        localStorage.setItem('pdb_folders_' + window._pdbCurrentUserId, JSON.stringify(Array.from(folders)));
+    }
+
+    // 폴더 만들기 이벤트 연결
+    document.addEventListener('DOMContentLoaded', () => {
+        const uploadFolderEl = document.getElementById('photodbUploadFolder');
+        if (uploadFolderEl) {
+            uploadFolderEl.addEventListener('change', async function() {
+                if (this.value === 'new') {
+                    const folderName = prompt('새 폴더 이름을 입력하세요\n(예: 거실사진, 외부전경, 아파트매물 등)');
+                    if (folderName && folderName.trim()) {
+                        const fName = folderName.trim();
+                        let savedFolders = [];
+                        try { savedFolders = JSON.parse(localStorage.getItem('pdb_folders_' + window._pdbCurrentUserId) || '[]'); } catch(err){}
+                        if (!savedFolders.includes(fName)) savedFolders.push(fName);
+                        localStorage.setItem('pdb_folders_' + window._pdbCurrentUserId, JSON.stringify(savedFolders));
+                        await loadPhotodbFolders();
+                        this.value = fName;
+                    } else {
+                        this.value = '기본 폴더';
+                    }
+                }
+            });
+        }
+    });
+
     async function openPhotodbModal(mode) {
-        // 호출 모드 저장 (mode: 'article' | 'property')
         window._pdbMode = mode || 'article';
         document.getElementById('photodbModal').style.display = 'flex';
         window._pdbPage = 0;
         document.getElementById('photodbGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">사진을 불러오는 중...</div>';
 
-        // 현재 로그인 유저 확인
         const sb = window.gongsiClient;
         if (!sb) return alert('로그인이 필요합니다.');
         const { data: { session } } = await sb.auth.getSession();
         if (!session) return alert('로그인 후 사용 가능합니다.');
         window._pdbCurrentUserId = session.user.id;
 
+        await loadPhotodbFolders();
         await loadPhotoDB();
     }
 
@@ -1151,6 +1220,7 @@
         }
 
         const search = document.getElementById('photodbSearchInput')?.value.trim() || '';
+        const folder = document.getElementById('photodbFilterFolder')?.value || 'all';
         const from = window._pdbPage * window._pdbPageSize;
         const to = from + window._pdbPageSize - 1;
 
@@ -1161,6 +1231,7 @@
             .range(from, to);
 
         if (window._pdbTab === 'fav') query = query.eq('is_favorite', true);
+        if (folder !== 'all') query = query.eq('folder_name', folder);
         if (search) query = query.ilike('description', `%${search}%`);
 
         const { data: photos, error } = await query;
@@ -1192,6 +1263,7 @@
             card.innerHTML = `
                 <div style="width:100%; height:150px; background:#f1f5f9 url('${p.url}') center/cover no-repeat;"></div>
                 <div style="padding:8px 10px;">
+                    <div style="font-size:10px; color:#f59e0b; font-weight:700; margin-bottom:2px;">📁 ${p.folder_name || '기본 폴더'}</div>
                     <div style="font-size:12px; color:#444; font-weight:600; overflow:hidden; white-space:nowrap; text-overflow:ellipsis;">${p.description || p.filename || '제목 없음'}</div>
                     <div style="font-size:11px; color:#aaa; margin-top:2px;">${new Date(p.created_at).toLocaleDateString('ko-KR')}</div>
                 </div>
@@ -1287,12 +1359,15 @@
             const { data: urlData } = await sb.storage.from('user-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
             const url = urlData?.signedUrl || '';
 
+            const folder_name = document.getElementById('photodbUploadFolder')?.value || '기본 폴더';
+
             // DB에 저장
             await sb.from('user_photos').insert({
                 user_id: window._pdbCurrentUserId,
                 url,
                 filename: file.name,
                 file_size: file.size,
+                folder_name: folder_name,
                 description: file.name.replace(/\.[^/.]+$/, ''), // 확장자 제거
             });
 

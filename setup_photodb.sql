@@ -8,11 +8,15 @@ CREATE TABLE IF NOT EXISTS public.user_photos (
     filename     text NOT NULL DEFAULT '',
     file_size    bigint DEFAULT 0,
     tags         text[] DEFAULT '{}',
+    folder_name  text DEFAULT '기본 폴더',
     description  text DEFAULT '',
     is_favorite  boolean DEFAULT false,
     used_count   integer DEFAULT 0,
     created_at   timestamptz DEFAULT now()
 );
+
+-- 기존 테이블에 폴더 컬럼 핫픽스 추가
+ALTER TABLE IF EXISTS public.user_photos ADD COLUMN IF NOT EXISTS folder_name text DEFAULT '기본 폴더';
 
 -- 인덱스
 CREATE INDEX IF NOT EXISTS idx_user_photos_user_id ON public.user_photos(user_id);
