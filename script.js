@@ -1634,7 +1634,7 @@ window.loadSidebarProperties = async function() {
 
     const { data: props, error } = await sb
         .from('properties')
-        .select('id, trade_type, deposit, monthly_rent, dedicated_area, property_type, sido, sigungu, dong, options, images')
+        .select('id, trade_type, deposit, monthly_rent, dedicated_area, area, supply_area, property_type, main_category, building_name, dong_number, room_number, sido, sigungu, dong, options, images, created_at, room_direction, direction, room_count, bathroom_count, brokerage_fee')
         .eq('status', 'active')
         .order('ad_rank', { ascending: false })
         .order('created_at', { ascending: false })
