@@ -317,25 +317,31 @@
 
             <div class="row">
                 <div class="col form-group">
-                    <label class="form-label">공급면적 
-                        <span style="font-weight: normal; font-size: 11px; margin-left: 10px; color: #666;">
-                            면적계산기 <input type="number" id="supplyPyeong" step="0.1" style="width: 60px; border: 1px solid #ddd; font-size: 11px; padding: 2px 4px; border-radius: 3px;" oninput="convertArea('pyeong', 'supply')"> 평
-                        </span>
-                    </label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="supplyArea" placeholder="예: 84" step="0.01" oninput="convertArea('m2', 'supply')">
-                        <span class="input-unit">㎡</span>
+                    <label class="form-label">공급면적</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="input-group" style="flex: 1;">
+                            <input type="number" class="form-control" id="supplyArea" placeholder="예: 84" step="0.01" oninput="convertArea('m2', 'supply')">
+                            <span class="input-unit">㎡</span>
+                        </div>
+                        <span style="color: #aaa; font-weight: bold;">=</span>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="number" class="form-control" id="supplyPyeong" placeholder="평환산" step="0.1" oninput="convertArea('pyeong', 'supply')">
+                            <span class="input-unit">평</span>
+                        </div>
                     </div>
                 </div>
                 <div class="col form-group">
-                    <label class="form-label">전용면적
-                        <span style="font-weight: normal; font-size: 11px; margin-left: 10px; color: #666;">
-                            면적계산기 <input type="number" id="dedicatedPyeong" step="0.1" style="width: 60px; border: 1px solid #ddd; font-size: 11px; padding: 2px 4px; border-radius: 3px;" oninput="convertArea('pyeong', 'dedicated')"> 평
-                        </span>
-                    </label>
-                    <div class="input-group">
-                        <input type="number" class="form-control" id="dedicatedArea" placeholder="예: 59" step="0.01" oninput="convertArea('m2', 'dedicated')">
-                        <span class="input-unit">㎡</span>
+                    <label class="form-label">전용면적</label>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <div class="input-group" style="flex: 1;">
+                            <input type="number" class="form-control" id="dedicatedArea" placeholder="예: 59" step="0.01" oninput="convertArea('m2', 'dedicated')">
+                            <span class="input-unit">㎡</span>
+                        </div>
+                        <span style="color: #aaa; font-weight: bold;">=</span>
+                        <div class="input-group" style="flex: 1;">
+                            <input type="number" class="form-control" id="dedicatedPyeong" placeholder="평환산" step="0.1" oninput="convertArea('pyeong', 'dedicated')">
+                            <span class="input-unit">평</span>
+                        </div>
                     </div>
                 </div>
             </div>
