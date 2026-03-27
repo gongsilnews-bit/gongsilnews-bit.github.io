@@ -1784,6 +1784,10 @@ window.openPropPanel = async function(propertyId) {
     // 기본 정보 채우기
     document.getElementById('propPanelTrade').textContent = t;
     document.getElementById('propPanelPrice').textContent = priceStr;
+    const bTrade = document.getElementById('propPanelBottomTrade');
+    const bPrice = document.getElementById('propPanelBottomPrice');
+    if (bTrade) bTrade.textContent = t;
+    if (bPrice) bPrice.textContent = priceStr;
     document.getElementById('propPanelMeta').textContent = [p.property_type, p.dedicated_area ? `전용 ${p.dedicated_area}㎡` : ''].filter(Boolean).join(' · ');
     document.getElementById('propPanelAddrText').textContent = [p.sido, p.sigungu, p.dong].filter(Boolean).join(' ');
 
