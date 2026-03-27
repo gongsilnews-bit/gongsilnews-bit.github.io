@@ -1401,15 +1401,22 @@
 
             window.showPropertyDetail = function(p, options = {}) {
                 const isBackEvent = options.isBackEvent || false;
+                const isInnerClick = options.isInnerClick || false;
                 const targetTab = options.targetTab || 'info';
                 
                 const detailView = document.getElementById('propertyDetailView');
                 if (!detailView) return;
 
                 if (!isBackEvent && detailView.style.display === 'flex' && window.currentLoadedPropertyData) {
-                    const activeTabEl = document.querySelector('.detail-tabs .tab-item.active');
-                    const currentTab = (activeTabEl && activeTabEl.id === 'tabBtnRealtor') ? 'realtor' : 'info';
-                    window.propertyHistoryStack.push({ p: window.currentLoadedPropertyData, tab: currentTab });
+                    // 내부 리스트(공실등록현황)에서 클릭했을 때만 이전 상태 저장
+                    if (isInnerClick) {
+                        const activeTabEl = document.querySelector('.detail-tabs .tab-item.active');
+                        const currentTab = (activeTabEl && activeTabEl.id === 'tabBtnRealtor') ? 'realtor' : 'info';
+                        window.propertyHistoryStack.push({ p: window.currentLoadedPropertyData, tab: currentTab });
+                    } else {
+                        // 외부 리스트(지도, 좌측 메인 리스트 등) 클릭 시 뒤로가기 내역 초기화
+                        window.propertyHistoryStack = [];
+                    }
                 } else if (!isBackEvent) {
                     window.propertyHistoryStack = [];
                 }
@@ -2473,7 +2480,7 @@
                 const jsonStr = encodeURIComponent(JSON.stringify(p));
 
                 const itemHTML = `
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:16px 0; border-bottom:1px solid #ebebeb; cursor:pointer;" onclick="event.stopPropagation(); window.showPropertyDetail(JSON.parse(decodeURIComponent('${jsonStr}')))">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:16px 0; border-bottom:1px solid #ebebeb; cursor:pointer;" onclick="event.stopPropagation(); window.showPropertyDetail(JSON.parse(decodeURIComponent('${jsonStr}')), { isInnerClick: true })">
                         <div class="property-info" style="flex:1; padding-right:15px; display:flex; flex-direction:column; justify-content:center; min-width:0; gap: 2px;">
                             <div class="card-prop-title" style="font-size:14px; font-weight:bold; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3;">${propTitle}</div>
                             <div class="card-price" style="font-size:16px; font-weight:800; color:var(--primary-color); line-height:1.3;">${priceStr}</div>

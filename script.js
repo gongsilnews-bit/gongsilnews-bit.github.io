@@ -1659,24 +1659,62 @@ window.loadSidebarProperties = async function() {
         const imgStyle = imgUrl ? `background:#eee url('${imgUrl}') center/cover` : 'background:#eee';
         const priceStr = formatPrice(p.trade_type, p.deposit, p.monthly_rent);
         const areaStr = p.dedicated_area ? `전용 ${p.dedicated_area}㎡` : '';
-        const typeStr = p.property_type || '';
-        const loc = [p.sigungu, p.dong].filter(Boolean).join(' ');
-        const isAd = p.options && p.options.includes('급매');
-        const badge = isAd
-            ? `<span style="font-size:11px; font-weight:bold; color:#ff9f1c; border:1px solid #ff9f1c; border-radius:3px; padding:1px 4px; align-self:flex-start; margin-bottom:4px;">급매</span>`
-            : '';
+        let propTitle = p.building_name || p.property_type || '공실매물';
+        if (p.main_category === '아파트·오피스텔' || !p.main_category) {
+            let aptName = p.building_name || p.property_type || '';
+            let dongStr = p.dong_number ? (String(p.dong_number).includes('동') ? p.dong_number : `${p.dong_number}동`) : '';
+            let roomStr = p.room_number ? (String(p.room_number).includes('호') ? p.room_number : `${p.room_number}호`) : '';
+            if (aptName || dongStr || roomStr) propTitle = `${aptName} ${dongStr} ${roomStr}`.trim();
+        }
+
+        const supAreaM2 = p.supply_area ? parseFloat(p.supply_area) : 0;
+        const excAreaM2 = p.dedicated_area ? parseFloat(p.dedicated_area) : (p.area ? parseFloat(p.area) : 0);
+        const fmtM2P = (m2) => m2 ? `${m2}㎡(${(m2 / 3.3058).toFixed(1)}평)` : '';
+        let areaDisplay = '';
+        if (supAreaM2 && excAreaM2) areaDisplay = `${fmtM2P(supAreaM2)} / ${fmtM2P(excAreaM2)}`;
+        else if (supAreaM2) areaDisplay = fmtM2P(supAreaM2);
+        else if (excAreaM2) areaDisplay = fmtM2P(excAreaM2);
+        else areaDisplay = '정보없음';
+
+        const directionStr = p.room_direction || p.direction || '';
+        let subInfoArr = [];
+        if (p.property_type) subInfoArr.push(p.property_type);
+        if (directionStr) subInfoArr.push(directionStr);
+        if (areaDisplay !== '정보없음') subInfoArr.push(areaDisplay);
+        const subInfoHtml = subInfoArr.join(' <span style="color:#ddd; margin:0 4px;">|</span> ');
+
+        const optionsStr = (p.options && Array.isArray(p.options) && p.options.length > 0) ? p.options.join(', ') : '';
+        let roomFeatureArr = [];
+        roomFeatureArr.push(`룸 ${p.room_count||'0'}개`);
+        if (p.bathroom_count) roomFeatureArr.push(`욕실 ${p.bathroom_count}개`);
+        if (optionsStr) roomFeatureArr.push(optionsStr);
+        const roomInfoHtml = roomFeatureArr.join(', ');
+
+        const regDate = new Date(p.created_at);
+        const dateStr = `${regDate.getFullYear()}.${String(regDate.getMonth()+1).padStart(2,'0')}.${String(regDate.getDate()).padStart(2,'0')}.`;
+
+        const badgeText = (function(pf) {
+            if (!pf) return '공실매물';
+            if (pf.includes('100') || pf.includes('양타')) return '수수료100%';
+            if (pf.includes('50') || pf.includes('단타')) return '수수료50%';
+            if (pf.includes('25')) return '수수료25%';
+            if (pf.includes('공동')) return '공동중개';
+            return '공동중개';
+        })(p.brokerage_fee);
 
         return `
-        <div style="display:flex; gap:10px; margin-bottom:12px; cursor:pointer; border:1px solid #f0f0f0; border-radius:8px; padding:10px; transition:box-shadow 0.2s;"
-             onmouseover="this.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)'" onmouseout="this.style.boxShadow='none'"
-             onclick="window.openPropPanel('${p.id}')">
-            <div style="width:72px; height:72px; ${imgStyle}; border-radius:4px; flex-shrink:0; background-color:#eee;"></div>
-            <div style="display:flex; flex-direction:column; justify-content:center; min-width:0; flex:1;">
-                ${badge}
-                <div style="font-size:14px; font-weight:800; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${priceStr}</div>
-                <div style="font-size:12px; color:#666; margin-top:2px;">${[areaStr, typeStr].filter(Boolean).join(' · ')}</div>
-                <div style="font-size:11px; color:#999; margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${loc}</div>
+        <div class="property-card" onclick="window.openPropPanel('${p.id}')">
+            <div class="property-info" style="${imgUrl ? '' : 'width: 100%;'}">
+                <div class="card-prop-title">${propTitle}</div>
+                <div class="card-price">${priceStr}</div>
+                <div class="card-prop-sub">${subInfoHtml}</div>
+                <div class="card-prop-rooms">${roomInfoHtml}</div>
+                <div class="card-prop-footer">
+                    <span class="tag-confirm">${badgeText}</span>
+                    <span class="card-prop-date">${dateStr}</span>
+                </div>
             </div>
+            ${imgUrl ? `<div class="property-image"><img src="${imgUrl}" alt="매물사진"></div>` : ''}
         </div>`;
     }).join('');
 };
