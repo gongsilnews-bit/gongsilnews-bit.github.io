@@ -309,12 +309,12 @@ function render() {
     
     // 금액 하단 서브정보
     var supArea = p.supply_area ? p.supply_area + '㎡' : '';
-    var excArea = p.area ? p.area + '㎡' : '';
+    var excArea = p.dedicated_area ? p.dedicated_area + '㎡' : '';
     var areaDisplay = (supArea && excArea) ? supArea + '/' + excArea : (excArea || supArea || '');
     
     var subInfoParts = [];
     if (p.property_type) subInfoParts.push(escHtml(p.property_type));
-    if (p.direction) subInfoParts.push(escHtml(p.direction));
+    if (p.room_direction) subInfoParts.push(escHtml(p.room_direction));
     if (areaDisplay) subInfoParts.push('공급/전용 면적: ' + escHtml(areaDisplay));
     var subInfoHtml = subInfoParts.join(' <span style="color:#ddd;margin:0 8px;">|</span> ');
 
@@ -336,8 +336,9 @@ function render() {
         ['소재지', [p.sido, p.sigungu, p.dong, p.detail_address].filter(Boolean).join(' ')],
         ['매물특징', propName],
         ['공급/전용면적', areaDisplay || '-'],
-        ['해당층/총층', p.current_floor ? p.current_floor+'층' : '-'],
-        ['방/욕실수', (p.room_count||'-') + ' / ' + (p.bathroom_count||'-') + '개'],
+        ['해당층/총층', (p.current_floor||'-') + '층 / ' + (p.total_floor||'-') + '층'],
+        ['방/욕실수', (p.room_count||'-') + '개 / ' + (p.bathroom_count||'-') + '개'],
+        ['방향', p.room_direction || '-'],
         ['관리비', (p.maintenance_fee||0)+'만원']
     ];
 
@@ -415,7 +416,7 @@ function render() {
                     '<span style="color:#ddd">|</span>' +
                     '<span>주차 ' + (p.parking_count ? p.parking_count+'대' : '불가') + '</span>' +
                     '<span style="color:#ddd">|</span>' +
-                    '<span>면적 ' + (p.area||'-') + '㎡</span>' +
+                    '<span>면적 ' + (p.dedicated_area || p.supply_area || '-') + '㎡</span>' +
                 '</div>' +
             '</div>' +
 
