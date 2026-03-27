@@ -192,7 +192,7 @@
     <header class="header" style="justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         <a href="/" class="logo-img-link" style="display: flex; align-items: center; gap:10px;">
             <img src="logo.png" alt="공실뉴스" style="height: 30px;">
-            <span style="font-weight: bold; font-size: 18px; color:#333;">매물 등록 G2.1</span>
+            <span style="font-weight: bold; font-size: 18px; color:#333;">공실 등록</span>
         </a>
     </header>
 
@@ -277,8 +277,8 @@
                 </div>
             </div>
 
-            <!-- 주거용 전용: 방/욕실 수 (ID 추가) -->
-            <div id="residentialFields">
+            <!-- 주거용 전용: 방/욕실 수 및 방향 (ID 추가, 기본 숨김) -->
+            <div id="residentialFields" style="display: none;">
                 <div class="row">
                     <div class="col form-group">
                         <label class="form-label">방 개수</label>
@@ -291,6 +291,24 @@
                         <select class="form-control" id="bathroomCount">
                             <option value="1">1</option><option value="2">2</option><option value="3+">3개 이상</option>
                         </select>
+                    </div>
+                </div>
+                <div class="row" style="margin-top: -15px;">
+                    <div class="col form-group">
+                        <label class="form-label">방향 (거실 등 주실 기준)</label>
+                        <select class="form-control" id="roomDirection">
+                            <option value="남향">남향</option>
+                            <option value="남동향">남동향</option>
+                            <option value="남서향">남서향</option>
+                            <option value="동향">동향</option>
+                            <option value="서향">서향</option>
+                            <option value="북향">북향</option>
+                            <option value="북동향">북동향</option>
+                            <option value="북서향">북서향</option>
+                        </select>
+                    </div>
+                    <div class="col form-group">
+                        <!-- 여백용 빈 컬럼 -->
                     </div>
                 </div>
             </div>
@@ -530,7 +548,7 @@
             </div>
 
             <div class="submit-wrapper">
-                <button type="button" class="btn-submit" onclick="submitProperty()">매물 등록하기</button>
+                <button type="button" class="btn-submit" onclick="submitProperty()">공실 등록하기</button>
             </div>
         </form>
     </div>
