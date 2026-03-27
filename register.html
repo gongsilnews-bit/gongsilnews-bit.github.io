@@ -692,6 +692,7 @@
                     maintenance_fee: parseInt(document.getElementById('maintenanceFee').value) || 0,
                     room_count: document.getElementById('roomCount').value || null,
                     bathroom_count: document.getElementById('bathroomCount').value || null,
+                    room_direction: document.getElementById('roomDirection').value || null, // 신규
                     current_floor: parseInt(document.getElementById('currentFloor').value) || null,  // 신규
                     total_floor: parseInt(document.getElementById('totalFloor').value) || null,      // 신규
                     supply_area: parseFloat(document.getElementById('supplyArea').value) || 0,
@@ -1351,6 +1352,7 @@
                 // Rooms / Floors
                 if(data.room_count) document.getElementById('roomCount').value = data.room_count;
                 if(data.bathroom_count) document.getElementById('bathroomCount').value = data.bathroom_count;
+                if(data.room_direction) document.getElementById('roomDirection').value = data.room_direction;
                 if(data.current_floor) document.getElementById('currentFloor').value = data.current_floor;
                 if(data.total_floor) document.getElementById('totalFloor').value = data.total_floor;
                 
