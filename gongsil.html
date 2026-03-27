@@ -1341,8 +1341,14 @@
                 let propTypeStr = p.property_type || '정보없음';
                 if (p.main_category === '아파트·오피스텔') {
                     let aptName = p.building_name || p.property_type || '';
-                    let dongStr = p.dong_number ? `${p.dong_number}동` : '';
-                    let roomStr = p.room_number ? `${p.room_number}호` : '';
+                    let dongStr = '';
+                    if (p.dong_number) {
+                        dongStr = String(p.dong_number).includes('동') ? p.dong_number : `${p.dong_number}동`;
+                    }
+                    let roomStr = '';
+                    if (p.room_number) {
+                        roomStr = String(p.room_number).includes('호') ? p.room_number : `${p.room_number}호`;
+                    }
                     let tempStr = `${aptName} ${dongStr} ${roomStr}`.trim();
                     if (tempStr) propTypeStr = tempStr;
                 }
