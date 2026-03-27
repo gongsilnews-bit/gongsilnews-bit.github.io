@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실뷰 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        :root {
+            --primary: #1a73e8;
+            --blue: #1a73e8;
+            --green: #16a34a;
+            --red: #ef4444;
+            --border: #e5e7eb;
+            --bg: #f4f5f7;
+            --text: #222;
+            --sub: #666;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard Variable', -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .page-body {
+            padding: 24px;
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        .loading { text-align: center; padding: 100px 20px; color: #aaa; font-size: 18px; }
+
+        /* ── 상단 툴바 ── */
+        .view-toolbar {
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .toolbar-left { display: flex; align-items: center; gap: 16px; }
+        .toolbar-logo { font-size: 18px; font-weight: 800; color: var(--primary); text-decoration: none; }
+        .toolbar-title { font-size: 14px; color: #888; }
+        .toolbar-actions { display: flex; gap: 8px; align-items: center; }
+        .btn-toolbar {
+            padding: 6px 14px; border-radius: 5px; border: 1px solid var(--border);
+            font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit;
+            background: #fff; color: #444; transition: all .15s;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 4px;
+        }
+        .btn-toolbar:hover { background: #f3f4f6; }
+        .btn-toolbar.blue { background: var(--blue); color: #fff; border-color: var(--blue); }
+        .btn-toolbar.blue:hover { background: #1557b0; }
+        .btn-toolbar.red { background: var(--red); color: #fff; border-color: var(--red); }
+        .btn-toolbar.red:hover { background: #dc2626; }
+
+        /* ── 좌우 레이아웃 ── */
+        .view-layout { display: flex; gap: 24px; align-items: flex-start; }
+        .view-main { flex: 1; min-width: 0; }
+        .view-sidebar { width: 270px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
+
+        /* ── 메인 카드 ── */
+        .view-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        /* ── 갤러리 ── */
+        .gallery-wrap { position: relative; width: 100%; height: 280px; background: #f0f0f0; overflow: hidden; }
+        .gallery-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .gallery-nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(0,0,0,0.35); color: #fff; border: none;
+            font-size: 20px; padding: 10px 8px; cursor: pointer; border-radius: 4px;
+            transition: background .15s;
+        }
+        .gallery-nav-btn:hover { background: rgba(0,0,0,0.6); }
+        .gallery-nav-btn.prev { left: 0; border-radius: 0 4px 4px 0; }
+        .gallery-nav-btn.next { right: 0; border-radius: 4px 0 0 4px; }
+        .gallery-count {
+            position: absolute; bottom: 12px; right: 14px;
+            background: rgba(0,0,0,0.55); color: #fff;
+            font-size: 11px; padding: 3px 10px; border-radius: 20px;
+        }
+        .gallery-empty { display: flex; align-items: center; justify-content: center; height: 280px; background: #f5f5f5; color: #aaa; font-size: 14px; }
+
+        /* ── 헤더 정보 ── */
+        .prop-header { padding: 20px 24px; border-bottom: 1px solid #f0f0f0; }
+        .prop-meta-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+        .prop-meta-left { display: flex; align-items: center; gap: 8px; }
+        .tag-confirm { font-size: 11px; font-weight: bold; color: #ff5a5f; border: 1px solid #ff5a5f; padding: 2px 6px; border-radius: 2px; }
+        .prop-date { font-size: 12px; color: #aaa; }
+        .prop-name { font-size: 18px; font-weight: 700; color: #222; margin-bottom: 4px; }
+        .prop-price { font-size: 30px; font-weight: 900; color: var(--primary); margin-bottom: 8px; }
+        .prop-subinfo { font-size: 13px; color: #555; margin-bottom: 12px; }
+        .prop-subinfo span { margin-right: 12px; }
+        .prop-subinfo .divider { color: #ddd; margin-right: 12px; }
+
+        /* 메타 리스트 */
+        .prop-summary-list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; list-style: none; padding: 0; }
+        .prop-summary-list li { font-size: 12px; color: #555; background: #f5f7fa; padding: 4px 10px; border-radius: 20px; }
+
+        /* ── 탭 ── */
+        .detail-tabs { display: flex; border-bottom: 1px solid #e0e0e0; }
+        .tab-item { flex: 1; text-align: center; padding: 14px 0; font-size: 14px; font-weight: bold; cursor: pointer; color: #888; border-bottom: 2px solid transparent; transition: all .15s; }
+        .tab-item.active { color: #111; border-bottom-color: #111; }
+
+        /* ── 정보 테이블 ── */
+        .info-grid { display: grid; grid-template-columns: 120px 1fr; padding: 20px 24px; row-gap: 14px; border-bottom: 8px solid #f5f5f5; }
+        .info-label { font-size: 13px; color: #888; display: flex; align-items: flex-start; padding-top: 1px; }
+        .info-value { font-size: 13px; color: #222; font-weight: 500; }
+        .info-desc { grid-column: 1 / -1; font-size: 14px; color: #444; line-height: 1.7; white-space: pre-wrap; background: #fafafa; padding: 14px; border-radius: 6px; border: 1px solid #eee; margin-top: 4px; }
+
+        /* ── 지도/로드뷰 ── */
+        .extra-section { padding: 16px 24px; border-bottom: 8px solid #f5f5f5; }
+        .extra-title { font-size: 15px; font-weight: bold; color: #111; margin-bottom: 12px; }
+        #viewMiniMap, #viewRoadview { width: 100%; height: 200px; border-radius: 8px; background: #eee; }
+
+        /* ── 등록자 탭 ── */
+        #tabRealtorArea { padding: 24px; display: none; }
+        .realtor-card { background: #fafafa; border-radius: 8px; border: 1px solid #eee; padding: 20px; }
+        .realtor-name { font-size: 18px; font-weight: bold; color: #111; margin-bottom: 6px; }
+        .realtor-sub { font-size: 13px; color: #666; margin-bottom: 4px; }
+        .realtor-phone { font-size: 15px; font-weight: bold; color: var(--primary); margin-top: 8px; }
+
+        /* ── 사이드바 카드 ── */
+        .sidebar-card { background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px; }
+        .sidebar-card-title { font-size: 14px; font-weight: bold; color: #111; margin-bottom: 14px; }
+
+        /* 상태 배지 */
+        .status-badge { display: inline-block; padding: 4px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; color: #fff; }
+        .status-active   { background: #16a34a; }
+        .status-inactive { background: #9ca3af; }
+        .status-pending  { background: #f59e0b; }
+
+        /* 로그 리스트 */
+        .log-list { list-style: none; padding: 0; margin: 0; font-size: 13px; color: #555; }
+        .log-item { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+        .log-num { width: 18px; height: 18px; background: #e5e7eb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; color: #666; flex-shrink: 0; margin-top: 1px; }
+        .log-title { font-size: 12px; font-weight: 600; color: #333; }
+        .log-meta { font-size: 11px; color: #aaa; margin-top: 1px; }
+
+        /* 연락처 */
+        .contact-box { display: flex; flex-direction: column; gap: 8px; }
+        .contact-item { display: flex; align-items: center; gap: 8px; }
+        .contact-icon { font-size: 16px; }
+        .contact-val { font-size: 13px; font-weight: 600; color: #333; }
+        .btn-call { display: block; width: 100%; margin-top: 10px; padding: 10px; background: var(--primary); color: #fff; border: none; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
+        .btn-call:hover { background: #1557b0; }
+
+        @media print {
+            .view-toolbar, .view-sidebar, .btn-toolbar, .gallery-nav-btn { display: none !important; }
+            .view-layout { display: block; }
+            .view-main { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- 상단 툴바 -->
+<div class="view-toolbar" id="viewToolbar" style="display:none;">
+    <div class="toolbar-left">
+        <a href="javascript:void(0)" class="toolbar-logo" onclick="goBack()">🏢 공실뉴스</a>
+        <span class="toolbar-title" id="toolbarTitle">공실 상세보기</span>
+    </div>
+    <div class="toolbar-actions">
+        <button class="btn-toolbar" onclick="goBack()">← 목록</button>
+        <button class="btn-toolbar" id="btnEdit" onclick="goEdit()">✏️ 수정</button>
+        <button class="btn-toolbar" onclick="window.print()">🖨️ 인쇄</button>
+        <button class="btn-toolbar" onclick="copyShareLink()">🔗 주소복사</button>
+        <button class="btn-toolbar red" id="btnDelete" onclick="deleteProperty()">🗑️ 삭제</button>
+        <button class="btn-toolbar blue" id="btnStatusToggle" onclick="toggleStatus()">광고종료</button>
+    </div>
+</div>
+
+<!-- 메인 -->
+<div class="page-body" id="pageBody">
+    <div class="loading" id="loadingMsg">⏳ 매물 정보를 불러오는 중...</div>
+</div>
+
+<script>
+var sb = null;
+var propertyId = null;
+var propertyData = null;
+var galleryImages = [];
+var galleryIndex = 0;
+
+// ── kakao maps SDK lazy loader ──
+var kakaoMapLoaded = false;
+
+function waitForSb() {
+    return new Promise(function(resolve) {
+        var t = setInterval(function() {
+            if (window.gongsiClient) { sb = window.gongsiClient; clearInterval(t); resolve(); }
+        }, 100);
+    });
+}
+
+async function init() {
+    var params = new URLSearchParams(window.location.search);
+    propertyId = params.get('id');
+    if (!propertyId) {
+        document.getElementById('loadingMsg').textContent = '매물 ID가 없습니다.';
+        return;
+    }
+    await waitForSb();
+
+    var res = await sb.from('properties').select('*').eq('id', propertyId).single();
+    if (res.error || !res.data) {
+        document.getElementById('loadingMsg').textContent = '매물 정보를 불러올 수 없습니다.';
+        return;
+    }
+    propertyData = res.data;
+    render();
+}
+
+function formatPrice(val) {
+    val = Number(val);
+    if (!val) return '0';
+    if (val >= 10000) {
+        var uk = Math.floor(val / 10000);
+        var man = val % 10000;
+        return man > 0 ? uk + '억 ' + man : uk + '억';
+    }
+    return val.toLocaleString();
+}
+
+function priceStr(p) {
+    var dep = formatPrice(p.deposit);
+    if (p.trade_type === '매매' || p.trade_type === '전세') return p.trade_type + ' ' + dep;
+    return p.trade_type + ' ' + dep + '/' + (p.monthly_rent || 0);
+}
+
+function escHtml(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function fmtDate(dt) {
+    if (!dt) return '-';
+    var d = new Date(dt);
+    var pad = function(n){ return n < 10 ? '0'+n : n; };
+    return d.getFullYear() + '.' + pad(d.getMonth()+1) + '.' + pad(d.getDate());
+}
+
+function render() {
+    var p = propertyData;
+    document.title = (p.building_name || p.property_type || '공실') + ' - 공실뷰 | 공실뉴스';
+
+    // 아파트/오피스텔 상단 명칭 처리
+    var propName = p.property_type || '공실매물';
+    if (p.main_category === '아파트·오피스텔') {
+        var aptName = p.building_name || p.property_type || '';
+        var dongStr = '';
+        if (p.dong_number) dongStr = String(p.dong_number).includes('동') ? p.dong_number : p.dong_number + '동';
+        var roomStr = '';
+        if (p.room_number) roomStr = String(p.room_number).includes('호') ? p.room_number : p.room_number + '호';
+        propName = (aptName + ' ' + dongStr + ' ' + roomStr).trim() || propName;
+    } else if (p.building_name) {
+        propName = p.building_name;
+    }
+
+    document.getElementById('toolbarTitle').textContent = propName;
+    document.getElementById('viewToolbar').style.display = 'flex';
+
+    // 금액 하단 서브정보
+    var supArea = p.supply_area ? p.supply_area + '㎡' : '';
+    var excArea = p.area ? p.area + '㎡' : '';
+    var areaDisplay = (supArea && excArea) ? supArea + '/' + excArea : (excArea || supArea || '');
+    var subInfoParts = [];
+    if (p.property_type) subInfoParts.push(escHtml(p.property_type));
+    if (p.direction) subInfoParts.push(escHtml(p.direction));
+    if (areaDisplay) subInfoParts.push('공급/전용: ' + escHtml(areaDisplay));
+    var subInfoHtml = subInfoParts.join('<span class="divider">|</span>');
+
+    // 상태 배지
+    var statusCls = p.status === 'active' ? 'status-active' : (p.status === 'pending' ? 'status-pending' : 'status-inactive');
+    var statusLabel = p.status === 'active' ? '광고중' : (p.status === 'pending' ? '검토중' : '광고종료');
+
+    // 버튼 상태 업데이트
+    var toggleBtn = document.getElementById('btnStatusToggle');
+    if (toggleBtn) {
+        toggleBtn.textContent = (p.status === 'active' || p.status === 'pending') ? '광고종료' : '광고재개';
+        toggleBtn.className = 'btn-toolbar ' + ((p.status === 'active' || p.status === 'pending') ? '' : 'blue');
+    }
+
+    // 갤러리
+    galleryImages = (p.images && p.images.length > 0) ? p.images : ['https://via.placeholder.com/800x400/EEEEEE/AAAAAA?text=No+Image'];
+    galleryIndex = 0;
+
+    var galleryHtml = '<div class="gallery-wrap">'
+        + '<img id="galleryMainImg" src="' + escHtml(galleryImages[0]) + '" alt="매물사진">'
+        + (galleryImages.length > 1 ? '<button class="gallery-nav-btn prev" onclick="changeGallery(-1)">〈</button><button class="gallery-nav-btn next" onclick="changeGallery(1)">〉</button>' : '')
+        + '<span class="gallery-count" id="galleryCount">1/' + galleryImages.length + '</span>'
+        + '</div>';
+
+    // 주소
+    var addr = [p.sido, p.sigungu, p.dong, p.detail_address].filter(Boolean).join(' ');
+    var features = p.building_name || p.property_type || '-';
+
+    // 전체 HTML 조립
+    document.getElementById('pageBody').innerHTML =
+    '<div class="view-layout">' +
+
+      // ── 좌측 메인 ──
+      '<div class="view-main">' +
+        '<div class="view-card">' +
+          // 갤러리
+          galleryHtml +
+
+          // 헤더
+          '<div class="prop-header">' +
+            '<div class="prop-meta-row">' +
+              '<div class="prop-meta-left">' +
+                '<span class="tag-confirm">확인매물</span>' +
+                '<span class="prop-date">' + fmtDate(p.created_at) + '</span>' +
+              '</div>' +
+              '<span class="status-badge ' + statusCls + '">' + statusLabel + '</span>' +
+            '</div>' +
+            '<div class="prop-name">' + escHtml(propName) + '</div>' +
+            '<div class="prop-price">' + escHtml(priceStr(p)) + '</div>' +
+            '<div class="prop-subinfo">' + subInfoHtml + '</div>' +
+            '<ul class="prop-summary-list">' +
+              '<li>방 ' + (p.room_count || '-') + '개</li>' +
+              '<li>욕실 ' + (p.bathroom_count || '-') + '개</li>' +
+              (areaDisplay ? '<li>면적 ' + escHtml(areaDisplay) + '</li>' : '') +
+              '<li>관리비 ' + (p.maintenance_fee || 0) + '만원</li>' +
+            '</ul>' +
+          '</div>' +
+
+          // 탭
+          '<div class="detail-tabs">' +
+            '<div class="tab-item active" id="tabBtnInfo" onclick="switchTab(\'info\')">매물정보</div>' +
+            '<div class="tab-item" id="tabBtnRealtor" onclick="switchTab(\'realtor\')">등록자정보</div>' +
+          '</div>' +
+
+          // ── 매물정보 탭 내용 ──
+          '<div id="tabInfoArea">' +
+            // 정보 그리드
+            '<div class="info-grid">' +
+              '<div class="info-label">소재지</div><div class="info-value">' + escHtml(addr || '정보없음') + '</div>' +
+              '<div class="info-label">매물특징</div><div class="info-value">' + escHtml(features) + '</div>' +
+              '<div class="info-label">공급/전용면적</div><div class="info-value">' + escHtml(areaDisplay || '정보없음') + '</div>' +
+              '<div class="info-label">해당층/총층</div><div class="info-value">' + (p.current_floor ? p.current_floor + '층' : '정보없음') + '</div>' +
+              '<div class="info-label">방/욕실수</div><div class="info-value">' + (p.room_count || '0') + ' / ' + (p.bathroom_count || '0') + '개</div>' +
+              '<div class="info-label">관리비</div><div class="info-value">' + (p.maintenance_fee || 0) + '만원</div>' +
+              '<div class="info-label">상세설명</div><div class="info-value"></div>' +
+              '<div class="info-desc">' + escHtml(p.description || '상세 설명이 등록되지 않았습니다.') + '</div>' +
+            '</div>' +
+
+            // 지도
+            '<div class="extra-section">' +
+              '<div class="extra-title">📍 위치정보</div>' +
+              '<div id="viewMiniMap"></div>' +
+            '</div>' +
+
+            // 로드뷰
+            '<div class="extra-section">' +
+              '<div class="extra-title">🛣️ 로드뷰</div>' +
+              '<div id="viewRoadview"></div>' +
+            '</div>' +
+          '</div>' +
+
+          // ── 등록자정보 탭 내용 ──
+          '<div id="tabRealtorArea">' +
+            '<div class="realtor-card">' +
+              '<div class="realtor-name" id="rvRealtorName">' + escHtml(p.author_name || '등록자 정보 없음') + '</div>' +
+              '<div class="realtor-sub" id="rvRealtorRep"></div>' +
+              '<div class="realtor-sub" id="rvRealtorAddr">-</div>' +
+              '<div class="realtor-phone" id="rvRealtorPhone">☎ ' + escHtml(p.author_phone || '연락처 비공개') + '</div>' +
+            '</div>' +
+          '</div>' +
+
+        '</div>' +
+      '</div>' +
+
+      // ── 우측 사이드바 ──
+      '<div class="view-sidebar">' +
+
+        // 연락처
+        '<div class="sidebar-card">' +
+          '<div class="sidebar-card-title">📞 연락처</div>' +
+          '<div class="contact-box">' +
+            '<div class="contact-item"><span class="contact-icon">👤</span><span class="contact-val" id="sbContactName">' + escHtml(p.author_name || '-') + '</span></div>' +
+            '<div class="contact-item"><span class="contact-icon">📱</span><span class="contact-val" id="sbContactPhone">' + escHtml(p.author_phone || '-') + '</span></div>' +
+          '</div>' +
+          (p.author_phone ? '<a href="tel:' + escHtml(p.author_phone) + '" class="btn-call">전화 연결</a>' : '') +
+        '</div>' +
+
+        // 매물 로그
+        '<div class="sidebar-card">' +
+          '<div class="sidebar-card-title">🕐 매물 로그</div>' +
+          '<ul class="log-list" id="propLogList">' +
+            buildLogHtml(p) +
+          '</ul>' +
+        '</div>' +
+
+        // 관리 버튼
+        '<div class="sidebar-card">' +
+          '<div class="sidebar-card-title">⚙️ 관리</div>' +
+          '<div style="display:flex; flex-direction:column; gap:8px;">' +
+            '<button class="btn-toolbar" style="width:100%; justify-content:center;" onclick="goEdit()">✏️ 매물 수정</button>' +
+            '<button class="btn-toolbar" style="width:100%; justify-content:center;" onclick="window.print()">🖨️ 인쇄</button>' +
+            '<button class="btn-toolbar red" style="width:100%; justify-content:center;" onclick="deleteProperty()">🗑️ 삭제</button>' +
+          '</div>' +
+        '</div>' +
+
+      '</div>' +
+
+    '</div>';
+
+    // 카카오 지도 로드
+    loadKakaoMap(p);
+
+    // 등록자 정보 비동기 로드
+    if (p.user_id) loadRealtorInfo(p.user_id, p);
+}
+
+function buildLogHtml(p) {
+    var logs = [
+        { label: '최초등록', date: p.created_at },
+        { label: '최근수정', date: p.updated_at }
+    ];
+    return logs.filter(function(l){ return l.date; }).map(function(l, i) {
+        return '<li class="log-item">' +
+          '<div class="log-num">' + (i+1) + '</div>' +
+          '<div><div class="log-title">' + l.label + '</div><div class="log-meta">' + new Date(l.date).toLocaleString('ko-KR') + '</div></div>' +
+          '</li>';
+    }).join('');
+}
+
+function loadKakaoMap(p) {
+    var addr = [p.sido, p.sigungu, p.dong, p.detail_address].filter(Boolean).join(' ');
+    if (!addr || typeof kakao === 'undefined') return;
+
+    kakao.maps.load(function() {
+        var geocoder = new kakao.maps.services.Geocoder();
+
+        // 미니 지도
+        var mapContainer = document.getElementById('viewMiniMap');
+        if (mapContainer) {
+            var mapOpts = { center: new kakao.maps.LatLng(37.5665, 126.978), level: 4 };
+            var miniMap = new kakao.maps.Map(mapContainer, mapOpts);
+            geocoder.addressSearch(addr, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    var coords = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    miniMap.setCenter(coords);
+                    new kakao.maps.Marker({ map: miniMap, position: coords });
+                }
+            });
+        }
+
+        // 로드뷰
+        var rvContainer = document.getElementById('viewRoadview');
+        if (rvContainer) {
+            var roadview = new kakao.maps.Roadview(rvContainer);
+            var rvClient = new kakao.maps.RoadviewClient();
+            geocoder.addressSearch(addr, function(result, status) {
+                if (status === kakao.maps.services.Status.OK) {
+                    var pos = new kakao.maps.LatLng(result[0].y, result[0].x);
+                    rvClient.getNearestPanoId(pos, 50, function(panoId, rvStatus) {
+                        if (rvStatus === kakao.maps.services.Status.OK) {
+                            roadview.setPanoId(panoId, pos);
+                        } else {
+                            if (rvContainer) rvContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:200px;color:#aaa;font-size:13px;">해당 위치의 로드뷰 정보가 없습니다.</div>';
+                        }
+                    });
+                }
+            });
+        }
+    });
+}
+
+async function loadRealtorInfo(userId, p) {
+    var res = await sb.from('members').select('*').eq('id', userId).maybeSingle();
+    if (res.error || !res.data) return;
+    var m = res.data;
+
+    var nameEl = document.getElementById('rvRealtorName');
+    var repEl = document.getElementById('rvRealtorRep');
+    var addrEl = document.getElementById('rvRealtorAddr');
+    var phoneEl = document.getElementById('rvRealtorPhone');
+    var sbNameEl = document.getElementById('sbContactName');
+    var sbPhoneEl = document.getElementById('sbContactPhone');
+
+    if (m.role === 'realtor') {
+        if (nameEl) nameEl.textContent = m.company_name || p.author_name || '-';
+        if (repEl) repEl.textContent = '대표 ' + (m.ceo_name || '-') + (m.company_reg_no ? '  |  등록번호 ' + m.company_reg_no : '');
+        if (addrEl) addrEl.textContent = (m.address || '') + ' ' + (m.address_detail || '');
+        var phones = [m.tel_num, m.cell_num].filter(Boolean);
+        if (phoneEl) phoneEl.textContent = '☎ ' + (phones.join(', ') || p.author_phone || '비공개');
+        if (sbNameEl) sbNameEl.textContent = m.company_name || p.author_name || '-';
+        if (sbPhoneEl) sbPhoneEl.textContent = phones[0] || p.author_phone || '-';
+    } else {
+        if (nameEl) nameEl.textContent = m.name || p.author_name || '-';
+        if (repEl) repEl.textContent = '일반 등록자';
+    }
+}
+
+// 갤러리 네비게이션
+window.changeGallery = function(dir) {
+    galleryIndex = (galleryIndex + dir + galleryImages.length) % galleryImages.length;
+    var img = document.getElementById('galleryMainImg');
+    var cnt = document.getElementById('galleryCount');
+    if (img) img.src = galleryImages[galleryIndex];
+    if (cnt) cnt.textContent = (galleryIndex + 1) + '/' + galleryImages.length;
+};
+
+// 탭 전환
+window.switchTab = function(tab) {
+    document.getElementById('tabInfoArea').style.display = tab === 'info' ? 'block' : 'none';
+    document.getElementById('tabRealtorArea').style.display = tab === 'realtor' ? 'block' : 'none';
+    document.getElementById('tabBtnInfo').className = 'tab-item' + (tab === 'info' ? ' active' : '');
+    document.getElementById('tabBtnRealtor').className = 'tab-item' + (tab === 'realtor' ? ' active' : '');
+};
+
+// 관리 기능
+function goBack() {
+    if (window.opener) {
+        window.close();
+    } else if (window.parent && window.parent.loadPage) {
+        window.parent.loadPage(null, '공실관리', 'admin.html');
+    } else {
+        history.back();
+    }
+}
+
+function goEdit() {
+    if (!propertyId) return;
+    window.location.href = 'register.html?id=' + propertyId + '&v=' + Date.now();
+}
+
+function copyShareLink() {
+    var url = window.location.href;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() { alert('URL이 클립보드에 복사되었습니다.'); });
+    } else {
+        prompt('아래 URL을 복사하세요:', url);
+    }
+}
+
+async function toggleStatus() {
+    if (!propertyData) return;
+    var isOn = propertyData.status === 'active' || propertyData.status === 'pending';
+    var nextStatus = isOn ? 'inactive' : 'active';
+    var msg = isOn ? '광고를 종료하시겠습니까?' : '광고를 다시 시작하시겠습니까?';
+    if (!confirm(msg)) return;
+    var res = await sb.from('properties').update({ status: nextStatus }).eq('id', propertyId);
+    if (res.error) { alert('오류: ' + res.error.message); return; }
+    propertyData.status = nextStatus;
+    render();
+}
+
+async function deleteProperty() {
+    if (!propertyData) return;
+    var name = propertyData.building_name || propertyData.property_type || '이 매물';
+    if (!confirm('[삭제 확인]\n\n"' + name + '"\n\n매물을 영구적으로 삭제합니다.\n정말 삭제하시겠습니까?')) return;
+    var res = await sb.from('properties').delete().eq('id', propertyId);
+    if (res.error) { alert('삭제 실패: ' + res.error.message); return; }
+    alert('삭제되었습니다.');
+    goBack();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(init, 400);
+});
+</script>
+
+<!-- 카카오 지도 SDK -->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=7b7c5ec7bde8a9c7a48de7de8db2e25d&libraries=services&autoload=false"></script>
+</body>
+</html>

@@ -498,14 +498,14 @@
                     </td>
                     <td>${p.property_type || '-'}</td>
                     <td class="cell-addr">
-                        <div class="addr-main" style="cursor: pointer; cursor: hand;" onclick="window.open('gongsil.html?view_id=${p.id}', '_blank')" title="새 창에서 매물 상세 보기">${p.dong || ''} ${p.building_name || ''}</div>
+                        <div class="addr-main" style="cursor: pointer;" onclick="window.open('gongsil_view.html?id=${p.id}', '_blank')" title="새 창에서 매물 상세 보기">${p.dong || ''} ${p.building_name || ''}</div>
                         <div class="contact-row">
                             <span class="contact-badge contact-landlord">임대인</span>
                             <span class="contact-num">${p.author_phone || '-'}</span>
                         </div>
                     </td>
                     <td class="cell-price">
-                        <div class="price-line" style="cursor: pointer; cursor: hand;" onclick="window.open('gongsil.html?view_id=${p.id}', '_blank')" title="새 창에서 매물 상세 보기">
+                        <div class="price-line" style="cursor: pointer;" onclick="window.open('gongsil_view.html?id=${p.id}', '_blank')" title="새 창에서 매물 상세 보기">
                             ${dealBadge}
                             <span class="price-amount ${priceCls}">${priceText}</span>
                         </div>
