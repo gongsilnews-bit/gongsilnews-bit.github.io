@@ -2331,6 +2331,18 @@
         };
 
         window.filterRealtorProps = function(type, el) {
+            const fmtVal = (val) => {
+                let v = Number(val);
+                if (!v || v === 0) return '0';
+                if (v >= 10000) { const uk = Math.floor(v / 10000); const man = v % 10000; return man > 0 ? `${uk}억 ${man}` : `${uk}억`; }
+                return v.toLocaleString();
+            };
+            const fmtPrice = (p) => {
+                const dep = fmtVal(p.deposit);
+                if (p.trade_type === '매매' || p.trade_type === '전세') return `${p.trade_type} ${dep}`;
+                return `${p.trade_type} ${dep}/${p.monthly_rent || 0}`;
+            };
+
             const tabs = document.querySelectorAll('.realtor-filter-tab');
             tabs.forEach(t => {
                 t.style.fontWeight = 'normal';
@@ -2360,7 +2372,7 @@
             }
             
             filtered.forEach(p => {
-                const priceStr = window.formatPriceDisplay ? window.formatPriceDisplay(p) : '-';
+                const priceStr = fmtPrice(p);
                 
                 let propTitle = p.building_name || p.property_type || '공실매물';
                 if (p.main_category === '아파트·오피스텔') {
