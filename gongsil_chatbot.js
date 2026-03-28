@@ -1,7 +1,10 @@
 // 공실챗봇 (AI 비서) 공통 모듈
 // 모든 페이지에서 스크립트 하나만 로드하면 챗봇이 둥둥 뜨도록 설정합니다.
 
-document.addEventListener('DOMContentLoaded', function() {
+function initGongsilChatbot() {
+    // 이미 챗봇이 삽입되어 있으면 중복 렌더링을 막습니다.
+    if (document.getElementById('ai-companion-container')) return;
+
     // 1. 챗봇 HTML 생성 및 삽입
     const chatbotHtml = `
     <!-- AI 도우미 챗봇 (파란색 계통 귀여운 로봇 디자인) -->
@@ -224,7 +227,14 @@ document.addEventListener('DOMContentLoaded', function() {
     @keyframes bounceDot { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
     `;
     document.head.appendChild(style);
-});
+}
+
+// 스크립트가 로드될 때 DOM 상태에 따라 렌더링을 안전하게 시작합니다!
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGongsilChatbot);
+} else {
+    initGongsilChatbot();
+}
 
 // 3. 글로벌 함수 및 변수 정의
 const aiAvatarSvg = `
@@ -321,11 +331,11 @@ function appendMessage(type, htmlContent) {
     const aiBody = document.getElementById('aiChatBody');
     if (!aiBody) return;
     const div = document.createElement('div');
-    div.className = \`chat-msg \${type}-msg\`;
+    div.className = `chat-msg ${type}-msg`;
     if (type === 'ai') {
-        div.innerHTML = \`<div class="msg-avatar">\${aiAvatarSvg}</div><div class="msg-content">\${htmlContent}</div>\`;
+        div.innerHTML = `<div class="msg-avatar">${aiAvatarSvg}</div><div class="msg-content">${htmlContent}</div>`;
     } else {
-        div.innerHTML = \`<div class="msg-content">\${htmlContent}</div>\`;
+        div.innerHTML = `<div class="msg-content">${htmlContent}</div>`;
     }
     aiBody.appendChild(div);
     scrollToBottom();
@@ -335,14 +345,14 @@ function appendTyping(id) {
     const aiBody = document.getElementById('aiChatBody');
     if (!aiBody) return;
     const div = document.createElement('div');
-    div.className = \`chat-msg ai-msg\`;
+    div.className = `chat-msg ai-msg`;
     div.id = id;
-    div.innerHTML = \`
-        <div class="msg-avatar">\${aiAvatarSvg}</div>
+    div.innerHTML = `
+        <div class="msg-avatar">${aiAvatarSvg}</div>
         <div class="msg-content" style="padding: 12px 16px;">
             <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
         </div>
-    \`;
+    `;
     aiBody.appendChild(div);
     scrollToBottom();
 }
