@@ -1529,9 +1529,22 @@ window.showNewsDetail = async function(news) {
             if (typeof window.closeNewsDetail === 'function') {
                 window.closeNewsDetail(); 
             }
+            
+            // 지도 컨테이너를 숨기고 포털 뷰를 띄우기 위해 클래스 추가
+            document.body.classList.add('portal-mode');
+            
+            // 탭 활성화 상태 변경 (뉴스/칼럼 탭 활성화)
+            const tabs = document.querySelectorAll('.news-tab-item');
+            if (tabs.length > 0) {
+                tabs.forEach(el => el.classList.remove('active'));
+                const columnTab = Array.from(tabs).find(el => el.textContent.trim() === '뉴스/칼럼');
+                if (columnTab) columnTab.classList.add('active');
+            }
+
             if (typeof window.openPortalView === 'function') {
                 window.openPortalView();
             }
+            
             const title = document.getElementById('portalSectionTitle');
             if (title) title.textContent = '검색결과: #' + keyword;
             
@@ -1540,7 +1553,7 @@ window.showNewsDetail = async function(news) {
                 window.loadPortalNews('검색결과:' + keyword);
             }
         };
-
+        
         // 기자 정보
         const reporterBox = document.getElementById('footerReporter');
         if (reporterBox) {
