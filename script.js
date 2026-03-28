@@ -141,7 +141,12 @@ async function loadPortalNews(category, isLoadMore = false) {
         // 카테고리 필터
         if (window.portalState.currentCategory && window.portalState.currentCategory !== '전체기사') {
             const cat = window.portalState.currentCategory;
-            query = query.or('section1.eq.' + cat + ',section2.eq.' + cat);
+            if (cat.startsWith('검색결과:')) {
+                const term = cat.split(':')[1].trim().replace(/^#/, '');
+                query = query.or(`title.ilike.%${term}%,subtitle.ilike.%${term}%,keywords.ilike.%${term}%`);
+            } else {
+                query = query.or('section1.eq.' + cat + ',section2.eq.' + cat);
+            }
         }
         
         // 페이징 처리
@@ -1509,14 +1514,30 @@ window.showNewsDetail = async function(news) {
         if (kwBox) {
             if (news.keywords) {
                 kwBox.innerHTML = news.keywords.split(',').map(function(k) {
-                    return '<span style="background:#f1f3f5; color:#495057; font-size:14px; padding:6px 14px; border-radius:30px; cursor:pointer;" onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f1f3f5\'">#' + k.trim() + '</span>';
+                    return '<span style="background:#f1f3f5; color:#495057; font-size:14px; padding:6px 14px; border-radius:30px; cursor:pointer;" onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f1f3f5\'" onclick="window.searchByKeyword(\'' + k.trim() + '\')">#' + k.trim() + '</span>';
                 }).join('');
                 kwBox.style.display = 'flex';
             } else {
                 kwBox.style.display = 'none';
             }
         }
-        
+
+        window.searchByKeyword = function(keyword) {
+            if (typeof window.closeNewsDetail === 'function') {
+                window.closeNewsDetail(); 
+            }
+            if (typeof window.openPortalView === 'function') {
+                window.openPortalView();
+            }
+            const title = document.getElementById('portalSectionTitle');
+            if (title) title.textContent = '검색결과: #' + keyword;
+            
+            // 포털 검색 호출
+            if (typeof window.loadPortalNews === 'function') {
+                window.loadPortalNews('검색결과:' + keyword);
+            }
+        };
+
         // 기자 정보
         const reporterBox = document.getElementById('footerReporter');
         if (reporterBox) {

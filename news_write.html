@@ -790,9 +790,59 @@
             <div class="form-row" style="margin-top:20px;">
                 <div class="form-label">키워드</div>
                 <div class="form-content">
-                    <input type="text" class="input-text" style="background:#fafafa; color:#333; font-size:14px; font-weight:600;" placeholder="#입력 (최대 20개)">
+                    <div id="keywordTagsContainer" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;"></div>
+                    <input type="hidden" id="hiddenKeywordInput" placeholder="#입력 (최대 20개)">
+                    <input type="text" id="visibleKeywordInput" class="input-text" style="background:#fafafa; color:#333; font-size:14px; font-weight:600;" placeholder="키워드 입력 후 엔터 (콤마, 띄어쓰기로 여러 개 붙여넣기 가능)">
                 </div>
             </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const container = document.getElementById('keywordTagsContainer');
+                    const hiddenInput = document.getElementById('hiddenKeywordInput');
+                    const visibleInput = document.getElementById('visibleKeywordInput');
+                    let tags = [];
+
+                    function updateTags() {
+                        container.innerHTML = '';
+                        tags.forEach(function(tag, index) {
+                            const el = document.createElement('span');
+                            el.style.cssText = 'background:#ea580c; color:#fff; padding:6px 12px; border-radius:20px; font-size:13px; display:inline-flex; align-items:center; gap:6px;';
+                            el.innerHTML = '#' + tag + ' <span style="cursor:pointer; font-weight:bold; font-size:14px;" onclick="window.removeKeywordTag(' + index + ')">&times;</span>';
+                            container.appendChild(el);
+                        });
+                        hiddenInput.value = tags.join(',');
+                    }
+
+                    window.removeKeywordTag = function(index) {
+                        tags.splice(index, 1);
+                        updateTags();
+                    };
+
+                    function addTags(inputStr) {
+                        let newTags = inputStr.split(/[\s,]+/).map(t => t.replace(/^#/, '').trim()).filter(t => t.length > 0);
+                        newTags.forEach(t => {
+                            if (!tags.includes(t)) tags.push(t);
+                        });
+                        updateTags();
+                    }
+
+                    visibleInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            addTags(this.value);
+                            this.value = '';
+                        }
+                    });
+
+                    visibleInput.addEventListener('paste', function(e) {
+                        // 약간의 지연 후 처리 чтобы 붙여넣기된 값 읽기
+                        setTimeout(() => {
+                            addTags(this.value);
+                            this.value = '';
+                        }, 10);
+                    });
+                });
+            </script>
 
             <div class="form-row">
                 <div class="form-label">관련기사</div>
