@@ -806,8 +806,8 @@
                         container.innerHTML = '';
                         tags.forEach(function(tag, index) {
                             const el = document.createElement('span');
-                            el.style.cssText = 'background:#ea580c; color:#fff; padding:6px 12px; border-radius:20px; font-size:13px; display:inline-flex; align-items:center; gap:6px;';
-                            el.innerHTML = '#' + tag + ' <span style="cursor:pointer; font-weight:bold; font-size:14px;" onclick="window.removeKeywordTag(' + index + ')">&times;</span>';
+                            el.style.cssText = 'background:#f1f3f5; color:#495057; padding:6px 14px; border-radius:30px; font-size:13px; display:inline-flex; align-items:center; gap:6px; transition:background 0.2s;';
+                            el.innerHTML = '#' + tag + ' <span style="cursor:pointer; font-weight:bold; font-size:15px; color:#aaa; line-height:1;" onmouseover="this.style.color=\'#495057\'" onmouseout="this.style.color=\'#aaa\'" onclick="window.removeKeywordTag(' + index + ')">&times;</span>';
                             container.appendChild(el);
                         });
                         hiddenInput.value = tags.join(',');
