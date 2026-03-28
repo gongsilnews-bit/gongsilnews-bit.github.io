@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>댓글·문의 관리 - 공실뉴스 Admin</title>
+    <!-- 구글 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    
+    <style>
+        :root {
+            --primary-color: #ff9f1c; /* 공실관리와 동일한 테마 */
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #e1e4e8;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --blue-filter-bg: #f0f4fc;
+            --dark-btn-bg: #4b5563;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px; margin: 0; color: var(--text-main); line-height: 1.5;
+        }
+
+        .admin-card { background-color: var(--bg-card); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); padding: 32px; min-height: 800px; }
+
+        /* HEADER */
+        .card-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+        .card-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111; }
+        .card-header .count-info { font-size: 13px; color: #666; }
+        .card-header .count-info .ad-count { color: var(--primary-color); font-weight: 700; }
+        .card-header .count-info .total-count { color: #333; font-weight: 700; }
+
+        /* FILTER */
+        .filter-container { background-color: var(--blue-filter-bg); border-radius: 6px; padding: 18px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .filter-group { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+        .filter-input { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; background-color: #fff; outline: none; font-family: inherit; color: var(--text-main); }
+        .filter-input:focus { border-color: #4285f4; }
+        .filter-divider { width: 1px; height: 24px; background-color: #d1d5db; margin: 0 4px; }
+        
+        .btn-search { background-color: var(--dark-btn-bg); color: white; border: none; padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; display:inline-flex; align-items:center;}
+        .btn-search:hover { background-color: #374151; }
+        .btn-reset { background-color: #fff; color: #666; border: 1px solid #d1d5db; padding: 7px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+        .btn-reset:hover { background-color: #f9fafb; }
+
+        /* ACTION BAR */
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .left-actions { display: flex; gap: 6px; }
+        .btn { padding: 6px 12px; font-size: 13px; font-weight: 500; border-radius: 4px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; color: #333; transition: background 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
+        .btn:hover { background-color: #f3f4f6; }
+        .btn-primary { background-color: #4285f4; color: white; border: none; padding: 8px 18px; font-weight: 700; font-size: 13px; }
+        .btn-primary:hover { background-color: #3367d6; }
+
+        /* TABLE */
+        .table-container { width: 100%; overflow-x: auto; border-top: 2px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1050px; }
+        th { background-color: #fafafa; border-bottom: 1px solid #e5e7eb; padding: 12px 8px; font-weight: 700; color: #333; text-align: center; white-space: nowrap; }
+        td { padding: 14px 8px; border-bottom: 1px solid #f1f3f5; text-align: center; vertical-align: middle; color: #444; }
+        tr:hover td { background-color: #fafcff; }
+
+        /* BADGES */
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }
+        .status-new { background-color: #f59e0b; } /* 대기/주황색 */
+        .status-done { background-color: #10b981; } /* 완료/녹색 */
+
+        .type-badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; color: #fff; background: #2b6cb0; }
+        .type-gongsil { background: #c05621; } /* 공실문의 테마 */
+        .type-my { background: #4b5563; } /* 내가쓴글 테마 */
+
+        .comment-excerpt { font-size: 13px; color: #222; max-width: 250px; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+        .target-title { font-size: 11px; color: #1a73e8; text-decoration: none; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left; }
+        .target-title:hover { text-decoration: underline; }
+        .author-info { font-size: 12px; font-weight: bold; color: #333; display: flex; flex-direction: column; }
+        .author-date { font-size: 11px; color: #888; font-weight: normal; }
+
+        .cell-actions { display: flex; gap: 4px; justify-content: center; }
+        .btn-action { padding: 3px 6px; font-size: 11px; border-radius: 3px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; color: #333; font-weight: 500; font-family: inherit; }
+        .btn-action:hover { background: #f3f4f6; }
+        .btn-reply { color: #fff; background: #4285f4; border-color: #4285f4; }
+        .btn-reply:hover { background: #3367d6; }
+        .btn-delete { color: #dc2626; border-color: #fecaca; }
+        .btn-delete:hover { background: #fef2f2; }
+
+        /* MODAL (Single column vertical layout for simple reply) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-window { background: #fff; width: 600px; max-width: 95%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; font-family: inherit; }
+        .modal-header { background: #2c303f; color: #fff; padding: 16px 20px; font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close { cursor: pointer; font-size: 20px; opacity:0.8; }
+        .modal-close:hover { opacity:1; }
+        
+        .modal-body { padding: 24px; overflow-y: auto; max-height: 70vh; }
+        
+        .comment-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+        .comment-meta { font-size: 11px; color: #888; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .comment-target { color: #1a73e8; font-weight: bold; }
+        .comment-text { font-size: 14px; color: #111; line-height: 1.6; white-space: pre-wrap; font-weight: 500; }
+
+        .reply-section { position: relative; }
+        .reply-label { display: block; font-size: 13px; font-weight: bold; color: #4285f4; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .reply-label::before { content: '↳'; font-size: 16px; font-weight: normal; }
+        .reply-textarea { width: 100%; border: 1px solid #4285f4; border-radius: 8px; padding: 12px; font-size: 13px; font-family: inherit; outline: none; resize: vertical; min-height: 120px; box-shadow: 0 0 0 2px rgba(66, 133, 244, 0.1); }
+        .reply-textarea:focus { border-color: #1a73e8; box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2); }
+
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <div class="card-header">
+        <h2>댓글·문의 관리</h2>
+        <span class="count-info">
+            (<span class="ad-count">답변대기 <span id="waitCount">0</span>건</span> / <span class="total-count">전체 <span id="totalCount">0</span>건</span>)
+        </span>
+    </div>
+
+    <!-- 검색 필터 -->
+    <section class="filter-container">
+        <div class="filter-group">
+            <span class="filter-label">검색어</span>
+            <input type="text" class="filter-input" id="search-keyword" placeholder="내용 또는 작성자 검색" style="width:160px;">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-label">보기 설정</span>
+            <select class="filter-input" id="search-type">
+                <option value="">전체 내역 보기</option>
+                <option value="기사댓글">내 기사에 달린 댓글</option>
+                <option value="공실문의">내 공실에 달린 문의(1:1)</option>
+                <option value="내가쓴글">내가 쓴 모든 댓글/문의</option>
+            </select>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-label">진행상태</span>
+            <select class="filter-input" id="search-status">
+                <option value="">전체 (대기+완료)</option>
+                <option value="답변대기">답변대기 (미확인)</option>
+                <option value="답변완료">답변완료</option>
+            </select>
+        </div>
+        <button class="btn-search" id="btn-do-search">🔍 검색</button>
+        <button class="btn-reset" id="btn-reset">초기화</button>
+    </section>
+
+    <!-- 액션 바 -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <button class="btn" onclick="alert('엑셀 다운로드 (준비중)')">⬇️ 엑셀 다운로드</button>
+            <button class="btn" id="btn-bulk-delete">🗑 선택삭제</button>
+        </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="table-container">
+        <table>
+            <colgroup>
+                <col style="width:40px;">
+                <col style="width:90px;">   <!-- 진행상태 -->
+                <col style="width:90px;">   <!-- 구분 -->
+                <col style="min-width:200px;"> <!-- 내용 -->
+                <col style="min-width:180px;"> <!-- 대상 -->
+                <col style="width:110px;">  <!-- 작성자 -->
+                <col style="width:100px;">  <!-- 등록일 -->
+                <col style="width:90px;">   <!-- 관리 -->
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="chk-all"></th>
+                    <th>상태</th>
+                    <th>구분</th>
+                    <th>요약 내용</th>
+                    <th>대상 (원본글)</th>
+                    <th>작성자</th>
+                    <th>작성/수정일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody id="comment-list-body">
+                <tr><td colspan="8" style="padding: 100px; color: #4285f4; font-weight: bold;">댓글/문의 데이터를 하나로 모아서 불러오는 중입니다... 🔄</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 답변 및 상세 보기 모달 -->
+<div id="replyModal" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-header">
+            <span id="modalTitle">💬 댓글·문의 답변하기</span>
+            <span class="modal-close" onclick="closeReplyModal()">×</span>
+        </div>
+        
+        <div class="modal-body">
+            <!-- 질문 원문 내용 영역 -->
+            <div class="comment-box">
+                <div class="comment-meta">
+                    <span id="modalAuthorInfo">홍길동 (2026-03-24 15:30)</span>
+                    <span id="modalTargetInfo" class="comment-target">[대상 매물 정보]</span>
+                </div>
+                <div class="comment-text" id="modalContentText">
+                    사장님, 방금 올리신 마포구 투룸 보증금 3천에 월세 50으로 조율 가능할까요? 내일 방문하고 싶습니다.
+                </div>
+            </div>
+
+            <!-- 내 답변 작성 영역 -->
+            <div class="reply-section">
+                <label class="reply-label" id="replyLabelText">중개사님의 답변 등록 (1:1로만 전송됩니다)</label>
+                <textarea id="modalReplyInput" class="reply-textarea" placeholder="답변 내용을 작성해 주세요. (등록 시 상대방에게 알림이 갑니다)"></textarea>
+            </div>
+            
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeReplyModal()">닫기</button>
+            <button class="btn-primary" onclick="alert('답변 등록 API 처리 (준비중)')" id="btnReplySubmit">✔ 답변 등록</button>
+        </div>
+    </div>
+</div>
+
+<!-- Supabase JS & Logic -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+
+<script>
+    let currentUserId = null;
+    let masterList = []; // 기사댓글 + 공실문의 통합 리스트
+
+    (async function init() {
+        if (!window.gongsiClient) {
+            alert("DB 연결 오류: config 확인 필요"); return;
+        }
+
+        const { data: { session } } = await window.gongsiClient.auth.getSession();
+        if (!session) {
+            alert("로그인이 필요합니다.");
+            parent.window.location.href = 'index.html';
+            return;
+        }
+        currentUserId = session.user.id;
+        loadCombinedData(); // 데이터 로드
+    })();
+
+    // ── DB 구조가 다른 2~3개의 테이블을 JS에서 묶어서(Merge) 하나의 표로 만들기 ──
+    async function loadCombinedData() {
+        // 실제 운영 시 1. comments(내 기사 또는 내가쓴) 2. property_inquiries(내 매물) 3. 등등을 Promise.all 로 동시 호출
+        const tbody = document.getElementById('comment-list-body');
+        
+        // (가상/목업 데이터 로드 시뮬레이션) - 이질감 여부 테스트용으로 뿌려줌
+        setTimeout(() => {
+            masterList = [
+                {
+                    id: 'doc_101',
+                    type: '공실문의', // 유형
+                    status: '답변대기', 
+                    content: '안녕하세요, 이거 보증금 1억까지 조율 가능한가요? 내일 오후 방문 원합니다.',
+                    target_id: 'prop_001',
+                    target_title: '마포구 서교동 신축 투룸 풀옵션 최고층', // 원본글 제목
+                    author_name: '직장인A',
+                    author_id: 'user_x',
+                    created_at: '2026-03-28T14:30:00Z',
+                    is_mine: false,
+                    reply_text: null
+                },
+                {
+                    id: 'doc_102',
+                    type: '기사댓글',
+                    status: '답변대기', 
+                    content: '기사 잘 읽었습니다. 근데 강남 3구 쪽 전세 매물 추천도 가능한가요?',
+                    target_id: 'news_005',
+                    target_title: '대치동 중심에서 만나는 5억 원대 소형 아파트...',
+                    author_name: '부린이',
+                    author_id: 'user_y',
+                    created_at: '2026-03-28T10:15:00Z',
+                    is_mine: false,
+                    reply_text: null
+                },
+                {
+                    id: 'doc_103',
+                    type: '공실문의',
+                    status: '답변완료', 
+                    content: '주차는 몇 대까지 가능한가요? SUV 차량입니다.',
+                    target_id: 'prop_002',
+                    target_title: '마곡동 대규모 개발 호재 수혜 상가',
+                    author_name: '투자자명',
+                    author_id: 'user_z',
+                    created_at: '2026-03-27T16:45:00Z',
+                    is_mine: false,
+                    reply_text: '네 가능합니다. 기계식과 자주식 모두 자리가 여유 있습니다.'
+                },
+                {
+                    id: 'doc_104',
+                    type: '내가쓴글',
+                    status: '답변완료', 
+                    content: '이 매물 공유해주셔서 감사합니다.',
+                    target_id: 'news_001',
+                    target_title: '[공동중개] 여의도 신축 빌딩 한강뷰',
+                    author_name: '나(본인)',
+                    author_id: currentUserId,
+                    created_at: '2026-03-25T09:00:00Z',
+                    is_mine: true,
+                    reply_text: null // 내가 쓴 글에는 내 답변창이 필요 없음
+                }
+            ];
+
+            // 최근순 정렬
+            masterList.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+            renderTable(masterList);
+        }, 500); // 0.5초 로딩 효과
+    }
+
+    function renderTable(list) {
+        const tbody = document.getElementById('comment-list-body');
+        tbody.innerHTML = '';
+
+        document.getElementById('totalCount').innerText = list.length;
+        document.getElementById('waitCount').innerText = list.filter(c => c.status === '답변대기').length;
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="padding:60px 0; color:#999; text-align:center;">조건에 맞는 댓글/문의가 없습니다.</td></tr>`;
+            return;
+        }
+
+        list.forEach((item, index) => {
+            // 버튼 상태 색상
+            let statusCls = item.status === '답변완료' ? 'status-done' : 'status-new';
+            // 타입 색상
+            let typeCls = 'type-badge';
+            if (item.type === '공실문의') typeCls += ' type-gongsil';
+            if (item.type === '내가쓴글') typeCls += ' type-my';
+            
+            // 버튼 동적(보기 vs 답변)
+            let actionBtnHtml = '';
+            if (item.type === '내가쓴글') {
+                actionBtnHtml = `<button class="btn-action" onclick="openReplyModal(${index})">내용보기</button>`;
+            } else {
+                actionBtnHtml = item.status === '답변완료' 
+                    ? `<button class="btn-action" onclick="openReplyModal(${index})">답변수정</button>` 
+                    : `<button class="btn-action btn-reply" onclick="openReplyModal(${index})">답변하기</button>`;
+            }
+
+            // 날짜 포맷
+            const dateStr = item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : '';
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" value="${item.id}"></td>
+                <td><span class="status-badge ${statusCls}">${item.status}</span></td>
+                <td><span class="${typeCls}">${item.type}</span></td>
+                <td><div class="comment-excerpt" title="${item.content}">${item.content}</div></td>
+                <td><a href="#" class="target-title" title="클릭시 원본 이동">${item.target_title}</a></td>
+                <td>
+                    <div class="author-info">
+                        <span>${item.author_name}</span>
+                    </div>
+                </td>
+                <td style="font-size:11px; color:#888;">${dateStr}</td>
+                <td>
+                    <div class="cell-actions">
+                        ${actionBtnHtml}
+                        <button class="btn-action btn-delete" onclick="alert('삭제 기능 처리 예정')">삭제</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // ── 검색 및 필터 이벤트 ──
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        document.getElementById('search-keyword').value = '';
+        document.getElementById('search-type').value = '';
+        document.getElementById('search-status').value = '';
+        renderTable(masterList);
+    });
+
+    document.getElementById('btn-do-search').addEventListener('click', () => {
+        const kw = document.getElementById('search-keyword').value.trim();
+        const type = document.getElementById('search-type').value;
+        const stat = document.getElementById('search-status').value;
+
+        const filtered = masterList.filter(c => {
+            const mKw = kw ? (c.content?.includes(kw) || c.author_name?.includes(kw)) : true;
+            const mType = type ? (c.type === type) : true;
+            const mStat = stat ? (c.status === stat) : true;
+            return mKw && mType && mStat;
+        });
+        renderTable(filtered);
+    });
+
+    // 전체 체크박스 
+    document.getElementById('chk-all').addEventListener('change', function () {
+        document.querySelectorAll('#comment-list-body input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
+    });
+
+    // ── 상세보기 및 답변 모달 제어 ──
+    function openReplyModal(index) {
+        const item = masterList[index];
+        if (!item) return;
+
+        // 원본 정보 세팅
+        const fDate = new Date(item.created_at).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+        document.getElementById('modalAuthorInfo').innerText = `${item.author_name} (${fDate})`;
+        document.getElementById('modalTargetInfo').innerText = `[${item.type}] ${item.target_title}`;
+        document.getElementById('modalContentText').innerText = item.content;
+
+        // 내가 쓴 글이면 답변 박스를 숨긴다
+        const replyArea = document.querySelector('.reply-section');
+        const submitBtn = document.getElementById('btnReplySubmit');
+        const replyInput = document.getElementById('modalReplyInput');
+
+        if (item.type === '내가쓴글') {
+            document.getElementById('modalTitle').innerText = '💬 내가 남긴 흔적 보기';
+            replyArea.style.display = 'none';
+            submitBtn.style.display = 'none';
+        } else {
+            document.getElementById('modalTitle').innerText = '💬 답변하기';
+            replyArea.style.display = 'block';
+            submitBtn.style.display = 'inline-block';
+            
+            // 이미 답변이 있으면 채워넣기
+            if (item.reply_text) {
+                replyInput.value = item.reply_text;
+                submitBtn.innerText = '✔ 답변 수정';
+            } else {
+                replyInput.value = '';
+                submitBtn.innerText = '✔ 답변 등록';
+            }
+            
+            // 공실문의는 1:1 비공개라는 안내 라벨 구분
+            document.getElementById('replyLabelText').innerHTML = item.type === '공실문의' 
+                ? `중개사님의 답변 등록 <span style="font-weight:normal; font-size:11px; color:#666;">(작성자 본인만 볼 수 있는 1:1 비밀답변입니다)</span>`
+                : `공개 답변 등록 <span style="font-weight:normal; font-size:11px; color:#666;">(모든 사용자에게 노출되는 공개 댓글입니다)</span>`;
+        }
+
+        document.getElementById('replyModal').style.display = 'flex';
+    }
+
+    function closeReplyModal() {
+        document.getElementById('replyModal').style.display = 'none';
+    }
+
+</script>
+</body>
+</html>
