@@ -1513,10 +1513,13 @@ window.showNewsDetail = async function(news) {
         const kwBox = document.getElementById('footerKeywords');
         if (kwBox) {
             if (news.keywords) {
-                kwBox.innerHTML = news.keywords.split(',').map(function(k) {
-                    return '<span style="background:#f1f3f5; color:#495057; font-size:14px; padding:6px 14px; border-radius:30px; cursor:pointer;" onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f1f3f5\'" onclick="window.searchByKeyword(\'' + k.trim() + '\')">#' + k.trim() + '</span>';
+                let parsedKeywords = news.keywords.split(/[\s,]+/).map(k => k.replace(/^#+/, '').trim()).filter(Boolean);
+                kwBox.innerHTML = parsedKeywords.map(function(k) {
+                    return '<span style="background:#f1f3f5; color:#495057; font-size:14px; padding:6px 14px; border-radius:30px; cursor:pointer;" onmouseover="this.style.background=\'#e9ecef\'" onmouseout="this.style.background=\'#f1f3f5\'" onclick="window.searchByKeyword(\'' + k + '\')">#' + k + '</span>';
                 }).join('');
                 kwBox.style.display = 'flex';
+                kwBox.style.flexWrap = 'wrap';
+                kwBox.style.gap = '8px';
             } else {
                 kwBox.style.display = 'none';
             }
