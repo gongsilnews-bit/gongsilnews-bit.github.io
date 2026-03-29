@@ -1,8 +1,8 @@
 // Node 18+ built-in fetch
 
 async function testGemini() {
-    const GEMINI_API_KEY = "AIzaSyAvy-ESK_jmlvqEbcVn0_t7hk1DvmT8GT8"; 
-    const url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY;
+    const GEMINI_API_KEY = "AIzaSyCkB_55N7V9w1267m3ozCdC-091byCo13A"; 
+    const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=" + GEMINI_API_KEY;
     
     try {
         const response = await fetch(url, {
