@@ -400,7 +400,7 @@
                 showToggle: true
             },
             'wish': {
-                name: 'MY관심',
+                name: 'MY관심공실',
                 pills: ['최근본매물', '찜한매물', '관심단지'],
                 basicFilters: ['필터없음'],
                 detailFilters: [],
@@ -1873,7 +1873,7 @@
                 window.filteredPropertyMarkers = propertyMarkers.filter(m => {
                     const p = m.propertyData;
                     
-                    if (activeMain === 'MY관심') {
+                    if (activeMain === 'MY관심공실' || activeMain === 'MY관심') {
                         const activeWishTab = document.querySelector('.interest-tab.active');
                         const isScrap = activeWishTab && activeWishTab.innerText.includes('찜한물건');
                         const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
@@ -1903,7 +1903,7 @@
                     }
 
                     // 3차 전체 필터 매칭 로직 (거래방식, 가격대, 방, 연식, 면적, 기타옵션)
-                    if (activeMain !== 'MY관심') {
+                    if (activeMain !== 'MY관심공실' && activeMain !== 'MY관심') {
                         // 1. 거래방식
                         if (document.getElementById('chkTradeTypeAll')) {
                             const checkedTradeTypes = Array.from(document.querySelectorAll('.chk-trade-type:checked')).map(c => c.value);
