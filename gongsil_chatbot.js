@@ -378,7 +378,7 @@ window.sendAIMsg = function() {
         
         // ========= 2. 유료 모드 (실제 인공지능 API 연동) =========
         const GEMINI_API_KEY = "AIzaSyAvy-ESK_jmlvqEbcVn0_t7hk1DvmT8GT8"; 
-        const url = "https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY;
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
 
         const aiPrompt = "당신은 항상 밝고 친절한 부동산 중개 비서 AI '공실이'입니다. 부동산 관점에서 전문적이고 도움되는 답변을 한국어로 작성해주세요. 그리고 답변에 파란색 하트(💙)나 반짝이(✨) 같은 이모지를 적절히 사용하여 다정하게 구어체로 대답해야 합니다. 기계처럼 딱딱하게 말하지 마세요. 사용자 질문: " + userText;
 
@@ -403,8 +403,15 @@ window.sendAIMsg = function() {
 
             if (!response.ok) {
                 const errBody = await response.text();
+                let errMsg = response.status + " 오류";
+                try {
+                    const errJson = JSON.parse(errBody);
+                    if(errJson.error && errJson.error.message) {
+                        errMsg = errJson.error.message;
+                    }
+                } catch(e) {}
                 console.error("Gemini API 오류 응답:", response.status, errBody);
-                throw new Error("API 요청 실패: " + response.status);
+                throw new Error("API 오류: " + errMsg);
             }
 
             const data = await response.json();
@@ -414,7 +421,7 @@ window.sendAIMsg = function() {
             reply = aiText.replace(/\n/g, '<br>');
         } catch (error) {
             console.error("Gemini API Error:", error);
-            reply = '⚠️ 오류 발생:<br><code style="background:#fee;padding:4px;border-radius:4px;font-size:12px;">' + error.message + '</code><br><br>위 오류 내용을 캡처해서 개발자에게 알려주세요!';
+            reply = '⚠️ 오류 발생:<br><code style="background:#fee;padding:4px;border-radius:4px;font-size:12px;line-height:1.4;display:block;">' + error.message + '</code><br>위 오류 내용을 캡처해서 개발자에게 알려주세요!';
         }
 
         removeTyping(typingId);
