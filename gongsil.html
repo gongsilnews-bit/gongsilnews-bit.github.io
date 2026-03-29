@@ -713,6 +713,7 @@
                     <div class="status-tags" style="width: 100%; justify-content: space-between;">
                         <div style="display: flex; gap: 8px; align-items: center;">
                             <span class="tag-confirm" id="docConfirmBadge">확인매물</span>
+                            <span id="docDisplayId" style="color:#e53e3e; font-weight:bold; font-size:12px;"></span>
                             <span class="reg-date" id="docRegDate">-</span>
                         </div>
                         <div style="display: flex; gap: 10px; font-size: 11px;">
@@ -758,6 +759,10 @@
 
                 <!-- 매물 텍스트 정보 표 -->
                 <div class="detail-info-table">
+                    <div class="info-row">
+                        <div class="info-label" style="font-weight: 700;">매물번호</div>
+                        <div class="info-value" id="docTableId" style="font-weight: 700;">-</div>
+                    </div>
                     <div class="info-row">
                         <div class="info-label">소재지</div>
                         <div class="info-value" id="docLocation">-</div>
@@ -1361,6 +1366,7 @@
                             <div class="card-prop-rooms">${roomInfoHtml}</div>
                             <div class="card-prop-footer">
                                 <span class="tag-confirm">${badgeText}</span>
+                                <span style="color:#e53e3e; font-weight:bold; margin: 0 4px;">${getDisplayId(p.id)}</span>
                                 <span class="card-prop-date">${dateStr}</span>
                             </div>
                         </div>
@@ -1385,6 +1391,12 @@
                     return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
                 }
                 return val.toLocaleString();
+            }
+
+            function getDisplayId(uuid) {
+                if (!uuid) return '';
+                const hex = String(uuid).split('-')[0];
+                return parseInt(hex, 16).toString();
             }
 
             window.showGongsilToast = function(msg) {
@@ -1497,6 +1509,7 @@
                 // Header Info
                 const regDate = new Date(p.created_at);
                 document.getElementById('docRegDate').textContent = `${regDate.getFullYear()}.${String(regDate.getMonth()+1).padStart(2,'0')}.${String(regDate.getDate()).padStart(2,'0')}.`;
+                if(document.getElementById('docDisplayId')) document.getElementById('docDisplayId').textContent = getDisplayId(p.id);
                 
                 // 아파트/오피스텔의 경우 상단 아파트명 동 호수
                 let propTypeStr = p.property_type || '정보없음';
@@ -1571,6 +1584,7 @@
                     }
                 }
 
+                if (document.getElementById('docTableId')) document.getElementById('docTableId').textContent = getDisplayId(p.id);
                 document.getElementById('docLocation').textContent = addr || '주소 정보 없음';
                 document.getElementById('docFeatures').textContent = docFeaturesStr;
                 
