@@ -378,7 +378,7 @@ window.sendAIMsg = function() {
         
         // ========= 2. 유료 모드 (실제 인공지능 API 연동) =========
         const GEMINI_API_KEY = "AIzaSyAvy-ESK_jmlvqEbcVn0_t7hk1DvmT8GT8"; 
-        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=" + GEMINI_API_KEY;
+        const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + GEMINI_API_KEY;
 
         const aiPrompt = "당신은 항상 밝고 친절한 부동산 중개 비서 AI '공실이'입니다. 부동산 관점에서 전문적이고 도움되는 답변을 한국어로 작성해주세요. 그리고 답변에 파란색 하트(💙)나 반짝이(✨) 같은 이모지를 적절히 사용하여 다정하게 구어체로 대답해야 합니다. 기계처럼 딱딱하게 말하지 마세요. 사용자 질문: " + userText;
 
