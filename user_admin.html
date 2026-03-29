@@ -298,28 +298,26 @@
             // URL 파라미터 체크 (예: ?page=news_write)
             const urlParams = new URLSearchParams(window.location.search);
             const pageParam = urlParams.get('page');
+            const tabParam = urlParams.get('tab');
+            const links = document.querySelectorAll('.menu-link');
+
             if (pageParam === 'news_write') {
                 loadPage(null, '기사쓰기', 'news_write.html');
-                // 메뉴 활성화 상태 해제
-                document.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
+                links.forEach(link => link.classList.remove('active'));
+                if (links.length > 1) links[1].classList.add('active'); // 기사관리 탭 활성화
             } else if (pageParam === 'register') {
                 // 공실등록 페이지 직접 열기
                 loadPage(null, '공실등록', 'register.html');
-                document.querySelectorAll('.menu-link').forEach(link => link.classList.remove('active'));
-                const firstLink = document.querySelector('.menu-link');
-                if (firstLink) firstLink.classList.add('active');
-            }
-
-            // 외부에서 ?tab=news 로 진입 시 기사관리 탭 자동 열기
-            if (urlParams.get('tab') === 'news') {
+                links.forEach(link => link.classList.remove('active'));
+                if (links.length > 0) links[0].classList.add('active'); // 공실관리 탭 활성화
+            } else if (tabParam === 'news') {
+                // 외부에서 ?tab=news 로 진입 시 기사관리 탭 자동 열기
                 setTimeout(() => {
-                    const links = document.querySelectorAll('.menu-link');
                     if (links.length > 1) links[1].click();
                 }, 100);
             } else {
                 // 기본 '공실관리' 로드 (브라우저 탭 타이틀 일치를 위해 클릭 이벤트 트리거)
                 setTimeout(() => {
-                    const links = document.querySelectorAll('.menu-link');
                     if (links.length > 0) links[0].click();
                 }, 100);
             }
