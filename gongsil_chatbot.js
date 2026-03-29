@@ -73,14 +73,16 @@ function initGongsilChatbot() {
                         </svg>
                     </div>
                     <div class="msg-content">
-                        안녕하세요! 💙 무엇을 도와드릴까요?<br>회원가입, 요금 안내 등 언제든 질문해 주세요!
+                        안녕하세요! 💙 무엇을 도와드릴까요?<br>공실 검색, 시세 분석은 물론 매물 및 뉴스 등록 팁도 물어보세요!
                     </div>
                 </div>
                 <!-- Quick Chips -->
                 <div class="chat-chips">
-                    <span class="chip" onclick="sendQuickMsg('✨ 회원가입 방법 알려줘')">👤 회원가입 방법</span>
-                    <span class="chip" onclick="sendQuickMsg('💡 요금제는 어떻게 되나요?')">💳 요금제 안내</span>
-                    <span class="chip" onclick="sendQuickMsg('📝 손님 브리핑 멘트 짜줘')">📝 브리핑 작성 (AI)</span>
+                    <span class="chip" onclick="sendQuickMsg('🔍 특정 지역과 조건(예산, 평수)에 맞는 전/월세 공실을 찾아주거나 검색하는 팁을 알려줘')">🔍 조건별 매물 검색</span>
+                    <span class="chip" onclick="sendQuickMsg('📊 요즘 특정 지역의 전세/월세 시세 동향과 시장 분위기를 분석해줘')">📊 주변 시세 분석</span>
+                    <span class="chip" onclick="sendQuickMsg('💰 내가 가진 매물 스펙(면적, 층수, 연식 등)을 주면 적정 임대료나 감정가를 산출하고 예상해줘')">💰 적정 금액 감정</span>
+                    <span class="chip" onclick="sendQuickMsg('💡 클릭률이 높아지고 상단에 노출되도록 사람을 이끄는 매력적인 공실(매물) 소개글 작성 꿀팁 알려줘')">💡 상위노출 공실 등록법</span>
+                    <span class="chip" onclick="sendQuickMsg('📰 관리자에서 부동산 관련 기사나 칼럼을 등록할 때, 조회수가 잘 나오는 제목 짓는 법과 뉴스 작성 노하우를 알려줘')">📰 클릭 부르는 뉴스 작성</span>
                 </div>
             </div>
             <!-- 첨부파일 미리보기 구역 -->
@@ -351,26 +353,27 @@ window.sendAIMsg = function() {
         let reply = '';
         
         // ========= 1. 무료 모드 (키워드 매칭 규칙 기반) =========
-        if (userText.includes('가입') || userText.includes('등록') || userText.includes('시작')) {
+        if (userText === '✨ 회원가입 방법 알려줘') {
             reply = '<b>[회원가입 안내]</b> 👤<br>공실열람 회원가입은 아주 간단합니다!<br>우측 상단의 <b>[프로필 아이콘]</b>을 클릭하신 후, <b>[회원가입]</b> 메뉴를 통해 원하시는 계정으로 1분 만에 가입하실 수 있습니다.<br><br>👉 <a href="register.html" style="color:#0284c7;text-decoration:underline;font-weight:bold;">회원가입 페이지로 바로 이동하기</a>';
             removeTyping(typingId);
             appendMessage('ai', reply);
             return;
         } 
-        else if (userText.includes('요금') || userText.includes('결제') || userText.includes('무료') || userText.includes('가격')) {
+        else if (userText === '💡 요금제는 어떻게 되나요?') {
             reply = '<b>[요금제 안내]</b> 💳<br>부동산 중개사님들을 위한 요금제는 다음과 같습니다:<br><br>✅ <b>기본 플랜:</b> 월 30,000원<br>(공실 열람 무제한, AI 비서 일 100회 무료 제공)<br>✅ <b>무료 플랜:</b> 기본적인 메뉴 탐색과 제한된 검색 기능 지원<br><br>가입 후 마이페이지에서 상세 요금제 가입이 가능합니다!';
             removeTyping(typingId);
             appendMessage('ai', reply);
             return;
         }
-        else if (userText.includes('비밀번호') || userText.includes('비번') || userText.includes('찾기')) {
+        else if (userText.includes('비밀번호 찾기')) {
             reply = '<b>[비밀번호 찾기]</b> 🔐<br>비밀번호를 잊으셨나요? 로그인 페이지 하단의 <b>"비밀번호 찾기"</b> 버튼을 클릭하여 가입하신 이메일로 비밀번호 재설정 링크를 받으실 수 있습니다.';
             removeTyping(typingId);
             appendMessage('ai', reply);
             return;
         }
-        else if (userText.includes('사용법') || userText.includes('이용방법')) {
+        else if (userText === '공실열람 이용방법') {
             reply = '<b>[공실열람 이용방법]</b> 📚<br>상단의 탭을 통해 원하시는 메뉴(공실, 지도, 뉴스 기사, 관리자)로 이동해 보세요. 궁금한 점이 생기면 언제든 저 공실챗봇을 불러주세요!';
+
             removeTyping(typingId);
             appendMessage('ai', reply);
             return;
