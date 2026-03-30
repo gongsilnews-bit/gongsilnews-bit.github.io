@@ -36,6 +36,7 @@ serve(async (req) => {
             type: "OBJECT",
             properties: {
               property_type: { type: "STRING" },
+              sub_property_type: { type: "STRING" },
               trade_type: { type: "STRING" },
               deposit: { type: "NUMBER" },
               monthly_rent: { type: "NUMBER" },
@@ -48,6 +49,10 @@ serve(async (req) => {
               dedicated_m2: { type: "NUMBER" },
               parking_count: { type: "STRING" },
               move_in_type: { type: "STRING" },
+              sido: { type: "STRING" },
+              sigungu: { type: "STRING" },
+              dong: { type: "STRING" },
+              building_name: { type: "STRING" },
               address: { type: "STRING" },
               description: { type: "STRING" },
             }

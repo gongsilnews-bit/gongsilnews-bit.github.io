@@ -1863,6 +1863,7 @@
                 const prompt = "첨부된 매물 전단지/설명서/메신저 캡처 이미지를 분석하여 부동산 정보를 추출해주세요. 만약 정보가 명확하지 않다면 빈 문자열이나 0, null을 반환하세요.\\n" +
                     "중요 규칙: 보증금, 월세, 매매가, 단기임대료, 관리비는 무조건 '단위: 만원'의 숫자로 변환합니다. (예: 1억 -> 10000, 500만 -> 500).\\n" +
                     "- property_type: '아파트·오피스텔', '빌라·주택', '원룸·투룸', '상가·업무·공장·토지', '분양' 중 하나\\n" +
+                    "- sub_property_type: 추출 가능한 2차 종류 (예: 아파트, 오피스텔, 원룸, 상가, 사무실, 토지 등)\\n" +
                     "- trade_type: '매매', '전세', '월세', '단기' 중 가장 적합한 하나\\n" +
                     "- deposit: 보증금 또는 매매가(만원 단위 숫자)\\n" +
                     "- monthly_rent: 월세(만원 단위 숫자)\\n" +
@@ -1873,7 +1874,10 @@
                     "- total_floor: 전체층 숫자\\n" +
                     "- supply_m2: 공급면적 ㎡ (평수가 써있다면 ㎡로 환산하여 기재)\\n" +
                     "- dedicated_m2: 전용면적 ㎡ (평수가 써있다면 ㎡로 환산하여 기재)\\n" +
-                    "- address: 이미지에서 파악 가능한 전체 주소 텍스트 (시/군/구 동/리)\\n" +
+                    "- sido: 광역/도 주소 (예: 서울특별시, 경기도 등)\\n" +
+                    "- sigungu: 시/군/구 주소 (예: 강남구, 부천시 등)\\n" +
+                    "- dong: 읍/면/동 주소 (예: 역삼동, 정자동 등)\\n" +
+                    "- building_name: 건물명 (예: 래미안 파크빌 등)\\n" +
                     "- description: 매물의 핵심 특징, 금액, 주차가능여부, 입주일정 등 텍스트 요약 (기존 내용 보존)";
 
                 if (!window.gongsiClient || !window.gongsiClient.functions) {
@@ -1904,12 +1908,20 @@
                     if(btn) btn.click();
                 }
                 setTimeout(() => {
+                    if(p.sub_property_type) {
+                        const subBtns = Array.from(document.querySelectorAll('#subCategoryGroup .trade-btn'));
+                        const subBtn = subBtns.find(b => b.innerText.includes(p.sub_property_type) || p.sub_property_type.includes(b.innerText));
+                        if(subBtn) subBtn.click();
+                    }
+                }, 200);
+
+                setTimeout(() => {
                     if(p.trade_type) {
                         const btns = Array.from(document.querySelectorAll('.trade-btn'));
                         const btn = btns.find(b => b.innerText === p.trade_type && b.onclick.toString().includes('selectTradeType'));
                         if(btn) btn.click();
                     }
-                }, 100);
+                }, 300);
                 
                 if(p.deposit) {
                     document.getElementById('deposit').value = p.deposit;
@@ -1948,13 +1960,11 @@
                     const descEl = document.getElementById('description');
                     descEl.value = "\\n\\n--- [AI 분석 요약] ---\\n" + p.description + "\\n" + descEl.value;
                 }
-                if(p.address) {
-                     const parts = p.address.split(' ');
-                     if(parts[0]) document.getElementById('sido').value = parts[0];
-                     if(parts[1]) document.getElementById('sigungu').value = parts[1];
-                     if(parts.length > 2) document.getElementById('dong').value = parts.slice(2).join(' ');
-                     updateFullAddress();
-                }
+                if(p.sido) document.getElementById('sido').value = p.sido;
+                if(p.sigungu) document.getElementById('sigungu').value = p.sigungu;
+                if(p.dong) document.getElementById('dong').value = p.dong;
+                if(p.building_name) document.getElementById('buildingName').value = p.building_name;
+                updateFullAddress();
 
                 alert("✨ 놀랍게도 사진 1장으로 매물 정보 분석 및 자동입력이 완료되었습니다! 빠진 부분이나 수정할 부분을 최종 확인해주세요.");
             } catch(err) {
