@@ -218,6 +218,10 @@ function initGongsilChatbot() {
         animation: popInSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         border: 1px solid #e0f2fe;
         resize: both; /* 마우스로 크기 조절 허용 */
+        direction: rtl; /* 리사이즈 핸들을 좌측 하단으로 이동 */
+    }
+    .ai-chat-window > * {
+        direction: ltr; /* 내부 요소는 원래 방향으로 복구 */
     }
 
     /* 전체화면 모드 클래스 */
@@ -327,6 +331,11 @@ function initGongsilChatbot() {
     document.head.appendChild(style);
 
     restoreChatState();
+    
+    // 드래그 기능 초기화
+    setTimeout(() => {
+        if(window.initAiChatDrag) window.initAiChatDrag();
+    }, 100);
 }
 
 if (document.readyState === 'loading') {
@@ -433,6 +442,69 @@ window.toggleMenu = function(menuId) {
 window.closeAllSlideMenus = function() {
     document.getElementById('attachMenu')?.classList.remove('show');
     document.getElementById('quickMenu')?.classList.remove('show');
+};
+
+// -----------------------------------------
+// 드래그 기능
+// -----------------------------------------
+window.initAiChatDrag = function() {
+    const chatWindow = document.getElementById('aiChatWindow');
+    const header = chatWindow.querySelector('.chat-header');
+    if(!chatWindow || !header) return;
+    
+    let isDragging = false;
+    let offsetX, offsetY;
+    
+    header.style.cursor = 'grab';
+    
+    header.addEventListener('mousedown', (e) => {
+        // 컨트롤 버튼이나 그 하위 요소 클릭 시 드래그 방지
+        if (e.target.closest('.win-controls')) return;
+        
+        isDragging = true;
+        header.style.cursor = 'grabbing';
+        
+        const rect = chatWindow.getBoundingClientRect();
+        offsetX = e.clientX - rect.left;
+        offsetY = e.clientY - rect.top;
+        
+        // 브라우저 화면 기준 고정 위치로 변경
+        chatWindow.style.position = 'fixed';
+        chatWindow.style.margin = '0';
+        chatWindow.style.transform = 'none';
+        chatWindow.style.animation = 'none';
+        // z-index를 높여 맨 위로
+        chatWindow.style.zIndex = 100000;
+        
+        // 초기 고정 기준점을 right, top으로 설정
+        // 리사이즈 앵커(우측 상단 고정 효과)를 위해 오른쪽 여백 기준 계산
+        chatWindow.style.top = rect.top + 'px';
+        chatWindow.style.right = (window.innerWidth - rect.right) + 'px';
+        chatWindow.style.left = 'auto';
+        chatWindow.style.bottom = 'auto';
+        
+        // 드래그 중 텍스트 선택 방지
+        document.body.style.userSelect = 'none';
+    });
+    
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        
+        // 새 left 값을 구한 뒤, 이를 바탕으로 right 값 도출 (사이즈 조절 시 우측이 기준이 됨)
+        const newLeft = e.clientX - offsetX;
+        const newRight = window.innerWidth - (newLeft + chatWindow.offsetWidth);
+        
+        chatWindow.style.right = newRight + 'px';
+        chatWindow.style.top = (e.clientY - offsetY) + 'px';
+    });
+    
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            header.style.cursor = 'grab';
+            document.body.style.userSelect = '';
+        }
+    });
 };
 
 // -----------------------------------------
