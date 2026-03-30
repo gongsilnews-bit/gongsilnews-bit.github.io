@@ -304,9 +304,14 @@
             <button type="button" class="tool-btn" onclick="openLoadPreviousModal()">
                 <span class="icon">↻</span> 이전 매물 불러오기
             </button>
-            <button type="button" class="tool-btn" onclick="alert('임시보관함은 준비 중입니다.')">
-                <span class="icon">💾</span> 임시보관함
-            </button>
+            <label class="tool-btn" style="cursor:pointer; background:#eff6ff; border-color:#bfdbfe; color:#1d4ed8;">
+                <span class="icon">📸</span> <div><strong>이미지로 등록하기</strong><div style="font-size:11px; font-weight:normal;">전단지, 메신저 캡처 자동 분석</div></div>
+                <input type="file" id="aiImageInput" accept="image/*" style="display:none;" onchange="handleAiRegistrationImage(event)">
+            </label>
+            <div id="aiRegPreviewBox" style="display:none; margin-bottom:10px; background:#fff; border:1px solid #e1e4e8; border-radius:8px; padding:10px; text-align:center;">
+                <img id="aiRegPreview" src="" style="max-width:100%; max-height:120px; border-radius:4px; margin-bottom:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">
+                <button type="button" class="btn-clone" style="width:100%; background:#1a73e8; font-size:13px; font-weight:800;" onclick="analyzeAiRegistrationImage()">✨ AI 자동입력 분석하기</button>
+            </div>
             <button type="button" class="tool-btn" style="background:#fff3e0; border-color:#ffb74d; color:#e65100;" onclick="alert('AI 매물 멘트 생성 기능은 준비 중입니다.')">
                 <span class="icon">✨</span> AI 멘트 마법사
             </button>
@@ -1830,6 +1835,136 @@
                 }
             }
         }
+
+        // ===============================================
+        // AI 이미지 자동입력 로직 (Gemini 1.5 Flash 연동)
+        // ===============================================
+        window.handleAiRegistrationImage = function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                document.getElementById('aiRegPreviewBox').style.display = 'block';
+                document.getElementById('aiRegPreview').src = evt.target.result;
+            };
+            reader.readAsDataURL(file);
+        };
+
+        window.analyzeAiRegistrationImage = async function() {
+            const src = document.getElementById('aiRegPreview').src;
+            if(!src || !src.includes('base64,')) return;
+            const base64Data = src.split(',')[1];
+            const mimeType = src.split(';')[0].split(':')[1];
+            
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').innerText = 'AI가 이미지를 분석하여\\n입력폼을 자동완성 중입니다...';
+            
+            try {
+                const prompt = "첨부된 매물 전단지/설명서/메신저 캡처 이미지를 분석하여 부동산 정보를 추출해주세요. 만약 정보가 명확하지 않다면 빈 문자열이나 0, null을 반환하세요.\\n" +
+                    "중요 규칙: 보증금, 월세, 매매가, 단기임대료, 관리비는 무조건 '단위: 만원'의 숫자로 변환합니다. (예: 1억 -> 10000, 500만 -> 500).\\n" +
+                    "- property_type: '아파트·오피스텔', '빌라·주택', '원룸·투룸', '상가·업무·공장·토지', '분양' 중 하나\\n" +
+                    "- trade_type: '매매', '전세', '월세', '단기' 중 가장 적합한 하나\\n" +
+                    "- deposit: 보증금 또는 매매가(만원 단위 숫자)\\n" +
+                    "- monthly_rent: 월세(만원 단위 숫자)\\n" +
+                    "- maintenance_fee: 관리비(만원 단위 숫자)\\n" +
+                    "- room_count: 방 개수 (1, 2, 3, 4+ 등 추출)\\n" + 
+                    "- bathroom_count: 욕실 개수\\n" +
+                    "- current_floor: 해당층 숫자\\n" +
+                    "- total_floor: 전체층 숫자\\n" +
+                    "- supply_m2: 공급면적 ㎡ (평수가 써있다면 ㎡로 환산하여 기재)\\n" +
+                    "- dedicated_m2: 전용면적 ㎡ (평수가 써있다면 ㎡로 환산하여 기재)\\n" +
+                    "- address: 이미지에서 파악 가능한 전체 주소 텍스트 (시/군/구 동/리)\\n" +
+                    "- description: 매물의 핵심 특징, 금액, 주차가능여부, 입주일정 등 텍스트 요약 (기존 내용 보존)";
+
+                if (!window.gongsiClient || !window.gongsiClient.functions) {
+                    throw new Error("Supabase 클라이언트가 로드되지 않았습니다.");
+                }
+
+                // parse_image 엣지 함수 호출 (Gemini 1.5 Flash JSON 스키마 응답)
+                const { data, error } = await window.gongsiClient.functions.invoke('parse_image', {
+                    body: {
+                        contents: [{
+                            parts: [
+                                { text: prompt },
+                                { inlineData: { mimeType, data: base64Data } }
+                            ]
+                        }]
+                    }
+                });
+
+                if (error) throw new Error("서버 연동 오류: " + error.message);
+                if (data && data.error) throw new Error("분석 과정 오류: " + data.error);
+                
+                const p = data;
+
+                // ===== 추출된 데이터 자동 폼 입력 =====
+                if(p.property_type) {
+                    const btns = Array.from(document.querySelectorAll('.trade-btn'));
+                    const btn = btns.find(b => b.innerText === p.property_type);
+                    if(btn) btn.click();
+                }
+                setTimeout(() => {
+                    if(p.trade_type) {
+                        const btns = Array.from(document.querySelectorAll('.trade-btn'));
+                        const btn = btns.find(b => b.innerText === p.trade_type && b.onclick.toString().includes('selectTradeType'));
+                        if(btn) btn.click();
+                    }
+                }, 100);
+                
+                if(p.deposit) {
+                    document.getElementById('deposit').value = p.deposit;
+                    updateKoreanAmount('deposit', 'depositKorean');
+                }
+                if(p.monthly_rent) {
+                    document.getElementById('monthlyRent').value = p.monthly_rent;
+                    updateKoreanAmount('monthlyRent', 'rentKorean');
+                }
+                if(p.maintenance_fee) {
+                    document.getElementById('maintenanceFee').value = p.maintenance_fee;
+                    updateKoreanAmount('maintenanceFee', 'mFeeKorean');
+                }
+                if(p.room_count) {
+                    const rcOpts = Array.from(document.getElementById('roomCount').options);
+                    const sel = rcOpts.find(o => o.value.includes(p.room_count) || p.room_count.includes(o.value));
+                    if(sel) sel.selected = true;
+                }
+                if(p.bathroom_count) {
+                    const bcOpts = Array.from(document.getElementById('bathroomCount').options);
+                    const sel = bcOpts.find(o => o.value.includes(p.bathroom_count) || p.bathroom_count.includes(o.value));
+                    if(sel) sel.selected = true;
+                }
+                if(p.current_floor) document.getElementById('currentFloor').value = p.current_floor;
+                if(p.total_floor) document.getElementById('totalFloor').value = p.total_floor;
+                
+                if(p.supply_m2) {
+                    document.getElementById('supplyArea').value = p.supply_m2;
+                    convertArea('m2', 'supply');
+                }
+                if(p.dedicated_m2) {
+                    document.getElementById('dedicatedArea').value = p.dedicated_m2;
+                    convertArea('m2', 'dedicated');
+                }
+                if(p.description) {
+                    const descEl = document.getElementById('description');
+                    descEl.value = "\\n\\n--- [AI 분석 요약] ---\\n" + p.description + "\\n" + descEl.value;
+                }
+                if(p.address) {
+                     const parts = p.address.split(' ');
+                     if(parts[0]) document.getElementById('sido').value = parts[0];
+                     if(parts[1]) document.getElementById('sigungu').value = parts[1];
+                     if(parts.length > 2) document.getElementById('dong').value = parts.slice(2).join(' ');
+                     updateFullAddress();
+                }
+
+                alert("✨ 놀랍게도 사진 1장으로 매물 정보 분석 및 자동입력이 완료되었습니다! 빠진 부분이나 수정할 부분을 최종 확인해주세요.");
+            } catch(err) {
+                console.error(err);
+                alert("분석 중 오류 발생: " + err.message);
+            } finally {
+                document.getElementById('loadingOverlay').style.display = 'none';
+                document.getElementById('loadingText').innerText = '작업 처리 중...';
+            }
+        };
     </script>
 </body>
 </html>

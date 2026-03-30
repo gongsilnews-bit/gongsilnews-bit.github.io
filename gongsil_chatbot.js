@@ -1,16 +1,12 @@
-// 공실챗봇 (AI 비서) 공통 모듈
-// 모든 페이지에서 스크립트 하나만 로드하면 챗봇이 둥둥 뜨도록 설정합니다.
+// 공실챗봇 (AI 비서) 공통 모듈 v3.0 대공사 완료
 
 function initGongsilChatbot() {
-    // 이미 챗봇이 삽입되어 있으면 중복 렌더링을 막습니다.
     if (document.getElementById('ai-companion-container')) return;
 
-    // 1. 챗봇 HTML 생성 및 삽입
     const chatbotHtml = `
-    <!-- AI 도우미 챗봇 (파란색 계통 귀여운 로봇 디자인) -->
+    <!-- AI 도우미 챗봇 -->
     <div id="ai-companion-container">
         <div id="aiBotBtn" class="ai-bot-btn" title="AI 비서 열기" onclick="toggleAIChat()">
-            <!-- 귀여운 커스텀 로봇 아이콘 -->
             <svg class="bot-icon" width="45" height="45" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
               <path d="M38 25 L25 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
               <circle cx="25" cy="5" r="5" fill="#0ea5e9" />
@@ -32,7 +28,7 @@ function initGongsilChatbot() {
             <div class="bot-tooltip">안녕! 부동산 AI 공실이에요 💙</div>
         </div>
 
-        <!-- 채팅창 -->
+        <!-- 채팅창 본체 (리사이즈 가능) -->
         <div id="aiChatWindow" class="ai-chat-window">
             <div class="chat-header">
                 <div class="chat-title">
@@ -42,9 +38,6 @@ function initGongsilChatbot() {
                       <path d="M62 25 L75 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
                       <circle cx="75" cy="5" r="5" fill="#38bdf8" />
                       <path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" />
-                      <rect x="38" y="80" width="24" height="6" rx="3" fill="#0f172a" />
-                      <path d="M10 42 h 15 v 20 h -15 z" fill="#0284c7" />
-                      <path d="M75 42 h 15 v 20 h -15 z" fill="#0284c7" />
                       <circle cx="50" cy="50" r="34" fill="#ffffff" />
                       <rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" />
                       <rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
@@ -52,20 +45,19 @@ function initGongsilChatbot() {
                     </svg>
                     공실챗봇
                 </div>
-                <button class="chat-close" title="닫기" onclick="toggleAIChat()">×</button>
+                <!-- 윈도우 스타일 컨트롤 박스 -->
+                <div class="win-controls">
+                    <button class="win-btn win-min" title="최소화" onclick="toggleAIChat()">−</button>
+                    <button id="chatMaxBtn" class="win-btn win-max" title="전체보기/되돌리기" onclick="toggleAiFullscreen()">□</button>
+                    <button class="win-btn win-close" title="닫기" onclick="toggleAIChat()">×</button>
+                </div>
             </div>
-            <div class="chat-body" id="aiChatBody">
+            
+            <div class="chat-body" id="aiChatBody" onclick="closeAllSlideMenus()">
                 <div class="chat-msg ai-msg">
                     <div class="msg-avatar">
                         <svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M38 25 L25 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-                          <circle cx="25" cy="5" r="5" fill="#0ea5e9" />
-                          <path d="M62 25 L75 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-                          <circle cx="75" cy="5" r="5" fill="#0ea5e9" />
                           <path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" />
-                          <rect x="38" y="80" width="24" height="6" rx="3" fill="#0f172a" />
-                          <path d="M10 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
-                          <path d="M75 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
                           <circle cx="50" cy="50" r="34" fill="#ffffff" />
                           <rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" />
                           <rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
@@ -76,29 +68,91 @@ function initGongsilChatbot() {
                         안녕하세요! 💙 무엇을 도와드릴까요?<br>공실 검색, 시세 분석은 물론 매물 및 뉴스 등록 팁도 물어보세요!
                     </div>
                 </div>
-                // Quick Chips
                 <div class="chat-chips">
                     <span class="chip" onclick="sendQuickMsg('🔍 특정 지역과 조건(예산, 평수)에 맞는 전/월세 공실을 찾아주거나 검색하는 팁을 알려줘')">🔍 조건별 매물 검색</span>
                     <span class="chip" onclick="sendQuickMsg('📊 요즘 특정 지역의 전세/월세 시세 동향과 시장 분위기를 분석해줘')">📊 주변 시세 분석</span>
-                    <span class="chip" onclick="sendQuickMsg('💰 내가 가진 매물 스펙(면적, 층수, 연식 등)을 주면 적정 임대료나 감정가를 산출하고 예상해줘')">💰 적정 금액 감정</span>
                     <span class="chip" onclick="sendQuickMsg('💡 클릭률이 높아지고 상단에 노출되도록 사람을 이끄는 매력적인 공실(매물) 소개글 작성 꿀팁 알려줘')">💡 상위노출 공실 등록법</span>
-                    <span class="chip" onclick="sendQuickMsg('📰 관리자에서 부동산 관련 기사나 칼럼을 등록할 때, 조회수가 잘 나오는 제목 짓는 법과 뉴스 작성 노하우를 알려줘')">📰 클릭 부르는 뉴스 작성</span>
                 </div>
             </div>
+            
             <!-- 첨부파일 미리보기 구역 -->
-            <div id="aiImgPreviewContainer" style="display:none; padding:10px 16px; background:#f8fafc; border-top:1px solid #e0f2fe; position:relative;">
+            <div id="aiImgPreviewContainer" style="display:none; padding:10px 16px; background:#f8fafc; border-top:1px solid #e0f2fe; position:relative; z-index:20;">
                 <img id="aiImgPreview" src="" alt="첨부 이미지" style="height:60px; border-radius:8px; box-shadow:0 2px 6px rgba(0,0,0,0.1); border:1px solid #cbd5e1; object-fit:cover;">
-                <button onclick="removeAiChatImage()" style="position:absolute; top:4px; left:60px; background:#ef4444; color:white; border:none; width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 4px rgba(0,0,0,0.2);">×</button>
+                <button onclick="removeAiChatImage()" style="position:absolute; top:4px; left:60px; background:#ef4444; color:white; border:none; width:22px; height:22px; border-radius:50%; font-size:12px; font-weight:bold; cursor:pointer;">×</button>
             </div>
+            
+            <!-- 슬라이드 메뉴: 파일 첨부 (+) -->
+            <div class="chat-slide-menu" id="attachMenu">
+                <div class="menu-grid">
+                    <label class="menu-item">
+                        <div class="menu-icon" style="color:#0ea5e9;">📸</div>
+                        <span>카메라 촬영</span>
+                        <input type="file" accept="image/*" capture="environment" style="display:none;" id="aiCameraInput" onchange="handleAiChatFileUpload(event)">
+                    </label>
+                    <label class="menu-item">
+                        <div class="menu-icon" style="color:#8b5cf6;">🖼️</div>
+                        <span>사진/갤러리</span>
+                        <input type="file" accept="image/*" style="display:none;" id="aiGalleryInput" onchange="handleAiChatFileUpload(event)">
+                    </label>
+                    <div class="menu-item" onclick="alert('파일 첨부 기능은 준비 중입니다.')">
+                        <div class="menu-icon" style="color:#f59e0b;">📎</div>
+                        <span>파일 문서</span>
+                    </div>
+                    <div class="menu-item" onclick="alert('노트북 열기 기능은 준비 중입니다.')">
+                        <div class="menu-icon" style="color:#10b981;">📓</div>
+                        <span>노트북</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 슬라이드 메뉴: 빠른 메뉴보기 (☰) -->
+            <div class="chat-slide-menu" id="quickMenu">
+                <div class="menu-grid">
+                    <div class="menu-item" onclick="window.location.href='gongsil.html'">
+                        <div class="menu-icon" style="background:#e0f2fe; color:#0284c7;">🔍</div>
+                        <span style="font-weight:700;">공실열람</span>
+                    </div>
+                    <div class="menu-item" onclick="window.location.href='user_admin.html?page=register'">
+                        <div class="menu-icon" style="background:#dcfce7; color:#16a34a;">✍️</div>
+                        <span style="font-weight:700;">공실등록</span>
+                    </div>
+                    <div class="menu-item" onclick="window.location.href='index.html'">
+                        <div class="menu-icon" style="background:#f3e8ff; color:#9333ea;">📰</div>
+                        <span style="font-weight:700;">기사열람</span>
+                    </div>
+                    <div class="menu-item" onclick="window.location.href='user_admin.html?page=news_write'">
+                        <div class="menu-icon" style="background:#ffedd5; color:#ea580c;">🖋️</div>
+                        <span style="font-weight:700;">기사등록</span>
+                    </div>
+                    <div class="menu-item" onclick="window.location.href='customer_admin.html'">
+                        <div class="menu-icon" style="background:#ffe4e6; color:#e11d48;">👥</div>
+                        <span style="font-weight:700;">고객관리</span>
+                    </div>
+                    <!-- 추후 대표님이 주실 추가 링크를 위해 비워둡니다 -->
+                    <div class="menu-item" onclick="alert('딥 리서치 모드는 준비 중입니다.')">
+                        <div class="menu-icon" style="background:#f1f5f9; color:#475569;">🚀</div>
+                        <span style="font-weight:700;">Deep Research</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 하단 푸터 (버튼 및 입력창) -->
             <div class="chat-footer">
-                <button class="chat-clear-btn" title="대화 지우기" onclick="clearChatHistory()" style="background:none; border:none; color:#94a3b8; cursor:pointer; padding:0 8px;">
-                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <button class="chat-action-btn attach-btn" title="첨부 메뉴" onclick="toggleMenu('attachMenu')">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
-                <label for="aiChatFile" class="chat-attach" title="사진 첨부">
-                    <svg width="20" height="20" fill="none" stroke="#64748b" stroke-width="2" viewBox="0 0 24 24"><path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-                </label>
-                <input type="file" id="aiChatFile" accept="image/*" style="display:none;" onchange="handleAiChatFileUpload(event)">
-                <input type="text" id="aiChatInput" title="메시지 입력란" placeholder="사진 📎 후 물어보세요..." autocomplete="off" onkeypress="if(event.key==='Enter') sendAIMsg()">
+                <button class="chat-action-btn apps-btn" title="빠른 이동 메뉴" onclick="toggleMenu('quickMenu')">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect></svg>
+                </button>
+                
+                <div class="input-wrapper">
+                    <input type="text" id="aiChatInput" title="메시지 입력란" placeholder="메시지를 입력하세요..." autocomplete="off" onkeypress="if(event.key==='Enter') sendAIMsg()" onfocus="closeAllSlideMenus()">
+                    <!-- STT 마이크 버튼 -->
+                    <button id="sttBtn" class="chat-mic-btn" onclick="toggleAiStt()" title="음성으로 입력하기">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"></path><path d="M19 10v2a7 7 0 01-14 0v-2m14 0h-2m-12 0H3m9 9v3m-3 0h6"></path></svg>
+                    </button>
+                </div>
+
                 <button class="chat-send" title="전송" onclick="sendAIMsg()">
                     <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"></path></svg>
                 </button>
@@ -107,10 +161,9 @@ function initGongsilChatbot() {
     </div>`;
     document.body.insertAdjacentHTML('beforeend', chatbotHtml);
 
-    // 2. 챗봇 CSS 삽입
     const style = document.createElement('style');
     style.textContent = `
-    /* AI Chatbot Styles - Blue Cute Robot Version */
+    /* AI Chatbot Styles - v3.0 */
     #ai-companion-container {
         position: fixed; top: 130px; right: 30px;
         z-index: 10000; pointer-events: none;
@@ -132,149 +185,161 @@ function initGongsilChatbot() {
     .bot-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1)); }
     .bot-badge {
         position: absolute; top: -4px; right: -4px;
-        background: #ef4444; color: white;
-        font-size: 11px; font-weight: 800; width: 22px; height: 22px;
-        border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        border: 2px solid #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        background: #ef4444; color: white; border-radius: 50%; width: 22px; height: 22px;
+        display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 800; border: 2px solid #fff;
     }
     .bot-tooltip {
         position: absolute; right: 85px; top: 16px;
         background: #ffffff; padding: 12px 18px; border-radius: 12px;
         box-shadow: 0 6px 16px rgba(0,0,0,0.1); border: 2px solid #e0f2fe;
-        font-size: 13.5px; font-weight: 800; color: #0284c7;
-        white-space: nowrap; pointer-events: none;
+        font-size: 13.5px; font-weight: 800; color: #0284c7; white-space: nowrap;
         animation: floatTooltip 3s infinite ease-in-out;
     }
-    .bot-tooltip::after {
-        content: ''; position: absolute; right: -7px; top: 14px;
-        border-width: 6px 0 6px 7px; border-style: solid;
-        border-color: transparent transparent transparent #e0f2fe;
-    }
 
-    @keyframes gentleFloat {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
-    }
+    @keyframes gentleFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @keyframes floatTooltip { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(-4px); } }
 
-    @keyframes floatTooltip {
-        0%, 100% { transform: translateX(0); }
-        50% { transform: translateX(-4px); }
-    }
-
-    /* Chat Window */
+    /* 크기 조절 가능한 챗봇 창 설정 */
     .ai-chat-window {
         position: absolute; top: 80px; right: 0;
-        width: 370px; height: 550px;
+        width: 400px; height: 650px;
+        min-width: 320px; min-height: 450px;
+        max-width: 90vw; max-height: 90vh;
         background: #ffffff; border-radius: 20px;
         box-shadow: 0 12px 50px rgba(15, 23, 42, 0.15);
         display: none; flex-direction: column; overflow: hidden;
-        transform-origin: top right;
-        animation: popInSmooth 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        animation: popInSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         border: 1px solid #e0f2fe;
+        resize: both; /* 마우스로 크기 조절 허용 */
     }
-    @keyframes popInSmooth {
-        from { opacity: 0; transform: scale(0.95); }
-        to { opacity: 1; transform: scale(1); }
+
+    /* 전체화면 모드 클래스 */
+    .ai-chat-window.fullscreen {
+        position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important;
+        width: 100vw !important; height: 100vh !important; max-width: none !important; max-height: none !important;
+        border-radius: 0 !important; resize: none !important; border: none !important; z-index: 10000;
     }
+
+    @keyframes popInSmooth { from { opacity: 0; transform: scale(0.95); margin-top:20px; } to { opacity: 1; transform: scale(1); margin-top:0;} }
 
     .chat-header {
         background: linear-gradient(135deg, #0ea5e9, #0284c7);
         padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+        flex-shrink: 0; user-select: none;
     }
-    .chat-title { font-weight: 800; color: #fff; display:flex; gap:10px; align-items:center; font-size:16px; letter-spacing: -0.3px;}
-    .chat-close { background: none; border: none; font-size: 26px; color: rgba(255,255,255,0.7); cursor: pointer; padding:0; line-height:1; }
-    .chat-close:hover { color: #fff; }
+    .chat-title { font-weight: 800; color: #fff; display:flex; gap:10px; align-items:center; font-size:16px;}
+    
+    /* 윈도우 스타일 컨트롤 박스 */
+    .win-controls { display: flex; gap: 8px; align-items: center; }
+    .win-btn {
+        width: 24px; height: 24px; border-radius: 6px; border: none; background: rgba(255,255,255,0.15);
+        color: #fff; font-size: 14px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center;
+        transition: 0.2s; padding: 0;
+    }
+    .win-btn:hover { background: rgba(255,255,255,0.3); }
+    .win-close:hover { background: #ef4444; }
 
     .chat-body {
         flex: 1; padding: 20px; overflow-y: auto; background: #f0f9ff;
-        display: flex; flex-direction: column; gap: 18px;
+        display: flex; flex-direction: column; gap: 18px; position: relative;
     }
     .chat-msg { display: flex; gap: 10px; max-width: 90%; }
     .ai-msg { align-self: flex-start; }
     .my-msg { align-self: flex-end; flex-direction: row-reverse; }
 
     .msg-avatar { 
-        width: 40px; height: 40px; background: #bae6fd;
-        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+        width: 40px; height: 40px; background: #bae6fd; border-radius: 50%; display: flex; align-items: center; justify-content: center; 
         flex-shrink: 0; margin-top:2px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 2px solid #fff;
     }
     .my-msg .msg-avatar { display: none; }
 
     .msg-content {
-        background: #fff; border: 1px solid #e0f2fe; padding: 14px 16px;
-        border-radius: 4px 16px 16px 16px; font-size: 14px; color: #334155;
-        line-height: 1.5; box-shadow: 0 2px 8px rgba(0,0,0,0.02); font-weight: 500;
+        background: #fff; border: 1px solid #e0f2fe; padding: 14px 16px; border-radius: 4px 16px 16px 16px; font-size: 14px; color: #334155; line-height: 1.5; box-shadow: 0 2px 8px rgba(0,0,0,0.02); font-weight: 500; word-break: break-all;
     }
-    .my-msg .msg-content {
-        background: #0ea5e9; color: #fff; border: none;
-        border-radius: 16px 4px 16px 16px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2);
-    }
+    .my-msg .msg-content { background: #0ea5e9; color: #fff; border: none; border-radius: 16px 4px 16px 16px; box-shadow: 0 4px 12px rgba(14, 165, 233, 0.2); }
 
     .chat-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
-    .chip { 
-        border: 1px solid #bae6fd; color: #0284c7; background: #fff; 
-        padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; 
-        cursor: pointer; transition: all 0.2s; white-space: nowrap; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-    }
-    .chip:hover { background: #0284c7; color: #fff; border-color:#0284c7; transform: translateY(-1px); box-shadow: 0 4px 8px rgba(2, 132, 199, 0.2); }
+    .chip { border: 1px solid #bae6fd; color: #0284c7; background: #fff; padding: 8px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; cursor: pointer; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+    .chip:hover { background: #0284c7; color: #fff; border-color:#0284c7; transform: translateY(-1px); }
 
-    .chat-attach {
-        display: flex; align-items: center; justify-content: center;
-        width: 38px; height: 38px; cursor: pointer; background: #f1f5f9;
-        border-radius: 50%; transition: 0.2s; flex-shrink: 0;
+    /* 슬라이드 메뉴 공통 */
+    .chat-slide-menu {
+        position: absolute; bottom: 74px; /* 푸터 높이 근접 */ left: 0; width: 100%; height: 0; overflow: hidden;
+        background: #ffffff; border-radius: 20px 20px 0 0; box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+        transition: height 0.3s cubic-bezier(0.16, 1, 0.3, 1); z-index: 100; border-top: 1px solid #e2e8f0;
     }
-    .chat-attach:hover { background: #e2e8f0; }
+    .chat-slide-menu.show { height: 210px; }
+    
+    .menu-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px 5px; padding: 25px 10px; }
+    .menu-item { display: flex; flex-direction: column; align-items: center; gap: 10px; cursor: pointer; font-size: 13px; color: #475569; }
+    .menu-icon { width: 50px; height: 50px; border-radius: 16px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; color: #333; }
+    .menu-item:hover .menu-icon { transform: scale(1.08); box-shadow: 0 6px 14px rgba(0,0,0,0.06); background: #f1f5f9; }
 
+    /* Footer Styles */
     .chat-footer {
-        padding: 16px; border-top: 1px solid #e0f2fe; background: #fff;
-        display: flex; gap: 12px; align-items: center;
+        padding: 14px 16px; border-top: 1px solid #e0f2fe; background: #fff;
+        display: flex; gap: 10px; align-items: center; position: relative; z-index: 110; flex-shrink: 0;
     }
-    .chat-footer input {
-        flex: 1; border: 1px solid #bae6fd; background: #f8fafc; padding: 14px 18px;
-        border-radius: 24px; outline: none; font-size: 14px; font-family: inherit; transition: 0.2s;
+    .chat-action-btn { 
+        background: none; border: none; cursor: pointer; border-radius: 10px; width: 38px; height: 38px; 
+        display: flex; align-items: center; justify-content: center; color: #64748b; transition: 0.2s; flex-shrink:0;
     }
-    .chat-footer input:focus { border-color: #0ea5e9; background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+    .attach-btn { background: #f1f5f9; color: #0284c7; }
+    .attach-btn:hover { background: #e2e8f0; color: #0369a1; }
+    .apps-btn { }
+    .apps-btn:hover { background: #f1f5f9; color:#0f172a; }
+
+    .input-wrapper { flex: 1; position: relative; display: flex; align-items: center; }
+    .input-wrapper input {
+        width: 100%; border: 1px solid #cbd5e1; background: #f8fafc; padding: 14px 45px 14px 20px;
+        border-radius: 20px; outline: none; font-size: 14.5px; font-family: inherit; transition: 0.2s; font-weight:500;
+    }
+    .input-wrapper input:focus { border-color: #0ea5e9; background: #fff; box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1); }
+    
+    /* STT 마이크 버튼 */
+    .chat-mic-btn {
+        position: absolute; right: 5px; background: none; border: none; width: 34px; height: 34px;
+        border-radius: 50%; cursor: pointer; color: #94a3b8; display: flex; align-items: center; justify-content: center; transition: 0.2s;
+    }
+    .chat-mic-btn:hover { color: #0ea5e9; background: #e0f2fe; }
+    /* 녹음 중 스타일 효과 */
+    .chat-mic-btn.recording { color: #ef4444; background: #fee2e2; animation: pulseRed 1.5s infinite; }
+    @keyframes pulseRed { 0% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);} 70% {box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);} 100% {box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);} }
+
     .chat-send { 
-        background: #0ea5e9; border: none; color: white; width: 46px; height: 46px; 
-        border-radius: 50%; display: flex; align-items: center; justify-content: center; 
-        cursor: pointer; flex-shrink: 0; transition:0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2);
+        background: #0ea5e9; border: none; color: white; width: 44px; height: 44px; 
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; transition:0.2s; box-shadow: 0 4px 10px rgba(14, 165, 233, 0.2);
     }
     .chat-send:hover { background: #0284c7; transform: scale(1.05); }
 
     .typing-dots { display: flex; gap: 4px; padding: 6px 4px; align-items:center; }
     .dot { width: 6px; height: 6px; background: #94a3b8; border-radius: 50%; animation: bounceDot 1.4s infinite ease-in-out both; }
-    .dot:nth-child(1) { animation-delay: -0.32s; }
-    .dot:nth-child(2) { animation-delay: -0.16s; }
+    .dot:nth-child(1) { animation-delay: -0.32s; } .dot:nth-child(2) { animation-delay: -0.16s; }
     @keyframes bounceDot { 0%, 80%, 100% { transform: scale(0); } 40% { transform: scale(1); } }
-    
-    .chat-clear-btn:hover { color: #ef4444; }
     `;
     document.head.appendChild(style);
 
-    // 2.5 상태 복원
     restoreChatState();
 }
 
-// 스크립트가 로드될 때 DOM 상태에 따라 렌더링을 안전하게 시작합니다!
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initGongsilChatbot);
 } else {
     initGongsilChatbot();
 }
 
-// 3. 글로벌 함수 및 변수 정의 (상태 저장/복원 로직)
+// -----------------------------------------
+// 상태 관리 (SessionStorage)
+// -----------------------------------------
 window.saveChatState = function() {
     const aiWindow = document.getElementById('aiChatWindow');
     const aiBody = document.getElementById('aiChatBody');
     if (aiWindow && aiBody) {
         sessionStorage.setItem('aiChatOpen', aiWindow.style.display === 'flex' ? 'true' : 'false');
-        
-        // 타이핑 애니메이션 요소는 저장하지 않음 (페이지 리로드 시 남는 것 방지)
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = aiBody.innerHTML;
         const typingEls = tempDiv.querySelectorAll('[id^="typing-"]');
         typingEls.forEach(el => el.remove());
-        
         sessionStorage.setItem('aiChatHistory', tempDiv.innerHTML);
     }
 };
@@ -283,102 +348,146 @@ window.restoreChatState = function() {
     const aiWindow = document.getElementById('aiChatWindow');
     const aiBody = document.getElementById('aiChatBody');
     const tooltip = document.querySelector('.bot-tooltip');
-    const badge = document.querySelector('.bot-badge');
     
     const savedHistory = sessionStorage.getItem('aiChatHistory');
     const isOpen = sessionStorage.getItem('aiChatOpen') === 'true';
     
-    if (savedHistory && aiBody) {
-        aiBody.innerHTML = savedHistory;
-    }
+    if (savedHistory && aiBody) aiBody.innerHTML = savedHistory;
     
     if (isOpen && aiWindow) {
         aiWindow.style.display = 'flex';
-        // 창이 열려있으면 말풍선과 뱃지는 숨김
         if (tooltip) tooltip.style.display = 'none';
-        if (badge) badge.style.display = 'none';
         scrollToBottom();
     }
 };
 
 window.clearChatHistory = function() {
     if (!confirm('대화 내역을 모두 지우시겠습니까?')) return;
-    
     const aiBody = document.getElementById('aiChatBody');
     if (aiBody) {
-        // 기본 웰컴 메시지와 칩스만 남기고 싹 비움
         aiBody.innerHTML = `
             <div class="chat-msg ai-msg">
-                <div class="msg-avatar">
-                    <svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M38 25 L25 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-                        <circle cx="25" cy="5" r="5" fill="#0ea5e9" />
-                        <path d="M62 25 L75 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-                        <circle cx="75" cy="5" r="5" fill="#0ea5e9" />
-                        <path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" />
-                        <rect x="38" y="80" width="24" height="6" rx="3" fill="#0f172a" />
-                        <path d="M10 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
-                        <path d="M75 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
-                        <circle cx="50" cy="50" r="34" fill="#ffffff" />
-                        <rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" />
-                        <rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
-                        <rect x="58" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
-                    </svg>
-                </div>
-                <div class="msg-content">
-                    안녕하세요! 💙 무엇을 도와드릴까요?<br>공실 검색, 시세 분석은 물론 매물 및 뉴스 등록 팁도 물어보세요!
-                </div>
-            </div>
-            <div class="chat-chips">
-                <span class="chip" onclick="sendQuickMsg('🔍 특정 지역과 조건(예산, 평수)에 맞는 전/월세 공실을 찾아주거나 검색하는 팁을 알려줘')">🔍 조건별 매물 검색</span>
-                <span class="chip" onclick="sendQuickMsg('📊 요즘 특정 지역의 전세/월세 시세 동향과 시장 분위기를 분석해줘')">📊 주변 시세 분석</span>
-                <span class="chip" onclick="sendQuickMsg('💰 내가 가진 매물 스펙(면적, 층수, 연식 등)을 주면 적정 임대료나 감정가를 산출하고 예상해줘')">💰 적정 금액 감정</span>
-                <span class="chip" onclick="sendQuickMsg('💡 클릭률이 높아지고 상단에 노출되도록 사람을 이끄는 매력적인 공실(매물) 소개글 작성 꿀팁 알려줘')">💡 상위노출 공실 등록법</span>
-                <span class="chip" onclick="sendQuickMsg('📰 관리자에서 부동산 관련 기사나 칼럼을 등록할 때, 조회수가 잘 나오는 제목 짓는 법과 뉴스 작성 노하우를 알려줘')">📰 클릭 부르는 뉴스 작성</span>
-            </div>
-        `;
-        window.saveChatState();
+                <div class="msg-avatar"><svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" /><circle cx="50" cy="50" r="34" fill="#ffffff" /><rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" /><rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" /><rect x="58" y="43" width="8" height="12" rx="4" fill="#22d3ee" /></svg></div>
+                <div class="msg-content">안녕하세요! 💙 대화 기록이 지워졌습니다. 무엇을 도와드릴까요?</div>
+            </div>`;
+        saveChatState();
     }
 };
 
-const aiAvatarSvg = `
-<svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-    <path d="M38 25 L25 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="25" cy="5" r="5" fill="#0ea5e9" />
-    <path d="M62 25 L75 5" stroke="#1e293b" stroke-width="4" stroke-linecap="round"/>
-    <circle cx="75" cy="5" r="5" fill="#0ea5e9" />
-    <path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" />
-    <rect x="38" y="80" width="24" height="6" rx="3" fill="#0f172a" />
-    <path d="M10 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
-    <path d="M75 42 h 15 v 20 h -15 z" fill="#0ea5e9" />
-    <circle cx="50" cy="50" r="34" fill="#ffffff" />
-    <rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" />
-    <rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
-    <rect x="58" y="43" width="8" height="12" rx="4" fill="#22d3ee" />
-</svg>`;
-
+// -----------------------------------------
+// UI 제어 (윈도우, 슬라이드 메뉴, 전체화면)
+// -----------------------------------------
 window.toggleAIChat = function() {
     const aiWindow = document.getElementById('aiChatWindow');
     const aiInput = document.getElementById('aiChatInput');
     const tooltip = document.querySelector('.bot-tooltip');
-    const badge = document.querySelector('.bot-badge');
     
     if (aiWindow.style.display === 'flex') {
         aiWindow.style.display = 'none';
-        window.saveChatState();
+        aiWindow.classList.remove('fullscreen'); // 닫을 때 전체화면 해제
+        closeAllSlideMenus();
+        saveChatState();
     } else {
         aiWindow.style.display = 'flex';
         if (tooltip) tooltip.style.display = 'none';
-        if (badge) badge.style.display = 'none';
-        window.saveChatState();
+        saveChatState();
         setTimeout(() => aiInput.focus(), 100);
         scrollToBottom();
     }
 };
 
+window.toggleAiFullscreen = function() {
+    const aiWindow = document.getElementById('aiChatWindow');
+    const maxBtn = document.getElementById('chatMaxBtn');
+    aiWindow.classList.toggle('fullscreen');
+    
+    if (aiWindow.classList.contains('fullscreen')) {
+        maxBtn.innerText = '❐';
+        maxBtn.title = '창 크기 복원';
+    } else {
+        maxBtn.innerText = '□';
+        maxBtn.title = '전체화면보기';
+    }
+    scrollToBottom();
+};
+
+window.toggleMenu = function(menuId) {
+    const menuList = ['attachMenu', 'quickMenu'];
+    menuList.forEach(id => {
+        const el = document.getElementById(id);
+        if (id === menuId) {
+            el.classList.toggle('show');
+        } else {
+            el.classList.remove('show');
+        }
+    });
+};
+
+window.closeAllSlideMenus = function() {
+    document.getElementById('attachMenu')?.classList.remove('show');
+    document.getElementById('quickMenu')?.classList.remove('show');
+};
+
+// -----------------------------------------
+// STT (음성 인식) 기능
+// -----------------------------------------
+let recognition = null;
+let isRecording = false;
+
+window.toggleAiStt = function() {
+    const sttBtn = document.getElementById('sttBtn');
+    const inputField = document.getElementById('aiChatInput');
+    
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+        alert("이 브라우저에서는 음성 인식을 지원하지 않습니다. (크롬, 엣지를 권장합니다)");
+        return;
+    }
+
+    if (isRecording) {
+        // 녹음 종료
+        recognition.stop();
+        return;
+    }
+
+    // 초기화 및 시작
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+    recognition.lang = 'ko-KR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    recognition.onstart = function() {
+        isRecording = true;
+        sttBtn.classList.add('recording');
+        inputField.placeholder = "듣고 있습니다... 말씀해주세요!";
+    };
+
+    recognition.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const currentVal = inputField.value;
+        inputField.value = currentVal ? currentVal + " " + transcript : transcript;
+    };
+
+    recognition.onerror = function(event) {
+        console.error("STT Error:", event.error);
+        alert("음성 인식 오류: " + event.error);
+    };
+
+    recognition.onend = function() {
+        isRecording = false;
+        sttBtn.classList.remove('recording');
+        inputField.placeholder = "메시지를 입력하세요...";
+        inputField.focus(); // 텍스트 입력 후 자연스럽게 포커스
+    };
+
+    recognition.start();
+};
+
+// -----------------------------------------
+// 기타 기존 채팅 발송/복원 로직
+// -----------------------------------------
 window.sendQuickMsg = function(text) {
-    const aiInput = document.getElementById('aiChatInput');
-    aiInput.value = text;
+    document.getElementById('aiChatInput').value = text;
     window.sendAIMsg();
 };
 
@@ -388,6 +497,9 @@ window.currentAiMimeType = null;
 window.handleAiChatFileUpload = function(e) {
     const file = e.target.files[0];
     if (!file) return;
+    
+    closeAllSlideMenus(); // 파일 첨부 시 메뉴 자동 닫기
+
     const reader = new FileReader();
     reader.onload = function(evt) {
         const dataUrl = evt.target.result;
@@ -395,9 +507,10 @@ window.handleAiChatFileUpload = function(e) {
         window.currentAiMimeType = file.type;
         document.getElementById('aiImgPreview').src = dataUrl;
         document.getElementById('aiImgPreviewContainer').style.display = 'block';
+        setTimeout(scrollToBottom, 100);
     };
     reader.readAsDataURL(file);
-    e.target.value = ''; // 같은 파일 다시 선택 가능하게 초기화
+    e.target.value = ''; 
 };
 
 window.removeAiChatImage = function() {
@@ -407,136 +520,7 @@ window.removeAiChatImage = function() {
     document.getElementById('aiImgPreview').src = '';
 };
 
-window.sendAIMsg = function() {
-    const aiInput = document.getElementById('aiChatInput');
-    const text = aiInput.value.trim();
-    if (!text && !window.currentAiImageB64) return;
-    
-    let userText = text;
-    if (!userText && window.currentAiImageB64) {
-        userText = "이 사진을 바탕으로 부동산 관점에서 파악할 수 있는 특징을 자세하고 친절하게 설명해줘.";
-    }
-    
-    // 내가 보낼 메시지 (채팅창 UI용)
-    let myMsgHtml = text;
-    if (window.currentAiImageB64) {
-        myMsgHtml += `<br><img src="data:${window.currentAiMimeType};base64,${window.currentAiImageB64}" style="max-height:150px; border-radius:8px; margin-top:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">`;
-    }
-    if (!text && window.currentAiImageB64) {
-        myMsgHtml = `<img src="data:${window.currentAiMimeType};base64,${window.currentAiImageB64}" style="max-height:150px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">`;
-    }
-    
-    appendMessage('my', myMsgHtml);
-    aiInput.value = '';
-    
-    // 임시로 사진 정보를 보관하고 UI 리셋 (다음 첨부를 위해)
-    const imgB64 = window.currentAiImageB64;
-    const imgMime = window.currentAiMimeType;
-    window.removeAiChatImage();
-    
-    const typingId = 'typing-' + Date.now();
-    appendTyping(typingId);
-    
-    setTimeout(async () => {
-        let reply = '';
-        
-        // ========= 1. 무료 모드 (키워드 매칭 규칙 기반) =========
-        if (userText === '✨ 회원가입 방법 알려줘') {
-            reply = '<b>[회원가입 안내]</b> 👤<br>공실열람 회원가입은 아주 간단합니다!<br>우측 상단의 <b>[프로필 아이콘]</b>을 클릭하신 후, <b>[회원가입]</b> 메뉴를 통해 원하시는 계정으로 1분 만에 가입하실 수 있습니다.<br><br>👉 <a href="register.html" style="color:#0284c7;text-decoration:underline;font-weight:bold;">회원가입 페이지로 바로 이동하기</a>';
-            removeTyping(typingId);
-            appendMessage('ai', reply);
-            return;
-        } 
-        else if (userText === '💡 요금제는 어떻게 되나요?') {
-            reply = '<b>[요금제 안내]</b> 💳<br>부동산 중개사님들을 위한 요금제는 다음과 같습니다:<br><br>✅ <b>기본 플랜:</b> 월 30,000원<br>(공실 열람 무제한, AI 비서 일 100회 무료 제공)<br>✅ <b>무료 플랜:</b> 기본적인 메뉴 탐색과 제한된 검색 기능 지원<br><br>가입 후 마이페이지에서 상세 요금제 가입이 가능합니다!';
-            removeTyping(typingId);
-            appendMessage('ai', reply);
-            return;
-        }
-        else if (userText.includes('비밀번호 찾기')) {
-            reply = '<b>[비밀번호 찾기]</b> 🔐<br>비밀번호를 잊으셨나요? 로그인 페이지 하단의 <b>"비밀번호 찾기"</b> 버튼을 클릭하여 가입하신 이메일로 비밀번호 재설정 링크를 받으실 수 있습니다.';
-            removeTyping(typingId);
-            appendMessage('ai', reply);
-            return;
-        }
-        else if (userText === '공실열람 이용방법') {
-            reply = '<b>[공실열람 이용방법]</b> 📚<br>상단의 탭을 통해 원하시는 메뉴(공실, 지도, 뉴스 기사, 관리자)로 이동해 보세요. 궁금한 점이 생기면 언제든 저 공실챗봇을 불러주세요!';
-
-            removeTyping(typingId);
-            appendMessage('ai', reply);
-            return;
-        }
-        
-        // ========= 2. 유료 모드 (실제 인공지능 API 연동) =========
-        // ========= 2. 유료 모드 (실제 인공지능 API 연동 - Supabase Edge Function 경유) =========
-        // 🚨 프론트엔드 코드에 API KEY를 노출하지 않습니다.
-
-        // [1단계] 고정 지식(매뉴얼) 강화
-        const systemKnowledge = `
-        [공실열람 챗봇 고정 지식 매뉴얼]
-        1. 회원가입 방법: 우측 상단의 '프로필 아이콘' 클릭 후 '회원가입' 메뉴에서 이메일 폼을 통해 가입.
-        2. 요금제 안내: 기본 플랜은 월 30,000원에 공실 열람 무제한, AI 비서 매일 100회. 무료 플랜은 메뉴 탐색과 제한된 검색만 제공.
-        3. 주요 기능: 공실 검색(매물찾기), 주변 시세 분석, 적정 금액 감정, 부동산 뉴스/칼럼 보기.
-        4. 회원 등급: '일반 회원(무료관람)', '중개사 회원(유료/매물등록가능)', '관리자(전체권한)'.
-        5. 등록 방법: 로그인 후 관리자(유저단) 페이지에서 '공실등록' 또는 '기사등록' 탭 활용.
-        `;
-
-        const aiPrompt = "당신은 항상 밝고 친절한 부동산 중개 비서 AI '공실이'입니다. 부동산 관점에서 전문적이고 도움되는 답변을 한국어로 작성해주세요. 답변에 파란색 하트(💙)나 반짝이(✨) 같은 이모지를 사용하여 다정하게 구어체로 대답하세요. 기계처럼 딱딱하게 말하지 마세요.\n" + 
-            systemKnowledge + "\n\n" +
-            "사용자가 매물이나 뉴스에 대해 물어보면 당신에게 주어진 [추가 검색 데이터]를 꼭 참고해서 대답하고, 없으면 일반적인 조언을 해주세요.\n\n" +
-            "다음 마크다운 링크를 상황에 맞게 적극적으로 활용하세요:\n" + 
-            "- 공실지도/매물검색: [공실열람 매물찾기 바로가기](gongsil.html)\n" +
-            "- 뉴스기사: [최신 뉴스/칼럼 홈 바로가기](index.html)\n" +
-            "- 스터디: [공실스터디 홈 바로가기](study.html)\n" +
-            "- 공실등록/기사등록: [관리자 페이지 바로가기](user_admin.html)\n" +
-            "- 회원가입/결제안내: [마이페이지/가입 이동하기](register.html)\n\n" + 
-            "사용자 질문: " + userText;
-
-        const parts = [{ text: aiPrompt }];
-        if (imgB64) {
-            parts.push({
-                inlineData: {
-                    mimeType: imgMime,
-                    data: imgB64
-                }
-            });
-        }
-
-        try {
-            // 구글에 직접 요청하지 않고, Supabase에 배포된 'chat' 엣지 함수를 호출합니다!
-            // RAG 로직 처리를 위해 userQuery(원본 사용자 질문)도 함께 보냅니다.
-            const { data, error: functionError } = await window.gongsiClient.functions.invoke('chat', {
-                body: { 
-                    contents: [{ parts: parts }],
-                    userQuery: userText 
-                }
-            });
-
-            if (functionError) {
-                console.error("Supabase Edge Function 오류 응답:", functionError);
-                throw new Error("API 오류: " + (functionError.message || "알 수 없는 오류"));
-            }
-
-            if(data.error) {
-                 throw new Error("Gemini API 내부 오류: " + (data.error.message || data.error));
-            }
-            
-            const aiText = data.candidates[0].content.parts[0].text;
-            
-            // 1. 단순 텍스트 줄바꿈을 HTML <br>로 변환
-            reply = aiText.replace(/\n/g, '<br>');
-            
-            // 2. 마크다운 링크 [텍스트](url) 형태를 화면 밖으로 이동하는 둥근 버튼으로 변환
-            reply = reply.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="display:inline-block; margin-top:8px; padding:8px 16px; background:#eff6ff; color:#2563eb; border-radius:20px; font-size:14px; font-weight:800; text-decoration:none; border:1px solid #bfdbfe; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🚀 $1</a>');
-        } catch (error) {
-            console.error("Gemini API Error:", error);
-            reply = '⚠️ 오류 발생:<br><code style="background:#fee;padding:4px;border-radius:4px;font-size:12px;line-height:1.4;display:block;">' + error.message + '</code><br>위 오류 내용을 캡처해서 개발자에게 알려주세요!';
-        }
-
-        removeTyping(typingId);
-        appendMessage('ai', reply);
-    }, 600);
-};
+const aiAvatarSvg = `<svg width="24" height="24" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M25 60 Q20 95 50 95 Q80 95 75 60 Z" fill="#e0f2fe" /><circle cx="50" cy="50" r="34" fill="#ffffff" /><rect x="22" y="36" width="56" height="26" rx="13" fill="#0f172a" /><rect x="34" y="43" width="8" height="12" rx="4" fill="#22d3ee" /><rect x="58" y="43" width="8" height="12" rx="4" fill="#22d3ee" /></svg>`;
 
 function scrollToBottom(smooth = false) {
     const aiBody = document.getElementById('aiChatBody');
@@ -545,14 +529,9 @@ function scrollToBottom(smooth = false) {
             aiBody.style.scrollBehavior = 'smooth';
             aiBody.scrollTo({ top: aiBody.scrollHeight, behavior: 'smooth' });
         } else {
-            // 브라우저 캐시에 옛날 CSS(smooth)가 남아있어도 무조건 즉시 이동하도록 강제
             aiBody.style.scrollBehavior = 'auto';
             aiBody.scrollTop = aiBody.scrollHeight;
-            
-            // 렌더링 타이밍 차이로 인한 약간의 점프를 막기 위해 다음 프레임에 한번 더 쐐기
-            requestAnimationFrame(() => {
-                aiBody.scrollTop = aiBody.scrollHeight;
-            });
+            requestAnimationFrame(() => aiBody.scrollTop = aiBody.scrollHeight);
         }
     }
 }
@@ -569,7 +548,7 @@ function appendMessage(type, htmlContent) {
     }
     aiBody.appendChild(div);
     scrollToBottom(true);
-    window.saveChatState();
+    saveChatState();
 }
 
 function appendTyping(id) {
@@ -578,17 +557,79 @@ function appendTyping(id) {
     const div = document.createElement('div');
     div.className = `chat-msg ai-msg`;
     div.id = id;
-    div.innerHTML = `
-        <div class="msg-avatar">${aiAvatarSvg}</div>
-        <div class="msg-content" style="padding: 12px 16px;">
-            <div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
-        </div>
-    `;
+    div.innerHTML = `<div class="msg-avatar">${aiAvatarSvg}</div><div class="msg-content" style="padding: 12px 16px;"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
     aiBody.appendChild(div);
     scrollToBottom(true);
 }
 
-function removeTyping(id) {
-    const el = document.getElementById(id);
-    if (el) el.remove();
-}
+function removeTyping(id) { const el = document.getElementById(id); if (el) el.remove(); }
+
+window.sendAIMsg = function() {
+    closeAllSlideMenus(); // 입력 시 슬라이드 창 닫기
+    const aiInput = document.getElementById('aiChatInput');
+    const text = aiInput.value.trim();
+    if (!text && !window.currentAiImageB64) return;
+    
+    let userText = text;
+    if (!userText && window.currentAiImageB64) {
+        userText = "이 사진을 바탕으로 부동산 관점에서 파악할 수 있는 특징을 자세하고 친절하게 설명해줘.";
+    }
+    
+    let myMsgHtml = text;
+    if (window.currentAiImageB64) {
+        myMsgHtml += `<br><img src="data:${window.currentAiMimeType};base64,${window.currentAiImageB64}" style="max-height:150px; border-radius:8px; margin-top:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">`;
+    }
+    if (!text && window.currentAiImageB64) {
+        myMsgHtml = `<img src="data:${window.currentAiMimeType};base64,${window.currentAiImageB64}" style="max-height:150px; border-radius:8px; box-shadow:0 2px 4px rgba(0,0,0,0.1);">`;
+    }
+    
+    appendMessage('my', myMsgHtml);
+    aiInput.value = '';
+    
+    const imgB64 = window.currentAiImageB64;
+    const imgMime = window.currentAiMimeType;
+    window.removeAiChatImage();
+    
+    const typingId = 'typing-' + Date.now();
+    appendTyping(typingId);
+    
+    setTimeout(async () => {
+        let reply = '';
+        
+        // --- 엣지 함수 연동 (gemini-flash-lite) --- 
+        const systemKnowledge = `
+        [공실열람 챗봇 안내 매뉴얼]
+        당신은 밝고 친절한 부동산 AI 공실이입니다. 파란색 하트(💙)를 사용해 구어체로 답변하세요.
+        다음 메뉴의 퀵링크를 적절히 활용하세요:
+        - [공실열람 매물찾기 바로가기](gongsil.html)
+        - [뉴스기사 바로가기](index.html)
+        - [공실등록/유저관리자 바로가기](user_admin.html)
+        - [고객관리 바로가기](customer_admin.html)
+        `;
+
+        const parts = [{ text: systemKnowledge + "\n\n사용자질문: " + userText }];
+        if (imgB64) parts.push({ inlineData: { mimeType: imgMime, data: imgB64 } });
+
+        try {
+            if(!window.gongsiClient || !window.gongsiClient.functions) {
+                throw new Error("Supabase 클라이언트가 초기화되지 않았습니다.");
+            }
+            const { data, error: functionError } = await window.gongsiClient.functions.invoke('chat', {
+                body: { contents: [{ parts: parts }], userQuery: userText }
+            });
+
+            if (functionError) throw new Error(functionError.message);
+            if (data.error) throw new Error(data.error.message || data.error);
+            
+            reply = data.candidates[0].content.parts[0].text;
+            reply = reply.replace(/\n/g, '<br>');
+            reply = reply.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="display:inline-block; margin-top:8px; padding:8px 16px; background:#eff6ff; color:#2563eb; border-radius:20px; font-size:14px; font-weight:800; text-decoration:none; border:1px solid #bfdbfe;">🚀 $1</a>');
+        } catch (error) {
+            console.error(error);
+            reply = '⚠️ 네트워킹 오류가 발생했습니다.<br>잠시 후 다시 시도해주세요.<br><span style="font-size:11px;color:#ef4444;">' + error.message + '</span>';
+        }
+
+        removeTyping(typingId);
+        appendMessage('ai', reply);
+    }, 600);
+};
