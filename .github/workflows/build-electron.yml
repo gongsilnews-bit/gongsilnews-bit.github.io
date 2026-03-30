@@ -3,9 +3,10 @@ name: Build and Release Electron App
 on:
   push:
     branches: [ "main" ]
-    #paths:
-#      - 'chatbot-desktop/**'
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -31,7 +32,6 @@ jobs:
 
     - name: Rename Setup File
       working-directory: chatbot-desktop
-      # electron-builder creates "gongsil-chatbot-pc Setup 1.0.0.exe" by default
       run: |
         mv dist/*.exe dist/GongsilChatbot_Setup.exe
 
@@ -39,7 +39,7 @@ jobs:
       uses: softprops/action-gh-release@v1
       with:
         files: chatbot-desktop/dist/GongsilChatbot_Setup.exe
-        name: "공실챗봇 PC버전 최신 ?�운로드"
+        name: "공실챗봇 PC버전 최신 다운로드"
         tag_name: "v1.0.${{ github.run_number }}"
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
