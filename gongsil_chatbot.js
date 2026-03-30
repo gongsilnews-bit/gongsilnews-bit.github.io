@@ -187,7 +187,7 @@ function initGongsilChatbot() {
 
     .chat-body {
         flex: 1; padding: 20px; overflow-y: auto; background: #f0f9ff;
-        display: flex; flex-direction: column; gap: 18px; scroll-behavior: smooth;
+        display: flex; flex-direction: column; gap: 18px;
     }
     .chat-msg { display: flex; gap: 10px; max-width: 90%; }
     .ai-msg { align-self: flex-start; }
@@ -538,9 +538,23 @@ window.sendAIMsg = function() {
     }, 600);
 };
 
-function scrollToBottom() {
+function scrollToBottom(smooth = false) {
     const aiBody = document.getElementById('aiChatBody');
-    if(aiBody) aiBody.scrollTop = aiBody.scrollHeight;
+    if(aiBody) {
+        if (smooth) {
+            aiBody.style.scrollBehavior = 'smooth';
+            aiBody.scrollTo({ top: aiBody.scrollHeight, behavior: 'smooth' });
+        } else {
+            // 브라우저 캐시에 옛날 CSS(smooth)가 남아있어도 무조건 즉시 이동하도록 강제
+            aiBody.style.scrollBehavior = 'auto';
+            aiBody.scrollTop = aiBody.scrollHeight;
+            
+            // 렌더링 타이밍 차이로 인한 약간의 점프를 막기 위해 다음 프레임에 한번 더 쐐기
+            requestAnimationFrame(() => {
+                aiBody.scrollTop = aiBody.scrollHeight;
+            });
+        }
+    }
 }
 
 function appendMessage(type, htmlContent) {
@@ -554,7 +568,7 @@ function appendMessage(type, htmlContent) {
         div.innerHTML = `<div class="msg-content">${htmlContent}</div>`;
     }
     aiBody.appendChild(div);
-    scrollToBottom();
+    scrollToBottom(true);
     window.saveChatState();
 }
 
@@ -571,7 +585,7 @@ function appendTyping(id) {
         </div>
     `;
     aiBody.appendChild(div);
-    scrollToBottom();
+    scrollToBottom(true);
 }
 
 function removeTyping(id) {

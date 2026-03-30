@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,7 +26,7 @@ serve(async (req) => {
     }
 
     // ==========================================
-    // RAG (Retrieval-Augmented Generation) 로직
+    // RAG (REST API) 로직
     // ==========================================
     let ragContext = "";
 
@@ -36,45 +35,45 @@ serve(async (req) => {
       const supabaseKey = Deno.env.get('SUPABASE_ANON_KEY') || '';
       
       if (supabaseUrl && supabaseKey) {
-        const supabase = createClient(supabaseUrl, supabaseKey);
+        const restUrl = `${supabaseUrl}/rest/v1`;
+        const sbHeaders = {
+          "apikey": supabaseKey,
+          "Authorization": `Bearer ${supabaseKey}`,
+          "Content-Type": "application/json"
+        };
 
-        // 1. "매물" 관련 질문인지 확인
+        // 1. "매물" 관련 질문
         if (/(매물|공실|전세|월세|매매|방|아파트|오피스텔|상가|원룸|투룸)/.test(userQuery)) {
-          const { data: props, error } = await supabase
-            .from('properties')
-            .select('property_type, trade_type, deposit, monthly_rent, sido, sigungu, dong, description')
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(3);
-
-          if (!error && props && props.length > 0) {
-            ragContext += "\n\n[추가 검색 데이터: 실시간 최신 매물 정보]\n";
-            props.forEach((p, idx) => {
-              const desc = p.description ? p.description.substring(0, 40).replace(/\n/g, ' ') : '';
-              ragContext += `${idx+1}. [${p.trade_type}] ${p.sigungu} ${p.dong} ${p.property_type} (보증금 ${p.deposit} / 월세 ${p.monthly_rent}) - ${desc}...\n`;
-            });
+          const fetchUrl = `${restUrl}/properties?select=property_type,trade_type,deposit,monthly_rent,sido,sigungu,dong,description&status=eq.active&order=created_at.desc&limit=3`;
+          const res = await fetch(fetchUrl, { headers: sbHeaders });
+          if (res.ok) {
+            const props = await res.json();
+            if (props && props.length > 0) {
+              ragContext += "\n\n[추가 검색 데이터: 실시간 최신 매물 정보]\n";
+              props.forEach((p: any, idx: number) => {
+                const desc = p.description ? p.description.substring(0, 40).replace(/\n/g, ' ') : '';
+                ragContext += `${idx+1}. [${p.trade_type}] ${p.sigungu} ${p.dong} ${p.property_type} (보증금 ${p.deposit} / 월세 ${p.monthly_rent}) - ${desc}...\n`;
+              });
+            }
           }
         }
 
-        // 2. "뉴스" 관련 질문인지 확인
+        // 2. "뉴스" 관련 질문
         if (/(뉴스|기사|칼럼|소식)/.test(userQuery)) {
-          const { data: news, error } = await supabase
-            .from('articles')
-            .select('title, section1, created_at')
-            .eq('status', 'published')
-            .order('created_at', { ascending: false })
-            .limit(3);
-
-          if (!error && news && news.length > 0) {
-            ragContext += "\n\n[추가 검색 데이터: 실시간 최신 뉴스 기사]\n";
-            news.forEach((n, idx) => {
-              const date = new Date(n.created_at).toLocaleDateString('ko-KR');
-              ragContext += `${idx+1}. [${n.section1 || '뉴스'}] ${n.title} (${date})\n`;
-            });
+          const fetchUrl = `${restUrl}/articles?select=title,section1,created_at&status=eq.published&order=created_at.desc&limit=3`;
+          const res = await fetch(fetchUrl, { headers: sbHeaders });
+          if (res.ok) {
+            const news = await res.json();
+            if (news && news.length > 0) {
+              ragContext += "\n\n[추가 검색 데이터: 실시간 최신 뉴스 기사]\n";
+              news.forEach((n: any, idx: number) => {
+                const date = new Date(n.created_at).toLocaleDateString('ko-KR');
+                ragContext += `${idx+1}. [${n.section1 || '뉴스'}] ${n.title} (${date})\n`;
+              });
+            }
           }
         }
 
-        // RAG 데이터를 시스템 프롬프트 끝에 덧붙임
         if (ragContext && contents.length > 0 && contents[0].parts.length > 0) {
           if (typeof contents[0].parts[0].text === 'string') {
             contents[0].parts[0].text += ragContext;
@@ -82,7 +81,7 @@ serve(async (req) => {
         }
       }
     } catch (ragError: any) {
-      console.error("RAG logic failed, skipping RAG:", ragError.message);
+      console.error("RAG fetch failed:", ragError.message);
     }
     // ==========================================
 
@@ -94,7 +93,10 @@ serve(async (req) => {
 
     if (!geminiRes.ok) {
       const errorText = await geminiRes.text();
-      throw new Error(`Gemini API Error: ${geminiRes.status} ${errorText}`);
+      return new Response(JSON.stringify({ error: `Gemini API Error: ${geminiRes.status} ${errorText}` }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const data = await geminiRes.json();
@@ -106,7 +108,7 @@ serve(async (req) => {
   } catch (error: any) {
     console.error("Error:", error.message);
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 200,  // 에러 추적을 위해 임시로 200 반환 (클라이언트에서 data.error 로 받음)
+      status: 200, 
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
