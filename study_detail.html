@@ -51,6 +51,14 @@
             padding: 16px 4px;
             position: relative;
             text-decoration: none;
+            transition: color 0.2s;
+        }
+        .study-tab-item:hover {
+            color: var(--study-green);
+        }
+        .study-tab-item.my-favorite {
+            text-decoration: underline;
+            text-underline-offset: 4px;
         }
         .study-tab-item.active {
             color: var(--study-green);
@@ -601,7 +609,7 @@
                 <a href="study.html" class="study-tab-item active">스터디</a>
                 <div class="study-tab-item">자료실</div>
                 <div class="study-tab-item">커뮤니티</div>
-                <div class="study-tab-item">MY관심강의</div>
+                <div class="study-tab-item my-favorite">MY관심강의</div>
             </div>
             <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                 내 스터디
