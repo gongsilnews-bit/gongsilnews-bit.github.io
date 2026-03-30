@@ -396,6 +396,61 @@
         .btn-modal-subscribe:hover {
             background: #e65c00;
         }
+        .curri-list {
+            background:#fff;
+            border:1px solid #ddd;
+            border-radius:8px;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        .curri-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #ddd;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .curri-item:last-child {
+            border-bottom: none;
+        }
+        .curri-item:hover {
+            background: #f1f3f5;
+        }
+        .curri-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #333;
+        }
+        .curri-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .preview-badge {
+            background: #4A90E2;
+            color: white;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        .preview-badge:hover {
+            background: #357ABD;
+        }
+        .curri-time {
+            font-size: 13px;
+            color: #888;
+        }
+        .curri-play-icon {
+            width: 20px;
+            height: 20px;
+            fill: #adb5bd;
+        }
+        .curri-play-icon polygon {
+            fill: #fff;
+        }
 
     </style>
 </head>
@@ -507,12 +562,37 @@
 
             <!-- 커리큘럼 -->
             <section id="section-curri" class="detail-section" style="padding-top:40px;">
-                <h3>클래스 커리큘럼</h3>
-                <div style="background:#fff; border:1px solid #ddd; border-radius:8px; padding:20px;">
-                    <div style="border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:12px;"><strong>1주차: 노션 기초 및 세팅 가이드</strong></div>
-                    <div style="border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:12px;"><strong>2주차: 실무형 매물 대장 만들기 (데이터베이스)</strong></div>
-                    <div style="border-bottom:1px solid #eee; padding-bottom:12px; margin-bottom:12px;"><strong>3주차: 고객 응대 파이프라인 ও 계약 관리 보드</strong></div>
-                    <div style="padding-bottom:0px;"><strong>4주차: 협업 시스템 및 모바일 연동 실전 꿀팁</strong></div>
+                <h3>스터디 커리큘럼</h3>
+                <div class="curri-list">
+                    <div class="curri-item" onclick="openPreviewModal()">
+                        <div class="curri-title">1주차: 노션 기초 및 세팅 가이드</div>
+                        <div class="curri-actions">
+                            <span class="preview-badge">미리보기</span>
+                            <span class="curri-time">06:07</span>
+                            <svg class="curri-play-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                        </div>
+                    </div>
+                    <div class="curri-item" onclick="alert('결제 / 수강신청 후 이용 가능합니다.')">
+                        <div class="curri-title">2주차: 실무형 매물 대장 만들기 (데이터베이스)</div>
+                        <div class="curri-actions">
+                            <span class="curri-time">06:07</span>
+                            <svg class="curri-play-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                        </div>
+                    </div>
+                    <div class="curri-item" onclick="alert('결제 / 수강신청 후 이용 가능합니다.')">
+                        <div class="curri-title">3주차: 고객 응대 파이프라인 ও 계약 관리 보드</div>
+                        <div class="curri-actions">
+                            <span class="curri-time">06:07</span>
+                            <svg class="curri-play-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                        </div>
+                    </div>
+                    <div class="curri-item" onclick="alert('결제 / 수강신청 후 이용 가능합니다.')">
+                        <div class="curri-title">4주차: 협업 시스템 및 모바일 연동 실전 꿀팁</div>
+                        <div class="curri-actions">
+                            <span class="curri-time">06:07</span>
+                            <svg class="curri-play-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+                        </div>
+                    </div>
                 </div>
             </section>
 
