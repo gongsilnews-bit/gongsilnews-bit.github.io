@@ -305,7 +305,6 @@
         .top-tab { background: none; border: none; font-size: 16px; font-weight: bold; color: #555; cursor: pointer; padding: 16px 4px; position: relative; white-space: nowrap; }
         .top-tab:hover { color: var(--primary-color); }
         .top-tab.active { color: var(--primary-color); border-bottom: 3px solid var(--primary-color); }
-        .top-tab.my-wish.active { border-bottom: none; }
         
         .mid-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; border-bottom: 1px solid #e0e0e0; overflow-x: auto; }
         .mid-tab { background: #fff; border: 1px solid #ccc; font-size: 13px; color: #333; cursor: pointer; padding: 6px 14px; border-radius: 20px; white-space: nowrap; transition: all 0.2s; position: relative; flex-shrink: 0; }
@@ -646,7 +645,7 @@
             <button class="top-tab" onclick="selectCategory('one')">원룸·투룸</button>
             <button class="top-tab" onclick="selectCategory('biz')">상가·업무·공장·토지</button>
             <button class="top-tab" onclick="selectCategory('sale')">분양</button>
-            <button class="top-tab my-wish" onclick="selectCategory('wish')" style="text-decoration:underline;">MY관심공실</button>
+            <button class="top-tab" onclick="selectCategory('wish')">MY관심공실</button>
         </div>
         
         <div class="mid-row" id="midFilterRow">

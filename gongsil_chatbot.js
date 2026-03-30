@@ -30,6 +30,15 @@ function initGongsilChatbot() {
 
         <!-- 채팅창 본체 (리사이즈 가능) -->
         <div id="aiChatWindow" class="ai-chat-window">
+            <!-- 4면 리사이즈 핸들 -->
+            <div class="resize-handle n"></div>
+            <div class="resize-handle e"></div>
+            <div class="resize-handle s"></div>
+            <div class="resize-handle w"></div>
+            <div class="resize-handle nw"></div>
+            <div class="resize-handle ne"></div>
+            <div class="resize-handle sw"></div>
+            <div class="resize-handle se"></div>
             <div class="chat-header">
                 <div class="chat-title">
                     <svg width="22" height="22" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -217,12 +226,18 @@ function initGongsilChatbot() {
         display: none; flex-direction: column; overflow: hidden;
         animation: popInSmooth 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         border: 1px solid #e0f2fe;
-        resize: both; /* 마우스로 크기 조절 허용 */
-        direction: rtl; /* 리사이즈 핸들을 좌측 하단으로 이동 */
     }
-    .ai-chat-window > * {
-        direction: ltr; /* 내부 요소는 원래 방향으로 복구 */
-    }
+    
+    /* 4면 리사이즈 핸들 스타일 */
+    .resize-handle { position: absolute; z-index: 10000; }
+    .resize-handle.n { top: 0; left: 0; right: 0; height: 6px; cursor: n-resize; }
+    .resize-handle.s { bottom: 0; left: 0; right: 0; height: 6px; cursor: s-resize; }
+    .resize-handle.e { top: 0; bottom: 0; right: 0; width: 6px; cursor: e-resize; }
+    .resize-handle.w { top: 0; bottom: 0; left: 0; width: 6px; cursor: w-resize; }
+    .resize-handle.nw { top: 0; left: 0; width: 14px; height: 14px; cursor: nw-resize; }
+    .resize-handle.ne { top: 0; right: 0; width: 14px; height: 14px; cursor: ne-resize; }
+    .resize-handle.sw { bottom: 0; left: 0; width: 14px; height: 14px; cursor: sw-resize; }
+    .resize-handle.se { bottom: 0; right: 0; width: 14px; height: 14px; cursor: se-resize; }
 
     /* 전체화면 모드 클래스 */
     .ai-chat-window.fullscreen {
@@ -332,9 +347,10 @@ function initGongsilChatbot() {
 
     restoreChatState();
     
-    // 드래그 기능 초기화
+    // 드래그 및 4면 리사이즈 기능 초기화
     setTimeout(() => {
         if(window.initAiChatDrag) window.initAiChatDrag();
+        if(window.initAiChatResize) window.initAiChatResize();
     }, 100);
 }
 
@@ -458,8 +474,8 @@ window.initAiChatDrag = function() {
     header.style.cursor = 'grab';
     
     header.addEventListener('mousedown', (e) => {
-        // 컨트롤 버튼이나 그 하위 요소 클릭 시 드래그 방지
-        if (e.target.closest('.win-controls')) return;
+        // 컨트롤 버튼이나 리사이즈 핸들 클릭 시 드래그 방지
+        if (e.target.closest('.win-controls') || e.target.closest('.resize-handle')) return;
         
         isDragging = true;
         header.style.cursor = 'grabbing';
@@ -502,6 +518,100 @@ window.initAiChatDrag = function() {
         if (isDragging) {
             isDragging = false;
             header.style.cursor = 'grab';
+            document.body.style.userSelect = '';
+        }
+    });
+};
+
+// -----------------------------------------
+// 4면 리사이즈 기능
+// -----------------------------------------
+window.initAiChatResize = function() {
+    const chatWindow = document.getElementById('aiChatWindow');
+    if(!chatWindow) return;
+    
+    let isResizing = false;
+    let currentHandle = null;
+    let startX, startY, startWidth, startHeight, startLeft, startTop;
+
+    const handles = chatWindow.querySelectorAll('.resize-handle');
+    handles.forEach(handle => {
+        handle.addEventListener('mousedown', function(e) {
+            e.preventDefault();
+            e.stopPropagation(); // 중복 이벤트 방지
+            
+            isResizing = true;
+            currentHandle = handle.className.replace('resize-handle', '').trim();
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            const rect = chatWindow.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+            startLeft = rect.left;
+            startTop = rect.top;
+            
+            chatWindow.style.position = 'fixed';
+            chatWindow.style.margin = '0';
+            chatWindow.style.transform = 'none';
+            chatWindow.style.animation = 'none';
+            chatWindow.style.left = startLeft + 'px';
+            chatWindow.style.top = startTop + 'px';
+            chatWindow.style.right = 'auto';
+            chatWindow.style.bottom = 'auto';
+            
+            document.body.style.userSelect = 'none';
+        });
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!isResizing || !currentHandle) return;
+
+        let newWidth = startWidth;
+        let newHeight = startHeight;
+        let newLeft = startLeft;
+        let newTop = startTop;
+
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+
+        if (currentHandle.includes('e')) {
+            newWidth = startWidth + dx;
+        } else if (currentHandle.includes('w')) {
+            newWidth = startWidth - dx;
+            newLeft = startLeft + dx;
+        }
+
+        if (currentHandle.includes('s')) {
+            newHeight = startHeight + dy;
+        } else if (currentHandle.includes('n')) {
+            newHeight = startHeight - dy;
+            newTop = startTop + dy;
+        }
+
+        const minW = parseInt(window.getComputedStyle(chatWindow).minWidth) || 320;
+        const minH = parseInt(window.getComputedStyle(chatWindow).minHeight) || 450;
+
+        if (newWidth < minW) {
+            if (currentHandle.includes('w')) newLeft -= (minW - newWidth);
+            newWidth = minW;
+        }
+        if (newHeight < minH) {
+            if (currentHandle.includes('n')) newTop -= (minH - newHeight);
+            newHeight = minH;
+        }
+
+        chatWindow.style.width = newWidth + 'px';
+        chatWindow.style.height = newHeight + 'px';
+        chatWindow.style.left = newLeft + 'px';
+        chatWindow.style.top = newTop + 'px';
+    });
+
+    document.addEventListener('mouseup', function() {
+        if (isResizing) {
+            isResizing = false;
+            currentHandle = null;
             document.body.style.userSelect = '';
         }
     });
