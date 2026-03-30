@@ -201,10 +201,15 @@
                     <span class="beta-badge">map 베타서비스</span>
                 </a>
             </div>
-            <nav class="nav">
+            <nav class="nav" style="display:flex; align-items:center;">
+                <!-- 탭 버튼 -->
                 <a href="index.html" class="nav-tab">뉴스기사</a>
                 <a href="gongsil.html" class="nav-tab">공실열람</a>
                 <a href="study.html" class="nav-tab active">공실스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 4px 8px; margin-left: 10px; margin-top:2px;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e53e3e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </nav>
         </div>
         <div class="header-right" style="display: flex; align-items: center;">
@@ -218,6 +223,16 @@
             <a href="https://smartstore.naver.com/mygongsil/products/10361563253" target="_blank" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
         </div>
     </header>
+
+    <!-- 글로벌 검색 입력 패널 (기본 숨김) -->
+    <div id="globalSearchPanel" style="display: none; background-color: #0f141e; width: 100%; padding: 30px 0; text-align: center; position: absolute; top: 60px; left: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <div style="position: relative; display: inline-block; width: 500px; max-width: 90%;">
+            <input type="text" id="globalKeywordInput" placeholder="검색어를 입력해주세요" style="width: 100%; padding: 16px 20px; padding-right: 50px; font-size: 16px; border: none; border-radius: 4px; outline: none; box-sizing: border-box;" onkeypress="if(event.key==='Enter') window.executeGlobalSearch()">
+            <button onclick="window.executeGlobalSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+    </div>
 
     <!-- 스터디 네비게이션 -->
     <div class="study-nav-bar">
@@ -344,6 +359,44 @@
     </main>
 
     <script>
+        window.toggleGlobalSearchPanel = function() {
+            const panel = document.getElementById('globalSearchPanel');
+            const iconClosed = document.getElementById('iconSearchClosed');
+            const iconOpened = document.getElementById('iconSearchOpened');
+
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if(iconClosed) iconClosed.style.display = 'none';
+                if(iconOpened) iconOpened.style.display = 'inline-block';
+                setTimeout(() => document.getElementById('globalKeywordInput').focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if(iconClosed) iconClosed.style.display = 'inline-block';
+                if(iconOpened) iconOpened.style.display = 'none';
+                document.getElementById('globalKeywordInput').value = '';
+                if(window.executeGlobalSearch) window.executeGlobalSearch();
+            }
+        };
+
+        window.executeGlobalSearch = function() {
+            const keyword = document.getElementById('globalKeywordInput') ? document.getElementById('globalKeywordInput').value.trim() : '';
+            const cards = document.querySelectorAll('.lecture-card');
+            if(cards.length === 0) return;
+            let matchCount = 0;
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (!keyword || text.includes(keyword.toLowerCase())) {
+                    card.style.display = '';
+                    matchCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            if (keyword) {
+                alert(matchCount > 0 ? '검색결과 ' + matchCount + '건' : '검색 결과가 없습니다.');
+            }
+        };
+
         // 간단한 탭 클릭 이벤트
         document.querySelectorAll('.study-tab-item').forEach(item => {
             item.addEventListener('click', () => {
