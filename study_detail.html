@@ -287,6 +287,116 @@
         .notice-banner h3 { margin: 0 0 10px 0; font-size: 20px; }
         .notice-banner p { margin: 0; font-size: 15px; opacity: 0.9; }
 
+        /* 미리보기 모달 */
+        .preview-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+        }
+        .preview-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 640px;
+            padding: 24px;
+            position: relative;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-sizing: border-box;
+        }
+        .preview-modal-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            cursor: pointer;
+            color: #333;
+            z-index: 10;
+        }
+        .preview-modal-close svg { width: 24px; height: 24px; stroke: currentColor; stroke-width: 2; fill: none; }
+        .preview-modal-header h2 {
+            font-size: 20px;
+            font-weight: bold;
+            color: #111;
+            margin: 0 0 8px 0;
+        }
+        .preview-modal-header p {
+            font-size: 14px;
+            color: #777;
+            margin: 0 0 20px 0;
+        }
+        .preview-video-container {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            margin-bottom: 20px;
+        }
+        .preview-video-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+        }
+        .dummy-controls {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 16px;
+            padding-top: 40px;
+            background: linear-gradient(transparent, rgba(0,0,0,0.8));
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+        .dummy-timeline-bar {
+            flex: 1;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 2px;
+            position: relative;
+        }
+        .dummy-timeline-progress {
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 30%;
+            background: var(--study-accent);
+            border-radius: 2px;
+        }
+        .dummy-timeline-progress::after {
+            content: '';
+            position: absolute;
+            right: -6px; top: -4px;
+            width: 12px; height: 12px;
+            background: #fff;
+            border-radius: 50%;
+        }
+        .btn-modal-subscribe {
+            display: block;
+            width: 100%;
+            background: #ff6b00;
+            color: #fff;
+            border: none;
+            padding: 16px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-modal-subscribe:hover {
+            background: #e65c00;
+        }
+
     </style>
 </head>
 <body>
@@ -462,7 +572,7 @@
                 <button class="btn-purchase" onclick="alert('결제 / 수강신청 페이지로 이동합니다.')">12개월 무이자 수강하기</button>
 
                 <div class="action-tools">
-                    <div class="tool-icon">
+                    <div class="tool-icon" onclick="openPreviewModal()">
                         <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
                         미리보기
                     </div>
@@ -509,6 +619,47 @@
                 tabs.forEach(t => t.classList.remove('active'));
                 this.classList.add('active');
             });
+        });
+    </script>
+
+    <!-- 미리보기 모달 HTML -->
+    <div id="previewModal" class="preview-modal-overlay">
+        <div class="preview-modal">
+            <div class="preview-modal-close" onclick="closePreviewModal()">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div class="preview-modal-header">
+                <h2>클래스 미리보기</h2>
+                <p>안녕하세요, 김프로 강사 입니다.</p>
+            </div>
+            <div class="preview-video-container">
+                <!-- 더미 영상 공간 (이미지) -->
+                <img src="https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=1000" alt="강의 영상 썸네일">
+                <!-- 더미 컨트롤바 UI -->
+                <div class="dummy-controls">
+                    <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:#fff; stroke:none; cursor:pointer;"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                    <span>00:00 / 06:08</span>
+                    <div class="dummy-timeline-bar"><div class="dummy-timeline-progress"></div></div>
+                    <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; cursor:pointer;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                </div>
+            </div>
+            <button class="btn-modal-subscribe" onclick="alert('결제 / 수강신청 페이지로 이동합니다.'); closePreviewModal();">구독하고 수강하기</button>
+        </div>
+    </div>
+
+    <!-- 미리보기 모달 제어 JS -->
+    <script>
+        function openPreviewModal() {
+            document.getElementById('previewModal').style.display = 'flex';
+        }
+        function closePreviewModal() {
+            document.getElementById('previewModal').style.display = 'none';
+        }
+        // 배경 클릭 시 모달 닫기
+        document.getElementById('previewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closePreviewModal();
+            }
         });
     </script>
 </body>
