@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실스터디 - 학습하기</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Base Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+        /* Dark Mode Variables & Styles */
+        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+        .dark-mode .watch-header { background: #1e293b; border-bottom: 1px solid #334155; }
+        .dark-mode .watch-tabs { border-bottom: 1px solid #334155; }
+        .dark-mode .tab-btn { color: #94a3b8; }
+        .dark-mode .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
+        .dark-mode .watch-sidebar { background: #1e293b; border-left: 1px solid #334155; }
+        .dark-mode .curr-section-title { background: #0f172a; border-bottom: 1px solid #334155; color: #e2e8f0; }
+        .dark-mode .curr-item:hover { background: #334155; }
+        .dark-mode .curr-item.active { background: rgba(56, 189, 248, 0.1); }
+        .dark-mode .download-card { background: #334155; border: 1px solid #475569; }
+        .dark-mode .qna-input-box textarea { background: #0f172a; border-color: #475569; color:#fff;}
+        .dark-mode .qna-item { border-bottom-color: #334155; }
+
+        /* Layout */
+        .watch-header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            transition: 0.3s;
+        }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .back-btn { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #64748b; font-size: 15px; transition: 0.2s; }
+        .back-btn:hover { color: #0ea5e9; }
+        .course-title { font-weight: 700; font-size: 16px; border-left: 2px solid #e2e8f0; padding-left: 16px; margin-left: 6px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 400px; }
+        
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .dark-toggle {
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+            border-radius: 50%; background: #f1f5f9; color: #475569; transition: 0.2s;
+        }
+        .dark-toggle:hover { background: #e2e8f0; }
+        .dark-mode .dark-toggle { background: #334155; color: #f8fafc; }
+
+        .watch-layout { display: flex; margin-top: 60px; height: calc(100vh - 60px); }
+        .watch-main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .watch-sidebar { width: 380px; flex-shrink: 0; background: #ffffff; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: 0.3s; }
+
+        /* Video Area */
+        .video-container { background: #000; width: 100%; aspect-ratio: 16 / 9; position: relative; }
+        .video-container iframe { width: 100%; height: 100%; border: none; }
+        
+        .video-info-bar { padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .current-lesson-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .lesson-meta { font-size: 14px; color: #64748b; font-weight: 500; }
+        .finish-btn {
+            background: #0ea5e9; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 15px;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+        }
+        .finish-btn:hover { background: #0284c7; transform: translateY(-2px); }
+
+        /* Tabs */
+        .watch-tabs { display: flex; padding: 0 32px; border-bottom: 1px solid #e2e8f0; gap: 24px; transition: 0.3s; }
+        .tab-btn { padding: 16px 4px; font-size: 16px; font-weight: 700; color: #64748b; position: relative; transition: 0.2s; }
+        .tab-btn:hover { color: #0ea5e9; }
+        .tab-btn.active { color: #0ea5e9; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: #0ea5e9; border-radius: 3px 3px 0 0; }
+        
+        .tab-content { padding: 32px; display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+        /* Note Content */
+        .lesson-note h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; }
+        .lesson-note p { font-size: 15px; line-height: 1.6; color: inherit; margin-bottom: 24px; }
+        
+        .download-card {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; transition: 0.3s;
+        }
+        .dl-info { display: flex; align-items: center; gap: 12px; }
+        .dl-icon { width: 40px; height: 40px; background: #e0f2fe; color: #0ea5e9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .dl-texts strong { display: block; font-size: 15px; }
+        .dl-texts span { font-size: 13px; color: #64748b; }
+        .dl-btn { background: #fff; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; color: #334155; cursor:pointer; transition:0.2s; }
+        .dl-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+
+        /* QnA Content */
+        .qna-input-box { margin-bottom: 30px; }
+        .qna-input-box textarea {
+            width: 100%; height: 100px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 12px;
+            resize: none; font-size: 14px; font-family: inherit; margin-bottom: 12px; outline:none; transition:0.2s;
+        }
+        .qna-input-box textarea:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+        .qna-submit-wrap { display: flex; justify-content: flex-end; }
+        .qna-submit { background: #0f172a; color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+        
+        .qna-list { display: flex; flex-direction: column; }
+        .qna-item { padding: 20px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 16px; }
+        .qna-avatar { width: 40px; height: 40px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; flex-shrink:0; }
+        .qna-body h4 { font-size: 15px; margin-bottom: 4px; display:flex; gap:8px; align-items:center; }
+        .qna-date { font-size: 12px; color: #94a3b8; font-weight: 400; }
+        .qna-text { font-size: 14px; line-height: 1.5; color: inherit; }
+        .qna-reply { margin-top: 12px; background: rgba(14,165,233,0.05); padding: 16px; border-radius: 8px; border-left: 3px solid #0ea5e9; }
+        .qna-reply h5 { font-size: 13px; color: #0ea5e9; margin-bottom: 6px; }
+        
+        /* Sidebar (Curriculum) */
+        .sidebar-header { padding: 24px; border-bottom: 1px solid #e2e8f0; transition:0.3s; }
+        .dark-mode .sidebar-header { border-bottom-color: #334155; }
+        .progress-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 700; }
+        .progress-pct { color: #0ea5e9; }
+        .progress-bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .dark-mode .progress-bar-bg { background: #334155; }
+        .progress-bar-fill { height: 100%; background: #0ea5e9; width: 33%; transition: width 0.5s ease; border-radius: 3px; }
+
+        .curr-list { overflow-y: auto; flex: 1; }
+        .curr-section { border-bottom: 1px solid #e2e8f0; }
+        .dark-mode .curr-section { border-bottom-color: #334155; }
+        .curr-section-title {
+            padding: 16px 24px; background: #f8fafc; font-weight: 700; font-size: 15px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+        }
+        .curr-items { display: block; }
+        .curr-item {
+            padding: 14px 24px 14px 40px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .curr-item:hover { background: #f1f5f9; }
+        .curr-item.active { background: #f0f9ff; border-left-color: #0ea5e9; }
+        .curr-item.active .ci-title { color: #0ea5e9; font-weight: 700; }
+        
+        .ci-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ci-icon.played { color: #10b981; } /* 초록색 체크 */
+        .ci-icon.playing { color: #0ea5e9; }
+        .ci-icon.locked { color: #cbd5e1; }
+        
+        .ci-info { flex: 1; display:flex; flex-direction: column; gap:4px; }
+        .ci-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: inherit; }
+        .ci-time { font-size: 12px; color: #94a3b8; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .watch-layout { flex-direction: column; overflow-y: auto; height: auto; }
+            .watch-main { overflow-y: visible; }
+            .watch-sidebar { width: 100%; border-left: none; border-top: 1px solid #e2e8f0; }
+            .course-title { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="watch-header">
+        <div class="header-left">
+            <a href="study_detail.html" class="back-btn">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                뒤로가기
+            </a>
+            <span class="course-title">중개업 실무 마스터 클래스 (초급~중급)</span>
+        </div>
+        <div class="header-right">
+            <button class="dark-toggle" id="darkModeBtn" title="다크 모드 전환" onclick="toggleDarkMode()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="darkIconMoon"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="watch-layout">
+        
+        <!-- Left: Video & Tabs -->
+        <main class="watch-main">
+            <!-- Video Player Area -->
+            <div class="video-container">
+                <!-- 더미 영상 (유튜브 iframe 예시) -->
+                <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ?rel=0&modestbranding=1" allowfullscreen></iframe>
+            </div>
+
+            <!-- Video Info -->
+            <div class="video-info-bar">
+                <div>
+                    <h1 class="current-lesson-title">제 3강. 상가 임대차 계약서 작성시 특약사항 주의점</h1>
+                    <div class="lesson-meta">오리엔테이션 및 기초 이론 &nbsp;|&nbsp; 12:45</div>
+                </div>
+                <button class="finish-btn" onclick="alert('수강 완료 처리되었습니다! 다음 강의로 이동합니다.')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    수강 완료 및 다음
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="watch-tabs">
+                <button class="tab-btn active" onclick="switchTab('note', this)">강의 노트 & 자료</button>
+                <button class="tab-btn" onclick="switchTab('qna', this)">질문 & 답변 (Q&A)</button>
+            </div>
+
+            <!-- Tab Content: Note -->
+            <div class="tab-content active" id="tab-note">
+                <div class="lesson-note">
+                    <h3>📝 이번 강의 요약</h3>
+                    <p>
+                        상가 임대차 계약 시 권리금 보호와 관련된 특약사항은 필수적입니다. 특히 환산보증금 초과 여부에 따라 적용되는 상임법 조항이 다르므로, 중개사로서 이를 정확히 인지하고 계약서에 명시해야 합니다. 하단에 첨부된 표준 계약서 양식 및 특약사항 샘플 PDF를 다운로드 받아 실무에 바로 적용해 보세요.
+                    </p>
+                    
+                    <h3>📁 수업 자료 다운로드</h3>
+                    <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon">📋</div>
+                            <div class="dl-texts">
+                                <strong>상가임대차_표준계약서_및_특약샘플.pdf</strong>
+                                <span>2.4 MB · PDF Document</span>
+                            </div>
+                        </div>
+                        <button class="dl-btn">다운로드</button>
+                    </div>
+                     <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon" style="color:#10b981; background:#dcfce7;">📊</div>
+                            <div class="dl-texts">
+                                <strong>수익률_분석_계산기_v1.2.xlsx</strong>
+                                <span>1.1 MB · Excel Spreadsheet</span>
+                            </div>
+                        </div>
+                        <button class="dl-btn">다운로드</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: QnA -->
+            <div class="tab-content" id="tab-qna">
+                <div class="qna-input-box">
+                    <textarea placeholder="강의 내용 중 궁금한 점을 자유롭게 남겨주세요! (강사님 또는 학습 매니저가 답변해 드립니다)"></textarea>
+                    <div class="qna-submit-wrap">
+                        <button class="qna-submit">질문 등록하기</button>
+                    </div>
+                </div>
+
+                <div class="qna-list">
+                    <div class="qna-item">
+                        <div class="qna-avatar">김</div>
+                        <div class="qna-body">
+                            <h4>김중개 <span class="qna-date">2026. 03. 28</span></h4>
+                            <div class="qna-text">
+                                특약사항 3번 항목에서 환산보증금을 초과하는 임대차의 경우 묵시적 갱신 시 임차인이 계약 해지를 통지할 수 있는지 궁금합니다. 민법이 적용된다고 하셨는데 실무에서는 어떻게 처리하시나요?
+                            </div>
+                            <div class="qna-reply">
+                                <h5>강사 답변 ✍️</h5>
+                                환산보증금을 초과하는 상가임대차의 경우 상임법상 묵시적 갱신 규정이 적용되지 않고 민법 제639조가 적용됩니다. 이 경우 임대인과 임차인 모두 언제든지 계약해지 통고를 할 수 있으며, 임차인이 통고한 경우 1개월 후 효력이 발생합니다. 실무에서는 이러한 분쟁을 막기 위해 만기 1~2개월 전 반드시 서면/문자로 재계약 여부를 명확히 하는 것이 안전합니다! 😊
+                            </div>
+                        </div>
+                    </div>
+                     <div class="qna-item">
+                        <div class="qna-avatar">이</div>
+                        <div class="qna-body">
+                            <h4>이대표 <span class="qna-date">2026. 03. 25</span></h4>
+                            <div class="qna-text">
+                                제공해주신 엑셀 계산기 정말 유용합니다! 혹시 권리금까지 포함해서 수익률을 계산할 수 있는 폼도 있을까요?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right: Sidebar Curriculum -->
+        <aside class="watch-sidebar">
+            <div class="sidebar-header">
+                <div class="progress-meta">
+                    <span>전체 진도율</span>
+                    <span class="progress-pct">33% (8/24강)</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="curr-list">
+                <!-- Section 1 -->
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>1. 오리엔테이션 및 기초 이론</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                        <div class="curr-item">
+                            <div class="ci-icon played">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 1강. 강사 소개 및 오리엔테이션</div>
+                                <div class="ci-time">05:20</div>
+                            </div>
+                        </div>
+                        <div class="curr-item">
+                            <div class="ci-icon played">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 2강. 상가 임대차 보호법 기초 다지기</div>
+                                <div class="ci-time">18:30</div>
+                            </div>
+                        </div>
+                        <!-- 현재 재생중 -->
+                        <div class="curr-item active">
+                            <div class="ci-icon playing">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 3강. 상가 임대차 계약서 작성시 특약사항 주의점</div>
+                                <div class="ci-time">12:45</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>2. 실전 중개 노하우 및 마케팅</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                        <div class="curr-item">
+                            <div class="ci-icon locked">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 4강. 공실뉴스 플랫폼 200% 활용하기</div>
+                                <div class="ci-time">15:10</div>
+                            </div>
+                        </div>
+                        <div class="curr-item">
+                            <div class="ci-icon locked">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 5강. 체류시간을 늘리는 매력적인 매물 설명글 작성법</div>
+                                <div class="ci-time">22:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // Tab Switch Logic
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            btnElement.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // Section Accordion Toggle
+        function toggleSection(element) {
+            const items = element.nextElementSibling;
+            const svg = element.querySelector('svg');
+            if (items.style.display === 'none') {
+                items.style.display = 'block';
+                svg.style.transform = 'rotate(0deg)';
+            } else {
+                items.style.display = 'none';
+                svg.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        // Dark Mode Toggle Logic
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('darkIconMoon');
+            
+            if (document.body.classList.contains('dark-mode')) {
+                // Change icon to Sun
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            } else {
+                // Change icon to Moon
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
+    </script>
+</body>
+</html>
