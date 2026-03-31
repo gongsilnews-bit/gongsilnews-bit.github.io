@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실뉴스 - 자료실</title>
+    <!-- 기본 스타일 -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0ea5e9;       /* 스카이블루 (포인트 컬러) */
+            --primary-dark: #0284c7;  /* 짙은 블루 */
+            --accent-orange: #f97316; /* 오렌지 (기존 톤 오마주) */
+            --text-main: #0f172a;     /* 짙은 다크네이비 텍스트 */
+            --text-sub: #64748b;      /* 중간 회색 텍스트 */
+            --bg-gray: #f8fafc;
+            --border: #e2e8f0;
+        }
+
+        html, body {
+            margin: 0; padding: 0;
+            background-color: #ffffff;
+            font-family: 'Pretendard', sans-serif;
+            color: var(--text-main);
+            overflow-x: hidden;
+        }
+
+        /* 스터디 공통 네비게이션 (헤더 아래) */
+        .study-nav-bar {
+            background: #fff; border-bottom: 1px solid var(--border);
+            z-index: 50; position: relative;
+        }
+        .study-tier1 {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; max-width: 1240px; margin: 0 auto;
+        }
+        .study-tab-item {
+            font-size: 16px; font-weight: 700; color: #475569;
+            cursor: pointer; padding: 18px 4px; position: relative;
+            text-decoration: none; transition: color 0.2s;
+        }
+        .study-tab-item:hover { color: var(--primary); }
+        .study-tab-item.active { color: var(--primary); }
+        .study-tab-item.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 3px; background: var(--primary);
+        }
+
+        /* 자료실 메인 컨테이너 */
+        .materials-container {
+            max-width: 1240px; margin: 50px auto 100px; padding: 0 20px;
+        }
+
+        /* 대타이틀 */
+        .page-title {
+            font-size: 34px; font-weight: 800; color: var(--text-main);
+            margin-bottom: 30px; letter-spacing: -0.5px;
+        }
+
+        /* 1차 탭: 메인 카테고리 (밑줄 방식) */
+        .primary-tabs {
+            display: flex; gap: 32px; border-bottom: 2px solid var(--border);
+            margin-bottom: 40px; position: relative;
+        }
+        .p-tab {
+            font-size: 17px; font-weight: 600; color: var(--text-sub);
+            padding-bottom: 14px; cursor: pointer; position: relative;
+            transition: 0.2s; white-space: nowrap;
+        }
+        .p-tab:hover { color: var(--text-main); }
+        .p-tab.active { color: var(--text-main); font-weight: 800; }
+        .p-tab.active::after {
+            content: ''; position: absolute; bottom: -2px; left: 0; right: 0;
+            height: 3px; background: var(--text-main); border-radius: 3px 3px 0 0;
+        }
+
+        /* 현재 섹션 타이틀 & 서브 뱃지 */
+        .section-header {
+            display: flex; align-items: baseline; gap: 12px;
+            margin-bottom: 30px; justify-content: center;
+        }
+        .section-title {
+            font-size: 30px; font-weight: 800; color: var(--text-main);
+            letter-spacing: -0.5px;
+        }
+        .section-badge {
+            font-size: 14px; font-weight: 700; color: var(--text-sub);
+            background: var(--bg-gray); padding: 4px 10px; border-radius: 6px;
+        }
+
+        /* 2차 탭: 서브 카테고리 (Pill 형태) */
+        .secondary-tabs {
+            display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+            margin-bottom: 40px;
+        }
+        .s-tab {
+            padding: 10px 20px; border-radius: 20px;
+            font-size: 15px; font-weight: 600; color: var(--text-sub);
+            background: #fff; cursor: pointer; transition: 0.2s;
+        }
+        .s-tab:hover { background: var(--bg-gray); color: var(--text-main); }
+        .s-tab.active {
+            background: var(--accent-orange); color: #fff;
+            box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
+        }
+
+        /* 세련된 검색창 (Floating Styled) */
+        .search-wrapper {
+            background: #fff; border: 1px solid var(--border);
+            border-radius: 12px; padding: 8px;
+            display: flex; align-items: center; gap: 12px;
+            max-width: 760px; margin: 0 auto 50px;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+            transition: 0.3s;
+        }
+        .search-wrapper:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 8px 30px rgba(14, 165, 233, 0.1);
+        }
+        .search-select {
+            border: none; background: var(--bg-gray); color: var(--text-sub);
+            font-size: 14px; font-weight: 600; border-radius: 8px;
+            padding: 12px 16px 12px 14px; outline: none; cursor: pointer;
+            appearance: none; /* remove default arrow */
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat; background-position: right 10px center; background-size: 16px;
+            padding-right: 32px; min-width: 110px;
+        }
+        .search-input {
+            flex: 1; border: none; font-size: 15px; outline: none;
+            color: var(--text-main); font-family: inherit;
+        }
+        .search-input::placeholder { color: #94a3b8; }
+        .search-btn {
+            background: var(--text-main); color: #fff; border: none;
+            border-radius: 8px; padding: 0 24px; height: 44px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; gap: 6px; transition: 0.2s;
+        }
+        .search-btn:hover { background: #334155; }
+        
+        /* 모바일용 검색창 스택 */
+        @media (max-width: 640px) {
+            .search-wrapper { flex-direction: column; align-items: stretch; padding: 12px; border-radius: 16px; }
+            .search-input { padding: 12px 4px; }
+        }
+
+        /* 자료실 4열 카드 그리드 */
+        .materials-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+        @media (max-width: 1024px) { .materials-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .materials-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 480px) { .materials-grid { grid-template-columns: 1fr; } }
+
+        /* 카드 UI */
+        .m-card {
+            background: #fff; border: 1px solid var(--border); border-radius: 16px;
+            overflow: hidden; cursor: pointer; transition: all 0.3s ease;
+            display: flex; flex-direction: column;
+        }
+        .m-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 16px 32px rgba(15, 23, 42, 0.08);
+            border-color: #cbd5e1;
+        }
+        
+        /* 호버 시 썸네일 살짝 확대 효과 */
+        .m-thumb-box {
+            width: 100%; aspect-ratio: 16 / 9; overflow: hidden; position: relative;
+            background: #e2e8f0;
+        }
+        .m-thumb {
+            width: 100%; height: 100%; object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .m-card:hover .m-thumb {
+            transform: scale(1.05);
+        }
+
+        /* 뱃지 위치 (사진 왼쪽 위) */
+        .badge-wrap {
+            position: absolute; top: 12px; left: 12px;
+            display: flex; gap: 6px; z-index: 10;
+        }
+        .m-badge {
+            padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px;
+        }
+        .b-notice { background: #ef4444; color: #fff; }          /* 빨강 - 공지 */
+        .b-hot { background: #fee2e2; color: #ef4444; }           /* 연빨강 - HOT */
+        .b-new { background: #e0f2fe; color: #0284c7; }           /* 연파랑 - NEW */
+
+        /* 카드 본문 */
+        .m-body {
+            padding: 20px; display: flex; flex-direction: column; flex: 1;
+        }
+        .m-category {
+            font-size: 13px; font-weight: 700; color: var(--accent-orange);
+            margin-bottom: 8px;
+        }
+        .m-title {
+            font-size: 16px; font-weight: 700; color: var(--text-main);
+            line-height: 1.4; margin-bottom: 16px;
+            /* 2줄 말줄임표 처리 */
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .m-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: auto; font-size: 13px; color: var(--text-sub);
+        }
+        .m-author { display: flex; align-items: center; gap: 6px; }
+        .m-view { display: flex; align-items: center; gap: 4px; }
+        
+        .meta-icon { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+    </style>
+</head>
+<body>
+
+    <!-- 공통 헤더 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-group">
+                <a href="index.html" class="logo-img-link">
+                    <img src="logo.png" alt="공실뉴스" style="height: 40px;">
+                </a>
+                <span class="beta-badge">map 베타서비스</span>
+            </div>
+            <nav class="nav">
+                <a href="index.html" class="nav-tab">홈</a>
+                <a href="news.html" class="nav-tab">뉴스기사</a>
+                <a href="gongsil.html" class="nav-tab">공실열람</a>
+                <a href="study.html" class="nav-tab active">공실스터디</a>
+            </nav>
+        </div>
+        <div class="header-right">
+            <a href="#" class="btn-login">구글 로그인</a>
+        </div>
+    </header>
+
+    <!-- 스터디 네비게이션 -->
+    <div class="study-nav-bar">
+        <div class="study-tier1">
+            <div style="display: flex; gap: 24px;">
+                <a href="study.html" class="study-tab-item">스터디</a>
+                <a href="materials.html" class="study-tab-item active">자료실</a>
+                <a href="#" class="study-tab-item">커뮤니티</a>
+                <a href="#" class="study-tab-item">MY관심강의</a>
+            </div>
+            <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                내 스터디
+                <div style="width:28px; height:28px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center;">👤</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="materials-container">
+        
+        <!-- 대타이틀 -->
+        <h1 class="page-title">자료실</h1>
+
+        <!-- 1차 탭 메뉴 -->
+        <div class="primary-tabs">
+            <div class="p-tab">드론영상</div>
+            <div class="p-tab active">APP(앱)</div>
+            <div class="p-tab">디자인</div>
+            <div class="p-tab">음원</div>
+            <div class="p-tab">계약서/양식</div>
+        </div>
+
+        <!-- 현재 화면 제목 -->
+        <div class="section-header">
+            <h2 class="section-title">APP(앱)</h2>
+            <span class="section-badge">#공실뉴스기자 전용</span>
+        </div>
+
+        <!-- 2차 탭 메뉴 -->
+        <div class="secondary-tabs">
+            <div class="s-tab active">전체</div>
+            <div class="s-tab">글쓰기</div>
+            <div class="s-tab">부동산마케팅</div>
+            <div class="s-tab">이미지제작</div>
+            <div class="s-tab">기사작성</div>
+            <div class="s-tab">유튜브운영</div>
+            <div class="s-tab">기타</div>
+        </div>
+
+        <!-- 검색창 (현대화) -->
+        <div class="search-wrapper">
+            <select class="search-select">
+                <option value="all">전체</option>
+                <option value="title">제목</option>
+                <option value="content">내용</option>
+            </select>
+            <input type="text" class="search-input" placeholder="필요한 자료(키워드)를 입력해 주세요">
+            <button class="search-btn">
+                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                검색
+            </button>
+        </div>
+
+        <!-- 카드 그리드 (4열) -->
+        <div class="materials-grid">
+            
+            <!-- 아이템 1 (공지배지) -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <div class="badge-wrap">
+                        <span class="m-badge b-notice">공지</span>
+                    </div>
+                    <!-- 썸네일 예시 (Unsplash) -->
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">기사작성</div>
+                    <div class="m-title">공실NEWS 부동산 매물 콘텐츠 AI R1.2 (업데이트 배포)</div>
+                    <div class="m-meta">
+                        <div class="m-author">
+                            <svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            공실뉴스
+                        </div>
+                        <div class="m-view">
+                            <svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            39
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 아이템 2 (HOT 배지) -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <div class="badge-wrap">
+                        <span class="m-badge b-hot">HOT</span>
+                    </div>
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1555421689-d68471e189f2?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">기사작성</div>
+                    <div class="m-title">공실뉴스 뉴스/칼럼 기사 작성 AI 도우미 (N1.2 버전)</div>
+                    <div class="m-meta">
+                        <div class="m-author"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>공실뉴스</div>
+                        <div class="m-view"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>62</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 아이템 3 (NEW 배지) -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <div class="badge-wrap">
+                        <span class="m-badge b-new">NEW</span>
+                    </div>
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1626785774573-4b799315345d?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">이미지제작</div>
+                    <div class="m-title">공실뉴스AI 스튜디오 SS14 최신 필터 팩 모음집</div>
+                    <div class="m-meta">
+                        <div class="m-author"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>공실뉴스</div>
+                        <div class="m-view"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>47</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 아이템 4 (배지 없음) -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">부동산마케팅</div>
+                    <div class="m-title">AI 부동산 상세페이지 템플릿 RD 10 (포토샵 연동형)</div>
+                    <div class="m-meta">
+                        <div class="m-author"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>공실뉴스</div>
+                        <div class="m-view"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>18</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 아이템 5 (썸네일이 어두운 계열) -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">기타</div>
+                    <div class="m-title">[26년형] 부동산 양도소득세 간편 자동 계산기 (스프레드시트)</div>
+                    <div class="m-meta">
+                        <div class="m-author"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>공실뉴스</div>
+                        <div class="m-view"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>9</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 아이템 6 -->
+            <div class="m-card">
+                <div class="m-thumb-box">
+                    <img class="m-thumb" src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&q=80&w=600" alt="썸네일">
+                </div>
+                <div class="m-body">
+                    <div class="m-category">글쓰기</div>
+                    <div class="m-title">고객을 사로잡는 마법의 카피라이팅 모음 50선 (워드)</div>
+                    <div class="m-meta">
+                        <div class="m-author"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>공실뉴스</div>
+                        <div class="m-view"><svg class="meta-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>124</div>
+                    </div>
+                </div>
+            </div>
+
+        </div> <!-- grid ends -->
+    </div> <!-- container ends -->
+
+    <!-- 스크립트: 탭 클릭 상호작용 예시 -->
+    <script>
+        document.querySelectorAll('.p-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                
+                // 임시로 섹션 제목 변경 효과
+                const titleText = this.innerText;
+                document.querySelector('.section-title').innerText = titleText;
+            });
+        });
+
+        document.querySelectorAll('.s-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
