@@ -11,16 +11,34 @@
         html, body, html body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; min-height: 100vh !important; position: static !important; display: block !important; pointer-events: auto !important; }
         
         /* HEADER */
-        .g-header { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 60px; background: #fff; border-bottom: 1px solid #ddd; }
-        .g-header-left { display: flex; align-items: center; gap: 30px; }
+        .g-header { 
+            position: sticky; top: 0; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 40px; height: 64px; background: #fff; 
+            border-bottom: 1px solid transparent; transition: all 0.3s ease;
+        }
+        .g-header.scrolled {
+            border-bottom: 1px solid #ebebeb; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        }
+        .g-header-left { display: flex; align-items: center; gap: 40px; }
         .g-logo img { height: 28px; }
-        .g-nav { display: flex; gap: 20px; }
-        .g-nav a { text-decoration: none; color: #333; font-weight: bold; font-size: 16px; padding: 18px 0; }
-        .g-nav a:hover, .g-nav a.active { color: #ff9f1c; border-bottom: 2px solid #ff9f1c; }
+        .g-nav { 
+            display: flex; gap: 30px; 
+            opacity: 0; visibility: hidden; transform: translateY(10px); 
+            transition: all 0.3s ease; 
+        }
+        .g-header.scrolled .g-nav {
+            opacity: 1; visibility: visible; transform: translateY(0);
+        }
+        .g-nav a { text-decoration: none; color: #333; font-weight: 700; font-size: 16px; padding: 22px 0; }
+        .g-nav a:hover, .g-nav a.active { color: #ff9f1c; box-shadow: inset 0 -3px 0 #ff9f1c; }
         .g-header-right { display: flex; align-items: center; gap: 15px; }
         .g-btn { padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; text-decoration: none; }
         .g-btn-dark { background: #333; color: #fff; }
         .g-btn-outline { border: 1px solid #ddd; color: #333; }
+        .g-btn-text { color: #333; font-weight: 700; background: none; border: none; padding: 8px; font-size: 14px; text-decoration: none; }
+        .g-btn-round { border: 1px solid #ddd; border-radius: 20px; color: #555; padding: 6px 14px; font-size: 13px; background: #fff; text-decoration: none; font-weight: 600; }
+        .g-btn-round:hover { background: #f8f9fa; }
 
         /* HERO SECTION */
         .hero { 
@@ -200,8 +218,8 @@
             </nav>
         </div>
         <div class="g-header-right">
-            <a href="#" class="g-btn g-btn-outline">기사등록</a>
-            <a href="#" class="g-btn g-btn-dark">구글 로그인</a>
+            <a href="#" class="g-btn-text">로그인 및 회원가입</a>
+            <a href="#" class="g-btn-round">중개사무소 가입 및 상품문의 &gt;</a>
         </div>
     </header>
 
@@ -500,6 +518,17 @@
 
             loadNews();
             loadNotices();
+        });
+    </script>
+    <!-- 스크롤 시 상단 메뉴 나타내기 -->
+    <script>
+        window.addEventListener('scroll', function() {
+            var header = document.querySelector('.g-header');
+            if (window.scrollY > 80) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
         });
     </script>
 </body>
