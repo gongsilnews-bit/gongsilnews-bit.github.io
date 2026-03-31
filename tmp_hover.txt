@@ -1,0 +1,9 @@
+.news-card:hover {
+    background-color: #f9fafb;
+}
+
+.news-card:hover { 
+    transform: translateY(-8px) !important; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important; 
+    border-color: #ff9f1c !important; 
+}
