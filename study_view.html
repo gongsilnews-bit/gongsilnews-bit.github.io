@@ -78,9 +78,9 @@
             <!-- 디바이스 버튼 -->
             <div style="display:flex; justify-content:center; padding:15px; border-bottom:1px solid #f0f0f0; background:#f8fafc; border-top-left-radius:10px; border-top-right-radius:10px;">
                 <div class="device-btns">
-                    <button class="device-btn active" id="devPC" data-dev="pc" onclick="setDevice(this.dataset.dev)" title="PC" style="background:#0bc2c2; color:#fff;">🖥️ PC</button>
-                    <button class="device-btn" id="devTB" data-dev="tablet" onclick="setDevice(this.dataset.dev)" title="태블릿">📱 태블릿</button>
-                    <button class="device-btn" id="devMB" data-dev="mobile" onclick="setDevice(this.dataset.dev)" title="모바일">📲 모바일</button>
+                    <button class="device-btn active" id="devPC" data-dev="pc" onclick="setDevice(this.dataset.dev)" title="PC" style="background:#0bc2c2; color:#fff; font-size:18px;">🖥️</button>
+                    <button class="device-btn" id="devTB" data-dev="tablet" onclick="setDevice(this.dataset.dev)" title="태블릿" style="font-size:18px;">📱</button>
+                    <button class="device-btn" id="devMB" data-dev="mobile" onclick="setDevice(this.dataset.dev)" title="모바일" style="font-size:18px;">📲</button>
                 </div>
             </div>
 
@@ -150,10 +150,10 @@
     window.addEventListener('message', (e) => {
         if (e.data === 'goList') window.parent.loadPage(null, '스터디관리', 'study_admin.html');
         if (e.data === 'goEdit') goToEdit();
+        if (e.data === 'goPreview') window.open('study_detail.html?id=' + courseId, '_blank'); // 실제화면 새차
         if (e.data && e.data.type === 'resize') {
             const frame = document.getElementById('previewFrame');
             // PC 환경에서만 iframe 컨테이너 길이를 실제 높이에 맞게 쭉 늘리고 (스크롤 중복 제거)
-            // 태블릿, 모바일 프레임일 때는 고정된 디바이스 높이 안에서 스크롤 작동하게 유지
             if(!frame.classList.contains('mobile') && !frame.classList.contains('tablet')) {
                 frame.style.height = (e.data.height + 60) + 'px';
             }
@@ -254,13 +254,16 @@
         const frame = document.getElementById('previewFrame');
         if(type === 'pc') {
             frame.className = 'preview-frame';
-            // PC 모드 복귀 시 iframe 안의 스크립트가 내부 콘텐츠 높이를 측정해서 다시 포스트메시지로 높이를 줌
-            // 일단 임시로 길게 풀어둠 (이중 스크롤 풀림)
             frame.style.height = '1500px'; 
         } else {
             frame.className = 'preview-frame ' + type;
-            // 타블렛/모바일 모드에서는 특정 기기 높이로 픽스
             frame.style.height = type === 'tablet' ? '850px' : '750px';
+        }
+
+        // 하위 프레임(watch 페이지) 에 현재 기기 상태를 쏴서 반응형이 꺾이지 않도록 통제
+        const player = document.getElementById('playerFrame');
+        if (player && player.contentWindow) {
+            player.contentWindow.postMessage({type: 'device', mode: type}, '*');
         }
     }
 </script>

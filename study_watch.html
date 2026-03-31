@@ -376,6 +376,11 @@
                     .watch-header { display: none !important; } 
                     ::-webkit-scrollbar { display: none; }
                     body { -ms-overflow-style: none; scrollbar-width: none; overflow: hidden !important; }
+                    
+                    /* PC 미리보기를 위해 레이아웃 강제 유지 (1024px 미만에서도 세로로 꺾이지 않도록 방어) */
+                    body.preview-pc .watch-layout { flex-direction: row !important; }
+                    body.preview-pc .watch-sidebar { width: 340px !important; border-top: none !important; border-left: 1px solid #e2e8f0 !important; }
+                    body.preview-pc .video-info-bar { flex-direction: column !important; align-items: flex-start !important; gap: 12px; }
                 `;
                 document.head.appendChild(style);
 
@@ -385,10 +390,20 @@
                     <button style="padding: 8px 24px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; font-weight:600; cursor:pointer;" onclick="window.parent.postMessage('goList', '*')">⬅️ 목록</button>
                     <button style="padding: 8px 24px; border:1px solid #3b82f6; border-radius:6px; background:#fff; font-weight:600; color:#3b82f6; cursor:pointer;" onclick="window.parent.postMessage('goEdit', '*')">✏️ 수정</button>
                     <button style="padding: 8px 24px; border:1px solid #ef4444; border-radius:6px; background:#fff; font-weight:600; color:#ef4444; cursor:pointer;" onclick="alert('목록 화면에서 체크 후 삭제해주세요.')">🗑️ 삭제</button>
+                    <button style="padding: 8px 24px; border:1px solid #10b981; border-radius:6px; background:#fff; font-weight:600; color:#10b981; cursor:pointer;" onclick="window.parent.postMessage('goPreview', '*')">👀 실제 화면 미리보기</button>
                     <button style="padding: 8px 24px; border:none; border-radius:6px; background:#ff9f1c; color:#fff; font-weight:600; cursor:pointer;">✅ 승인(공개 발행)</button>
                 </div>
                 `;
                 document.querySelector('.video-info-bar').insertAdjacentHTML('afterend', adminHtml);
+
+                // 부모로부터 디바이스 모드 수신하여 클래스 부착
+                window.addEventListener('message', (e) => {
+                    if (e.data && e.data.type === 'device') {
+                        document.body.classList.remove('preview-pc', 'preview-tablet', 'preview-mobile');
+                        document.body.classList.add('preview-' + e.data.mode);
+                    }
+                });
+                document.body.classList.add('preview-pc'); // 최초 기본값
 
                 // 부모 프레임으로 현재 높이 실시간 전달 (내부 스크롤 제거용)
                 setInterval(() => {
