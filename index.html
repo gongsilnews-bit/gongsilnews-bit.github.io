@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <style>
         /* Custom styles for Home Sample */
-        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; }
+        body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; overflow-y: auto !important; height: auto !important; min-height: 100vh; }
         
         /* HEADER */
         .g-header { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 60px; background: #fff; border-bottom: 1px solid #ddd; }
@@ -190,11 +190,10 @@
     <!-- Header -->
     <header class="g-header">
         <div class="g-header-left">
-            <a href="#" class="g-logo">
+            <a href="index.html" class="g-logo">
                 <img src="logo.png" alt="공실뉴스" onerror="this.src='admin_logo_new.png'">
             </a>
             <nav class="g-nav">
-                <a href="index.html" class="active">홈</a>
                 <a href="news.html">뉴스기사</a>
                 <a href="gongsil.html">공실열람</a>
                 <a href="study.html">공실스터디</a>
