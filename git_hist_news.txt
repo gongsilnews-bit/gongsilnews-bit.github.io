@@ -1,0 +1,10 @@
+9d7d3da Revert news.html Naver-style layout to original portal layout based on user feedback
+5bdb2a3 chore: 강제 동기화 및 업로드 재확인
+dc4c221 Fix matched HTML div closures to restore article view overlay layer
+2a9525f Refactor news detail view to Naver-style card layout
+cb9ae31 chore: 사용자 요청에 의한 전체 실시간 동기화 (sync)
+bd42d11 Swap order of Gongsil and News in top navigation
+d303c64 Update navigation links for clean URLs
+8a792dd Remove beta badges and resize logo to 28px across all pages
+5b55fc4 Remove Home link from all pages and map logo back to index.html
+c82bee8 Update landing page and configure responsive styles
