@@ -286,7 +286,7 @@ body {
 }
 
 .news-card:hover {
-    background-color: #f9fafb;
+    background-color: #eff1f3;
 }
 
 .news-card.active {
@@ -796,7 +796,7 @@ body {
     margin-top: auto !important;
     border-top: 1px solid #f1f3f5 !important;
     padding-top: 15px !important;
-}/* °ø½Ç ¸Å¹° Ä«µå °øÅë ½ºÅ¸ÀÏ (gongsil.html, index.html) */
+}/* ï¿½ï¿½ï¿½ï¿½ ï¿½Å¹ï¿½ Ä«ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ï¿½ (gongsil.html, index.html) */
 .property-card {
     display: flex;
     justify-content: space-between;
