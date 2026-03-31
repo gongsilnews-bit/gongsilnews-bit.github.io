@@ -72,19 +72,11 @@
         <!-- 좌측: 플레이어 미리보기 영역 -->
         <div style="flex:1; min-width:0; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); overflow:hidden;">
             
-            <!-- 상단 관리 툴바 -->
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px 24px; border-bottom:1px solid #f0f0f0;">
-                <div id="courseTitleDisplay" style="font-weight:800; font-size:16px;">📚 로딩중...</div>
-                <div style="display:flex; gap:8px;">
-                    <button class="btn-toolbar" onclick="window.parent.loadPage(null, '스터디관리', 'study_admin.html')">⬅️ 목록</button>
-                    <button class="btn-toolbar" style="color:var(--blue);" onclick="goToEdit()">✏️ 수정</button>
-                    <button class="btn-toolbar" style="color:var(--red);" onclick="alert('목록에서 삭제해주세요.')">🗑️ 삭제</button>
-                    <button class="btn-toolbar" style="background:var(--primary); color:#fff; border-color:var(--primary);">✅ 승인(공개/판매중)</button>
-                </div>
-            </div>
+            <!-- 툴바가 Iframe 안으로 이관됨으로써 공백 구조만 남김 -->
+            <div id="courseTitleDisplay" class="hidden" style="display:none;"></div>
 
             <!-- 디바이스 버튼 -->
-            <div style="display:flex; justify-content:center; padding:15px; border-bottom:1px solid #f0f0f0; background:#f8fafc;">
+            <div style="display:flex; justify-content:center; padding:15px; border-bottom:1px solid #f0f0f0; background:#f8fafc; border-top-left-radius:10px; border-top-right-radius:10px;">
                 <div class="device-btns">
                     <button class="device-btn active" id="devPC" data-dev="pc" onclick="setDevice(this.dataset.dev)" title="PC" style="background:#0bc2c2; color:#fff;">🖥️ PC</button>
                     <button class="device-btn" id="devTB" data-dev="tablet" onclick="setDevice(this.dataset.dev)" title="태블릿">📱 태블릿</button>
@@ -104,9 +96,9 @@
         <!-- 우측: 사이드바 로그 기록 -->
         <div style="width:300px; flex-shrink:0;">
             <div class="sidebar-card">
-                <div class="sidebar-title">📋 강의 서비스 로그 (메모)</div>
+                <div class="sidebar-title">🎓 [공실스터디] 관리자 노트 및 개선 기록</div>
                 <div>
-                    <textarea id="logMemoInput" placeholder="강사 전달사항, 수정요청 등 서비스 메모를 남기세요..." style="width:100%; height:90px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; resize:none; font-family:inherit; margin-bottom:8px;"></textarea>
+                    <textarea id="logMemoInput" placeholder="강의 내용 기획, 수강생 피드백, 보충해야 할 요소 등 관리용 메모를 자유롭게 기록하세요..." style="width:100%; height:90px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; resize:none; font-family:inherit; margin-bottom:8px;"></textarea>
                     <div style="text-align:right;">
                         <button onclick="addLog()" style="padding:6px 16px; background:#334155; color:#fff; border:none; border-radius:4px; font-weight:600; cursor:pointer;">등록</button>
                     </div>
@@ -152,6 +144,20 @@
 
         // 3. 우측 메모 로그 조회
         loadLogs();
+    });
+
+    // 🔥 내부 Iframe에서 쏘아올린 신호(버튼 클릭, 전체 높이 등) 수신 🔥
+    window.addEventListener('message', (e) => {
+        if (e.data === 'goList') window.parent.loadPage(null, '스터디관리', 'study_admin.html');
+        if (e.data === 'goEdit') goToEdit();
+        if (e.data && e.data.type === 'resize') {
+            const frame = document.getElementById('previewFrame');
+            // PC 환경에서만 iframe 컨테이너 길이를 실제 높이에 맞게 쭉 늘리고 (스크롤 중복 제거)
+            // 태블릿, 모바일 프레임일 때는 고정된 디바이스 높이 안에서 스크롤 작동하게 유지
+            if(!frame.classList.contains('mobile') && !frame.classList.contains('tablet')) {
+                frame.style.height = (e.data.height + 60) + 'px';
+            }
+        }
     });
 
     function goToEdit() {
@@ -246,7 +252,16 @@
         activeBtn.style.color = '#fff';
 
         const frame = document.getElementById('previewFrame');
-        frame.className = 'preview-frame ' + (type !== 'pc' ? type : '');
+        if(type === 'pc') {
+            frame.className = 'preview-frame';
+            // PC 모드 복귀 시 iframe 안의 스크립트가 내부 콘텐츠 높이를 측정해서 다시 포스트메시지로 높이를 줌
+            // 일단 임시로 길게 풀어둠 (이중 스크롤 풀림)
+            frame.style.height = '1500px'; 
+        } else {
+            frame.className = 'preview-frame ' + type;
+            // 타블렛/모바일 모드에서는 특정 기기 높이로 픽스
+            frame.style.height = type === 'tablet' ? '850px' : '750px';
+        }
     }
 </script>
 
