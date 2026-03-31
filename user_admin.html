@@ -209,7 +209,7 @@
     <div class="admin-layout">
         <!-- 좌측 사이드바 -->
         <aside class="sidebar">
-            <div class="sidebar-header" onclick="window.location.href=window.BASE_PATH + '/'">
+            <div class="sidebar-header" id="adminLogoBtn" style="cursor:pointer;">
                 <img src="https://gongsilnews.com/image/logo/logo.png" alt="logo" style="width: 50px; object-fit: contain; flex-shrink: 0;" onerror="this.src='admin_logo.png'"> 
             </div>
             
@@ -275,7 +275,7 @@
                     <button class="btn-logout" onclick="handleLogout()">
                         로그아웃
                     </button>
-                    <a href="/" class="btn-go-gongsil" target="_blank">
+                    <a href="/" class="btn-go-gongsil" id="btnGoGongsil">
                         <img src="admin_logo.png" alt="logo" style="height: 16px; object-fit: contain;"> 공실페이지 가기
                     </a>
                 </div>
@@ -310,6 +310,26 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
+            // --- 이전 페이지(리퍼러) 기억 기능 ---
+            const referrer = document.referrer;
+            // 관리자 내부 이동이 아니고, 같은 도메인에서 넘어왔을 경우만 저장
+            if (referrer && !referrer.includes('user_admin.html') && referrer.includes(window.location.hostname)) {
+                sessionStorage.setItem('adminReturnUrl', referrer);
+            }
+            
+            // 돌아갈 URL 획득 (없으면 홈으로)
+            const returnUrl = sessionStorage.getItem('adminReturnUrl') || (window.BASE_PATH + '/');
+            window.adminReturnUrl = returnUrl; 
+            
+            // 버튼들에 돌아갈 URL 연결
+            const btnGoGongsil = document.getElementById('btnGoGongsil');
+            if (btnGoGongsil) btnGoGongsil.href = returnUrl;
+
+            const logoBtn = document.getElementById('adminLogoBtn');
+            if (logoBtn) {
+                logoBtn.onclick = () => { window.location.href = returnUrl; };
+            }
+
             // URL 파라미터 체크 (예: ?page=news_write)
             const urlParams = new URLSearchParams(window.location.search);
             const pageParam = urlParams.get('page');
