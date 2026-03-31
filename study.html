@@ -364,6 +364,10 @@
                 <a href="gongsil" class="nav-tab">공실열람</a>
                 <a href="news" class="nav-tab">뉴스기사</a>
                 <a href="study" class="nav-tab active">공실스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 0 4px; margin-left: 10px; vertical-align: middle;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </nav>
         </div>
         <div class="header-right" style="display: flex; align-items: center;">
@@ -372,7 +376,7 @@
                 <span id="userRoleBadge" style="font-size: 11px; padding: 3px 6px; border-radius: 4px; background: #f0f0f0; color: #555;">로딩중</span>
                 <a href="#" id="headerLogoutBtn" class="btn-login" style="background:#666; color:white; border:none;">로그아웃</a>
             </div>
-            
+            <a href="#" class="btn-login" style="background:var(--primary-color, #ff9f1c); color:white; border:none; margin-right:10px;">스터디등록</a>
             <a href="#" id="headerLoginBtn" class="btn-login">구글 로그인</a>
             <a href="https://smartstore.naver.com/mygongsil/products/10361563253" target="_blank" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
         </div>

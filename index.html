@@ -11,16 +11,19 @@
         html, body, html body { font-family: 'Pretendard', sans-serif; background-color: #f8f9fa; margin: 0; padding: 0; overflow-y: auto !important; overflow-x: hidden !important; height: auto !important; min-height: 100vh !important; position: static !important; display: block !important; pointer-events: auto !important; }
         
         /* HEADER */
-        .g-header { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 60px; background: #fff; border-bottom: 1px solid #ddd; }
-        .g-header-left { display: flex; align-items: center; gap: 30px; }
-        .g-logo img { height: 28px; }
-        .g-nav { display: flex; gap: 20px; }
-        .g-nav a { text-decoration: none; color: #333; font-weight: bold; font-size: 16px; padding: 18px 0; }
-        .g-nav a:hover, .g-nav a.active { color: #ff9f1c; border-bottom: 2px solid #ff9f1c; }
+        .g-header { 
+            position: absolute; top: 0; left: 0; width: 100%; z-index: 1000;
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 0 40px; height: 80px; background: transparent; 
+        }
+        .g-header-left { display: flex; align-items: center; }
+        .g-logo img { height: 32px; }
+        /* Remove the old nav completely from display */
+        .g-nav { display: none; }
         .g-header-right { display: flex; align-items: center; gap: 15px; }
-        .g-btn { padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; text-decoration: none; }
-        .g-btn-dark { background: #333; color: #fff; }
-        .g-btn-outline { border: 1px solid #ddd; color: #333; }
+        .g-btn-text { color: #fff; font-weight: 700; background: none; border: none; padding: 8px; font-size: 14px; text-decoration: none; }
+        .g-btn-round { border: 1px solid rgba(255,255,255,0.4); border-radius: 20px; color: #fff; padding: 6px 14px; font-size: 13px; background: transparent; text-decoration: none; font-weight: 600; transition: border-color 0.2s, background 0.2s; }
+        .g-btn-round:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
 
         /* HERO SECTION */
         .hero { 
@@ -191,7 +194,7 @@
     <header class="g-header">
         <div class="g-header-left">
             <a href="./" class="g-logo">
-                <img src="logo.png" alt="공실뉴스" onerror="this.src='admin_logo_new.png'">
+                <img src="logo_white.png" alt="공실뉴스" onerror="this.src='admin_logo_new.png'">
             </a>
             <nav class="g-nav">
                 <a href="gongsil">공실열람</a>
@@ -200,8 +203,8 @@
             </nav>
         </div>
         <div class="g-header-right">
-            <a href="#" class="g-btn g-btn-outline">기사등록</a>
-            <a href="#" class="g-btn g-btn-dark">구글 로그인</a>
+            <a href="#" class="g-btn-text">구글 로그인</a>
+            <a href="#" class="g-btn-round">중개사무소 가입 및 상품문의 &gt;</a>
         </div>
     </header>
 
