@@ -5,8 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>새 강의 등록 - 공실뉴스 Admin</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
-    <script src="base_path.js"></script>
+    
+    <!-- Supabase & Image Compression Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.0/dist/browser-image-compression.js"></script>
+    <script src="base_path.js"></script>
     <script src="supabase_gongsi_config.js"></script>
 
     <style>
@@ -88,6 +91,7 @@
         .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
         .btn-primary { background: var(--primary-color); color: #fff; }
         .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
 
         .bottom-actions { display: flex; justify-content: flex-end; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border-color); margin-top: 32px; }
     </style>
@@ -154,11 +158,10 @@
                     <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; margin-top: 12px;">
                         <!-- 첨부 리스트 렌더링 영역 -->
                         <div id="materialListWrapper">
-                            <!-- JS를 통해 아이템이 추가됨 -->
                             <div style="text-align:center; padding: 10px; color:#94a3b8; font-size:13px;" id="emptyMaterialMsg">등록된 자료가 없습니다. 아래 버튼을 눌러 추가하세요.</div>
                         </div>
 
-                        <!-- 추가 버튼 (파일 / 링크) -->
+                        <!-- 추가 버튼 -->
                         <div style="display:flex; gap:10px; margin-top: 16px;">
                             <button type="button" class="btn btn-outline" style="background:#fff; border-color:#cbd5e1; font-size:13px; padding:8px 16px; color:#334155; box-shadow:0 1px 2px rgba(0,0,0,0.05);" onclick="addMaterial('file')">
                                 📄 PC 파일 첨부
@@ -203,7 +206,6 @@
                             <input type="url" class="lesson-url" placeholder="https://vimeo.com/..." required>
                         </div>
 
-                        <!-- 챕터별 세부 내용 (첨부파일 제거, 순수 설명란만 남김) -->
                         <div class="form-group" style="margin-bottom:0;">
                             <label style="color:#0ea5e9; display:flex; gap:4px; align-items:center;">
                                 <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
@@ -218,7 +220,7 @@
             <!-- 제출 버튼 -->
             <div class="bottom-actions">
                 <button type="button" class="btn btn-outline" onclick="window.parent.loadPage(null, '스터디관리', 'study_admin.html')">취소하고 나가기</button>
-                <button type="submit" class="btn btn-primary" style="padding: 12px 32px; font-size: 16px;">
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="padding: 12px 32px; font-size: 16px;">
                     ✅ 새 강의 최종 등록(저장)
                 </button>
             </div>
@@ -226,9 +228,11 @@
     </div>
 
     <script>
-        // --- 🌟 다중 이미지 업로드 (기존 유지) 🌟 ---
+        const UPLOAD_BUCKET = 'study-media'; // 🌟 Supabase Storage 버킷 이름
         let selectedFiles = [];
         const MAX_FILES = 5;
+
+        // --- 다중 이미지 드래그 업로드 ---
         const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('multiFileInput');
         const previewContainer = document.getElementById('previewContainer');
@@ -271,7 +275,7 @@
             items.forEach((item, idx) => { const label = item.querySelector('.main-thumb-label'); if(label) label.style.display = (idx === 0) ? 'block' : 'none'; });
         }
 
-        // --- 🌟 신규: 수업 자료(교재) 업로드 동적 로직 🌟 ---
+        // --- 수업 자료(교재) 업로드 동적 로직 ---
         function addMaterial(type) {
             const wrapper = document.getElementById('materialListWrapper');
             const emptyMsg = document.getElementById('emptyMaterialMsg');
@@ -310,8 +314,7 @@
             }
         }
 
-
-        // --- 커리큘럼(목차) 로직 ---
+        // --- 커리큘럼(목차) 추가 ---
         function addLessonRow() {
             const list = document.getElementById('lessonList');
             let lastSectionVal = "";
@@ -350,10 +353,151 @@
 
         function removeLesson(btn) { btn.closest('.curriculum-card').remove(); }
 
-        // --- 제출 ---
-        document.getElementById('courseForm').addEventListener('submit', function(e) {
+
+        // --- 🌟 DB 및 스토리지 최종 전송 (Submit) 🌟 ---
+        document.getElementById('courseForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-            alert('데이터 저장이 정상적으로 처리되었습니다. (프론트 디자인 검토 완료)');
+
+            // 1. 사전 체크
+            const sb = window.gongsiClient;
+            if (!sb) return alert("데이터베이스(Supabase)에 아직 연결되지 않았습니다.");
+
+            const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+            const authorId = ud.profile ? ud.profile.id : null;
+            if (!authorId) {
+                return alert("로그인이 만료되었거나 작성 권한이 없습니다. 다시 로그인해주세요.");
+            }
+
+            if(selectedFiles.length === 0) {
+                return alert('최소 1장의 대표 썸네일을 등록해주세요.');
+            }
+
+            // 2. 버튼 상태 변경 방지
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '⏳ 자동 압축 및 DB 저장 중... (창을 닫지 마세요)';
+            submitBtn.disabled = true;
+
+            try {
+                // 3. 사진 압축 및 스토리지 업로드
+                let uploadedThumbnails = [];
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    
+                    // 브라우저 단에서 이미지 가볍게 자동 압축 (강력 추천 기능)
+                    const options = {
+                        maxSizeMB: 1,           // 최대 1MB
+                        maxWidthOrHeight: 1200, // 가로/세로 최대 1200px
+                        useWebWorker: true
+                    };
+                    const compressedFile = await imageCompression(file, options);
+                    
+                    const fileName = `course_${Date.now()}_${i}.${file.name.split('.').pop()}`;
+                    const path = `thumbnails/${fileName}`;
+
+                    // study-media 스토리지에 저장
+                    const { error: uploadErr } = await sb.storage.from(UPLOAD_BUCKET).upload(path, compressedFile);
+                    if (uploadErr) throw new Error("썸네일 이미지 업로드 실패: " + uploadErr.message);
+
+                    const { data: { publicUrl } } = sb.storage.from(UPLOAD_BUCKET).getPublicUrl(path);
+                    uploadedThumbnails.push(publicUrl);
+                }
+
+                // 4. 강의 상위 테이블(study_courses) DB Insert
+                const title = document.getElementById('courseTitle').value;
+                const price = document.getElementById('coursePrice').value;
+                const desc = document.getElementById('courseDesc').value;
+
+                const { data: courseData, error: courseErr } = await sb.from('study_courses').insert([{
+                    instructor_id: authorId,
+                    title: title,
+                    price: parseInt(price),
+                    description: desc,
+                    thumbnail_urls: uploadedThumbnails,
+                    status: 'published' // 현재 완성 즉시 강제 판매중 처리
+                }]).select();
+
+                if (courseErr) throw courseErr;
+                const newCourseId = courseData[0].id;
+
+                // 5. 강의 자료(study_materials) 스토리지 업로드 및 DB Insert 동시 진행
+                const materialsDiv = document.getElementById('materialListWrapper');
+                const matItems = materialsDiv.querySelectorAll('.material-item');
+                let materialPromises = [];
+
+                matItems.forEach((item) => {
+                    const matTitle = item.querySelector('input[type="text"]').value;
+                    const linkInput = item.querySelector('input[type="url"]');
+                    const fileInput = item.querySelector('input[type="file"]');
+                    
+                    if (linkInput && linkInput.value) {
+                        materialPromises.push(
+                            sb.from('study_materials').insert([{
+                                course_id: newCourseId,
+                                material_type: 'link',
+                                title: matTitle,
+                                file_url: linkInput.value
+                            }])
+                        );
+                    } else if (fileInput && fileInput.files[0]) {
+                        // 교재 파일은 깨지지 않도록 압축 없이 곧바로 원본 업로드
+                        const docFile = fileInput.files[0];
+                        const docPath = `materials/doc_${Date.now()}_${docFile.name}`;
+                        
+                        const uploadPromise = sb.storage.from(UPLOAD_BUCKET).upload(docPath, docFile).then(res => {
+                            if(res.error) throw res.error;
+                            const { data: { publicUrl } } = sb.storage.from(UPLOAD_BUCKET).getPublicUrl(docPath);
+                            
+                            return sb.from('study_materials').insert([{
+                                course_id: newCourseId,
+                                material_type: 'file',
+                                title: matTitle,
+                                file_url: publicUrl
+                            }]);
+                        });
+                        materialPromises.push(uploadPromise);
+                    }
+                });
+
+                // 6. 강의 커리큘럼(study_lessons) DB Insert
+                const lessonItems = document.querySelectorAll('#lessonList .curriculum-card');
+                let lessonPromises = [];
+                lessonItems.forEach((card, index) => {
+                    const sectVal = card.querySelector('.lesson-section').value;
+                    const titleVal = card.querySelector('.lesson-title').value;
+                    const urlVal = card.querySelector('.lesson-url').value;
+                    const descVal = card.querySelector('.lesson-desc').value;
+
+                    lessonPromises.push(
+                        sb.from('study_lessons').insert([{
+                            course_id: newCourseId,
+                            section_title: sectVal,
+                            lesson_title: titleVal,
+                            video_url: urlVal,
+                            description: descVal,
+                            order_index: index + 1
+                        }])
+                    );
+                });
+
+                // 자료 첨부 및 목차 삽입이 에러 없이 모두 끝날 때까지 병렬 대기
+                await Promise.all([...materialPromises, ...lessonPromises]);
+
+                alert(`🎉 스터디가 성공적으로 등록 및 업로드되었습니다!\n(첨부된 사진은 자동으로 서버 최적화 되었습니다)`);
+                
+                // 완료 후 다시 리스트 화면으로 이동
+                if(window.parent && window.parent.loadPage) {
+                    window.parent.loadPage(null, '스터디관리', 'study_admin.html');
+                } else {
+                    window.location.href = 'study_admin.html';
+                }
+
+            } catch (error) {
+                console.error("데이터 저장 실패:", error);
+                alert("등록 중 오류가 발생했습니다: " + error.message);
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
         });
     </script>
 </body>
