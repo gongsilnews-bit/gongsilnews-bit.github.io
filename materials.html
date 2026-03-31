@@ -63,14 +63,14 @@
             display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 30px;
         }
         .t-filter {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 10px 18px; border-radius: 50px; border: 1px solid var(--border);
-            background: #fff; color: var(--text-sub); font-size: 14px; font-weight: 600;
-            cursor: pointer; transition: 0.2s;
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border-radius: 20px; border: 1px solid #ccc;
+            background: #fff; color: #333; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap;
         }
-        .t-filter:hover { border-color: var(--primary); color: var(--primary); }
+        .t-filter:hover { background: #f9fafb; border-color: #999; color: #333; }
         .t-filter.active {
-            background: rgba(255, 123, 0, 0.08); border-color: var(--primary); color: var(--primary);
+            background: #fff8f1; border-color: var(--primary); color: var(--primary); font-weight: 700;
         }
         .chk-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
         .t-filter.active .chk-icon { display: block; }
@@ -268,8 +268,6 @@
     <!-- MAIN CONTENT -->
     <div class="materials-container">
         
-        <h1 class="page-title">자료실</h1>
-
         <!-- 최상단 1차 카테고리 (Pill 형태) -->
         <div class="top-filters">
             <button class="t-filter">
