@@ -11,9 +11,9 @@
     
     <style>
         :root {
-            --primary: #FF7B00;       
+            --primary: var(--primary-color);       
             --primary-dark: #E65C00;
-            --accent-orange: #FF7B00; 
+            --accent-orange: var(--primary-color); 
             --text-main: #1f2937;     
             --text-sub: #6b7280;      
             --bg-gray: #f8fafc;       
@@ -138,18 +138,22 @@
 
         .section-divider { border: 0; height: 1px; background: var(--border); margin: 0 0 30px 0; }
 
-        /* 커뮤니티 리스트형 게시판 (Rich List Style) */
-        .community-list { display: flex; flex-direction: column; gap: 24px; }
+        /* 커뮤니티 리스트형 게시판 (Text-driven Style) */
+        .community-list { display: flex; flex-direction: column; }
         .c-post-row {
             display: flex; justify-content: space-between; gap: 30px;
-            padding: 24px; background: #fff; border: 1px solid var(--border);
-            border-radius: 12px; cursor: pointer; transition: all 0.3s ease;
+            padding: 24px 0; border-bottom: 1px solid var(--border);
+            cursor: pointer; transition: background 0.2s;
         }
-        .c-post-row:hover {
-            border-color: #cbd5e1; transform: translateY(-4px);
-            box-shadow: 0 16px 30px rgba(0, 0, 0, 0.05);
-        }
+        .c-post-row:hover { background: #fafafa; }
         
+        /* 공지 스타일 (박스형) */
+        .c-post-notice {
+            background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:24px;
+            margin-bottom: 10px; border-bottom: none;
+        }
+        .c-post-notice:hover { background:#f1f5f9; }
+
         .c-post-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
         
         .c-post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
@@ -160,18 +164,18 @@
         .c-post-category { font-size: 13px; font-weight: 700; color: var(--text-sub); }
 
         .c-post-title {
-            font-size: 18px; font-weight: 800; color: var(--text-main);
-            margin: 0 0 10px 0; line-height: 1.4;
+            font-size: 17px; font-weight: 800; color: var(--text-main);
+            margin: 0 0 8px 0; line-height: 1.4;
             display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
         }
         .c-post-snippet {
-            font-size: 15px; color: #475569; line-height: 1.6; margin: 0 0 16px 0;
+            font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 16px 0;
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
 
         .m-meta {
             display: flex; justify-content: space-between; align-items: center;
-            margin-top: auto; font-size: 13px; color: var(--text-sub);
+            font-size: 13px; color: var(--text-sub);
         }
         .m-author { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155; }
         .avatar-temp { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
@@ -183,11 +187,28 @@
         .stat-orange { color: var(--primary); }
 
         .c-post-thumb {
-            width: 160px; height: 110px; flex-shrink: 0; overflow: hidden; border-radius: 8px;
+            width: 140px; height: 100px; flex-shrink: 0; overflow: hidden; border-radius: 8px;
             background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+            align-self: flex-start; margin-top: 10px;
         }
         .c-post-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
         .c-post-row:hover .c-post-thumb img { transform: scale(1.05); }
+
+        /* 이달의 인기글 레이아웃 */
+        .popular-section {
+            margin: 30px 0; padding-top: 30px; border-top: 2px solid #1f2937;
+        }
+        .pop-title { font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--text-main); }
+        .pop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+        .pop-item:hover .pop-text { text-decoration: underline; }
+        .pop-num { font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2; }
+        .pop-num.rank-1 { color: var(--primary); }
+        .pop-num.rank-2 { color: #ef4444; }
+        .pop-num.rank-3 { color: #f59e0b; }
+        .pop-content { flex: 1; min-width: 0; }
+        .pop-text { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pop-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 8px; }
 
         /* 페이징 */
         .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px; }
@@ -203,13 +224,14 @@
         @media (max-width: 1024px) {
             .materials-layout { flex-direction: column; }
             .m-sidebar { width: 100%; position: static; margin-bottom: 20px; }
-            .side-menu { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
-            .side-menu li { white-space: nowrap; margin-bottom: 0; }
+            .side-menu { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+            .side-menu li { margin-bottom: 0; }
             .side-menu li.active::after { display: none; }
+            .pop-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
             .c-post-row { flex-direction: column-reverse; gap: 16px; }
-            .c-post-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; }
+            .c-post-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; margin-top: 0; }
             .c-post-snippet { -webkit-line-clamp: 3; }
         }
     </style>
@@ -238,17 +260,34 @@
     <!-- 스터디 네비게이션 -->
     <div class="study-nav-bar">
         <div class="study-tier1">
-            <div style="display: flex; gap: 24px;">
+            <div style="display: flex; gap: 24px; align-items: center;">
                 <a href="study" class="study-tab-item">스터디</a>
                 <a href="materials" class="study-tab-item">자료실</a>
                 <a href="community" class="study-tab-item active">커뮤니티</a>
                 <a href="my_study" class="study-tab-item">MY스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 0 4px; margin-left: auto; vertical-align: middle;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
             </div>
             <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
                 내 스터디
                 <div style="width:28px; height:28px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center;">👤</div>
             </a>
         </div>
+    </div>
+
+    <!-- 글로벌 검색 입력 패널 (기본 숨김) -->
+    <div id="globalSearchPanel" style="display: none; background-color: #0f141e; width: 100%; padding: 30px 0; text-align: center; position: absolute; top: 110px; left: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <div style="position: relative; display: inline-block; width: 500px; max-width: 90%; vertical-align: middle;">
+            <input type="text" id="globalKeywordInput" placeholder="검색어를 입력해주세요" style="width: 100%; padding: 16px 20px; padding-right: 50px; font-size: 16px; border: none; border-radius: 4px; outline: none; box-sizing: border-box;" onkeypress="if(event.key==='Enter') window.executeGlobalSearch()">
+            <button onclick="window.executeGlobalSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <button onclick="window.toggleGlobalSearchPanel()" style="background: none; border: none; cursor: pointer; vertical-align: middle; margin-left: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
     </div>
 
     <!-- 2차 메뉴 필터바 (풀 사이즈 라인) -->
@@ -283,9 +322,13 @@
                     <input type="text" class="side-search-input" placeholder="검색어 입력">
                     <button class="side-search-submit">검색</button>
                 </div>
+
+                <div style="background: var(--primary); color: #fff; padding: 14px 16px; border-radius: 8px; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 15px;">
+                    최신 전체보기
+                    <span style="font-size: 12px; font-weight: 800;">&gt;</span>
+                </div>
                 <ul class="side-menu">
-                    <li class="active">최신 글보기</li>
-                    <li>🔥 인기(베스트)</li>
+                    <li><span style="color:#ef4444; margin-right:6px; font-size: 14px;">🔥</span> 공지 베스트</li>
                     <li>꿀팁 카테고리</li>
                     <li>고민상담</li>
                     <li>나의 활동내역</li>
@@ -307,21 +350,21 @@
                 <div class="community-list">
                     
                     <!-- 게시글 1: 공지 -->
-                    <div class="c-post-row" style="background:#f8fafc; border-color:#e2e8f0;">
+                    <div class="c-post-row c-post-notice">
                         <div class="c-post-info">
                             <div class="c-post-header">
                                 <span class="m-badge b-notice">필독</span>
                                 <span class="c-post-category">공지사항</span>
                             </div>
-                            <h3 class="c-post-title">[필독] 커뮤니티 이용 가이드 및 매너 수칙 안내</h3>
-                            <p class="c-post-snippet">공실뉴스 커뮤니티에 오신 것을 환영합니다! 공인중개사, 분양 상담사, 마케터 등 모든 회원분들이 깨끗하고 쾌적하게 소통할 수 있도록 몇 가지 아주 중요한 이용 수칙을 안내해 드립니다...</p>
+                            <h3 class="c-post-title">[필독] 커뮤니티 게시물 작성 가이드 및 매너 수칙 안내</h3>
+                            <p class="c-post-snippet">공실뉴스 커뮤니티에 오신 것을 환영합니다. 공인중개사, 분양 상담사 등 모든 회원분들이 서로 배려하며 활동할 수 있도록 몇 가지 아주 중요한 이용 수칙을 안내해 드립니다...</p>
                             <div class="m-meta">
                                 <div class="m-author"><div class="avatar-temp">운</div> 운영자</div>
                                 <div class="c-post-stats">
                                     <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 2.4k</span>
                                     <span class="stat-item stat-red"><svg class="stat-icon stat-red" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 152</span>
                                     <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 34</span>
-                                    <span>2026.03.20</span>
+                                    <span>2024.03.20</span>
                                 </div>
                             </div>
                         </div>
@@ -330,68 +373,130 @@
                     <!-- 게시글 2 -->
                     <div class="c-post-row">
                         <div class="c-post-info">
-                            <div class="c-post-header">
-                                <span class="m-badge b-new">NEW</span>
-                                <span class="c-post-category">꿀팁 카테고리</span>
-                            </div>
-                            <h3 class="c-post-title">초보 공인중개사 블로그 세팅 꿀팁 대방출합니다 🚀</h3>
-                            <p class="c-post-snippet">블로그 처음 시작하시는 분들 막막하시죠? 처음에 어떻게 세팅해야 상위노출에 유리한지 제 경험담 위주로 정리해봤습니다. 가장 중요한 건 카테고리 설정과 스킨 디자인입니다.</p>
+                            <div class="m-author" style="margin-bottom:8px;"><div class="avatar-temp">이</div> 이소장 <span class="m-badge b-new" style="margin-left:6px;">NEW</span></div>
+                            <h3 class="c-post-title">일반 임대차에서 중개 보수료 계산 시 주의사항!</h3>
+                            <p class="c-post-snippet">2024년 4월 1일부터 개정된 사항을 반영한 내용입니다. 부동산중개법인 등 유의하시기 바랍니다. 특히 세금계산서 발급 시 주의하셔야 할 점이 여러 가지 있습니다.</p>
                             <div class="m-meta">
-                                <div class="m-author"><div class="avatar-temp">열</div> 열정부장</div>
                                 <div class="c-post-stats">
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 1,024</span>
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 56</span>
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 18</span>
-                                    <span>3시간 전</span>
+                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 0</span>
+                                    <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 2</span>
                                 </div>
+                                <span>3시간 전</span>
                             </div>
-                        </div>
-                        <div class="c-post-thumb">
-                            <img src="https://images.unsplash.com/photo-1499951360447-b19be8fe80f5?auto=format&fit=crop&q=80&w=400" alt="썸네일">
                         </div>
                     </div>
 
                     <!-- 게시글 3 -->
                     <div class="c-post-row">
                         <div class="c-post-info">
-                            <div class="c-post-header">
-                                <span class="m-badge b-hot">인기</span>
-                                <span class="c-post-category">고민상담</span>
-                            </div>
-                            <h3 class="c-post-title">유튜브 촬영장비 가성비로 세팅하는 법 (마이크/조명)</h3>
-                            <p class="c-post-snippet">오즈모 포켓3를 많이들 쓰시던데, 스마트폰으로도 충분할까요? 현재 제가 사용 중인 스마트폰+핀마이크 가성비 조합을 공유합니다. 생각보다 화질보다 음질이 훨씬 중요하더라구요.</p>
+                            <div class="m-author" style="margin-bottom:8px;"><div class="avatar-temp">박</div> 박수장 <span class="m-badge b-hot" style="margin-left:6px;">BEST</span></div>
+                            <h3 class="c-post-title">원룸 임대차 중개 보수료 계산 시 주의사항!</h3>
+                            <p class="c-post-snippet">2024년 4월 1일부터 개정된 방침을 자세히 보려면 국토부 공식 문건을 참고하세요. 최근 다가구 주택 관리비 산정 방식 변경 건으로 임대인과 마찰이 발생할 수 있습니다.</p>
                             <div class="m-meta">
-                                <div class="m-author"><div class="avatar-temp">김</div> 김소장</div>
                                 <div class="c-post-stats">
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 3,421</span>
-                                    <span class="stat-item stat-red"><svg class="stat-icon stat-red" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 112</span>
-                                    <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 45</span>
-                                    <span>2일 전</span>
+                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 85</span>
+                                    <span class="stat-item stat-red"><svg class="stat-icon stat-red" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 12</span>
+                                    <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 4</span>
                                 </div>
+                                <span>5시간 전</span>
                             </div>
-                        </div>
-                        <div class="c-post-thumb">
-                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400" alt="썸네일">
                         </div>
                     </div>
 
-                    <!-- 게시글 4 -->
-                    <div class="c-post-row">
-                        <div class="c-post-info">
-                            <div class="c-post-header">
-                                <span class="c-post-category">스터디원 모집</span>
-                            </div>
-                            <h3 class="c-post-title">[강남/서초] 주말 부동산 경매/공매 오전반 스터디 모집합니다 (4/6명)</h3>
-                            <p class="c-post-snippet">강남역 인근에서 매주 토요일 오전 10시에 진행하는 경매 실전 분석 스터디입니다. 현재 초보 2명, 중급 2명 구성되어 있으며 열정 넘치는 2분만 더 모시고자 합니다.</p>
-                            <div class="m-meta">
-                                <div class="m-author"><div class="avatar-temp">P</div> Park매니저</div>
-                                <div class="c-post-stats">
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 452</span>
-                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 12</span>
-                                    <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 5</span>
-                                    <span>3일 전</span>
+                    <!-- 이달의 인기글 삽입 -->
+                    <div class="popular-section">
+                        <h3 class="pop-title">이달의 인기글</h3>
+                        <div class="pop-grid">
+                            <div class="pop-item">
+                                <div class="pop-num rank-1">1</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">[꿀팁] 블로그 최적화 노하우, 상위노출 100% 비결 대공개</div>
+                                    <div class="pop-meta"><span>강남김소장</span> <span>👁 14.5k</span> <span>💬 156</span></div>
                                 </div>
                             </div>
+                            <div class="pop-item">
+                                <div class="pop-num rank-2">2</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">초보 중개사 명함 제작할 때 반드시 피해야 할 실수 3가지</div>
+                                    <div class="pop-meta"><span>디자인랩</span> <span>👁 12.1k</span> <span>💬 84</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num rank-3">3</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">상가 중개 권리금 계약 시 이것만은 꼭 챙기세요</div>
+                                    <div class="pop-meta"><span>권소장</span> <span>👁 9.8k</span> <span>💬 52</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">4</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">[질문] 매도인이 갑자기 계약 파기하면 복비는 어떻게 되나요?</div>
+                                    <div class="pop-meta"><span>초보중개사</span> <span>👁 7.2k</span> <span>💬 108</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">5</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">가계약 입금 후 단순 변심, 배액배상인가요? (최신 판례)</div>
+                                    <div class="pop-meta"><span>박변호사</span> <span>👁 6.5k</span> <span>💬 47</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">6</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">요즘 유튜브 쇼츠로 매물 홍보 효력 있나요?</div>
+                                    <div class="pop-meta"><span>마케터진</span> <span>👁 5.9k</span> <span>💬 65</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">7</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">사무실 오픈 위치 선정, 1층 vs 2층 심층 비교 분석</div>
+                                    <div class="pop-meta"><span>창업도우미</span> <span>👁 5.2k</span> <span>💬 31</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">8</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">공동중개 시 상대방이 연락 두절일 때 대처법</div>
+                                    <div class="pop-meta"><span>매너가사람을</span> <span>👁 4.8k</span> <span>💬 72</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">9</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">오늘 처음 계약서 썼습니다! 드디어 첫 개시! 🎉</div>
+                                    <div class="pop-meta"><span>병아리중개사</span> <span>👁 4.1k</span> <span>💬 125</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item">
+                                <div class="pop-num">10</div>
+                                <div class="pop-content">
+                                    <div class="pop-text">디스코 앱이랑 밸류맵 어떤거 창 띄워놓고 브리핑하시나요?</div>
+                                    <div class="pop-meta"><span>프롭테크</span> <span>👁 3.7k</span> <span>💬 41</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 이달의 인기글 끝 -->
+
+                    <!-- 게시글 4 (우측 하단 작은 썸네일 포함 형태) -->
+                    <div class="c-post-row">
+                        <div class="c-post-info" style="justify-content:center;">
+                            <div class="m-author" style="margin-bottom:8px;"><div class="avatar-temp" style="background:#0f172a; color:#fff;">I</div> IP Studio Lab <span style="margin-left:8px; font-weight:400; color:#94a3b8; font-size:12px;">2024.03.20</span></div>
+                            <h3 class="c-post-title">유튜브 장비 세팅, 조명이 생명입니다. 직접 구성한 제 사무실 보여드립니다.</h3>
+                            <p class="c-post-snippet">사무실에 기본 조명만 있는데 화질이 구리다면 카메라가 문제가 아닙니다. 무조건 핀조명 2개 놓으세요. 카메라가 안좋아도 스튜디오처럼 연출할 수 있습니다. 자세한 세팅값 공유합니다.</p>
+                            <div class="m-meta">
+                                <div class="c-post-stats">
+                                    <span class="stat-item"><svg class="stat-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 2,154</span>
+                                    <span class="stat-item stat-red"><svg class="stat-icon stat-red" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 88</span>
+                                    <span class="stat-item stat-orange"><svg class="stat-icon stat-orange" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 32</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="c-post-thumb" style="margin-top:0;">
+                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400" alt="썸네일">
                         </div>
                     </div>
                     
@@ -433,6 +538,33 @@
         function toggleSideSearch() {
             document.getElementById('sideSearchBox').classList.toggle('open');
         }
+
+        // 글로벌 검색기능 토글
+        window.toggleGlobalSearchPanel = function() {
+            const panel = document.getElementById('globalSearchPanel');
+            const iconClosed = document.getElementById('iconSearchClosed');
+            const iconOpened = document.getElementById('iconSearchOpened');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if(iconClosed) iconClosed.style.display = 'none';
+                if(iconOpened) iconOpened.style.display = 'inline-block';
+                setTimeout(() => document.getElementById('globalKeywordInput').focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if(iconClosed) iconClosed.style.display = 'inline-block';
+                if(iconOpened) iconOpened.style.display = 'none';
+                document.getElementById('globalKeywordInput').value = '';
+            }
+        };
+        window.executeGlobalSearch = function() {
+            const kw = document.getElementById('globalKeywordInput').value.trim();
+            if(!kw) {
+                alert("검색어를 입력해주세요.");
+                return;
+            }
+            alert("[" + kw + "] 내용을 검색합니다.");
+            window.toggleGlobalSearchPanel();
+        };
     </script>
 </body>
 </html>
