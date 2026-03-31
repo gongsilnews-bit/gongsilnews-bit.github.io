@@ -124,7 +124,7 @@ function initGongsilChatbot() {
                             <span style="font-size:11px; color:#64748b;">엑셀, 카톡 중에도 안가려져요!</span>
                          </div>
                     </div>
-                    <div class="menu-item" onclick="window.location.href='gongsil.html'">
+                    <div class="menu-item" onclick="window.location.href='gongsil'">
                         <div class="menu-icon" style="background:#e0f2fe; color:#0284c7;">🔍</div>
                         <span style="font-weight:700;">공실열람</span>
                     </div>
@@ -132,7 +132,7 @@ function initGongsilChatbot() {
                         <div class="menu-icon" style="background:#dcfce7; color:#16a34a;">✍️</div>
                         <span style="font-weight:700;">공실등록</span>
                     </div>
-                    <div class="menu-item" onclick="window.location.href='index.html'">
+                    <div class="menu-item" onclick="window.location.href='./'">
                         <div class="menu-icon" style="background:#f3e8ff; color:#9333ea;">📰</div>
                         <span style="font-weight:700;">기사열람</span>
                     </div>
