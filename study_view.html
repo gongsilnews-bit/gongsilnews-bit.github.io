@@ -164,14 +164,14 @@
         const sb = window.gongsiClient;
         const list = document.getElementById('logList');
         
-        // 작성자 이름까지 같이 조인해서 가져오기
+        // 작성자 이름 조인 제외 (오류 방지)
         const { data, error } = await sb.from('study_logs')
-            .select(`message, created_at, profiles (username)`)
+            .select(`message, created_at, author_id`)
             .eq('course_id', courseId)
             .order('created_at', { ascending: false });
 
         if (error) {
-            list.innerHTML = `<div style="text-align:center; color:red; padding:10px;">로그를 불러오지 못했습니다.</div>`;
+            list.innerHTML = `<div style="text-align:center; color:red; padding:10px;">로그를 불러오지 못했습니다. (${error.message})</div>`;
             return;
         }
 
@@ -184,7 +184,7 @@
             const dateStr = new Date(log.created_at).toLocaleString('ko-KR', {
                 year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
             });
-            const author = (log.profiles && log.profiles.username) ? log.profiles.username : '관리자';
+            const author = '관리자'; // 단순화
             
             return `
             <div class="log-item">

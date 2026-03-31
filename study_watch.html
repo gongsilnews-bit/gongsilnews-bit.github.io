@@ -6,6 +6,9 @@
     <title>공실스터디 - 학습하기</title>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
     <style>
         /* Base Reset */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
@@ -353,6 +356,191 @@
 
     <!-- Scripts -->
     <script>
+        // 전역 변수
+        let allLessons = [];
+        let allMaterials = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            const isPreview = urlParams.get('preview') === 'true';
+            
+            if(!courseId) return;
+
+            const sb = window.gongsiClient;
+            if(!sb) return;
+
+            // 1. 코스 제목 변경
+            const { data: courseData } = await sb.from('study_courses').select('title').eq('id', courseId).single();
+            if(courseData) {
+                document.querySelector('.course-title').innerText = courseData.title;
+            }
+
+            // 2. 강의 자료(Materials) 전부 불러오기
+            const { data: materialsData } = await sb.from('study_materials').select('*').eq('course_id', courseId);
+            if(materialsData) allMaterials = materialsData;
+
+            // 3. 동영상 목차(Lessons) 전부 불러오기
+            const { data: lessonsData } = await sb.from('study_lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
+            if(lessonsData && lessonsData.length > 0) {
+                allLessons = lessonsData;
+                renderCurriculumSidebar(lessonsData);
+                // 자동 재생 방지를 위해 클릭 전 첫 화면 세팅만 수행
+                loadLessonPlayer(lessonsData[0]);
+            } else {
+                document.querySelector('.watch-sidebar').innerHTML = `<div style="padding:40px; text-align:center; color:#94a3b8; font-weight:600;">등록된 목차(챕터)가 없습니다.</div>`;
+                document.querySelector('.video-container').innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#64748b; font-size:20px; font-weight:600;">등록된 영상이 없습니다. 관리자에서 챕터를 추가해주세요.</div>`;
+                renderNotesTab(''); // 빈 자료실
+            }
+        });
+
+        // 우측 네비게이션 목차 동적으로 뿌리기
+        function renderCurriculumSidebar(lessons) {
+            const sections = {};
+            lessons.forEach(l => {
+                if(!sections[l.section_title]) sections[l.section_title] = [];
+                sections[l.section_title].push(l);
+            });
+
+            const sidebar = document.querySelector('.watch-sidebar');
+            let thtml = `
+                <div class="sidebar-header">
+                    <div class="progress-meta">
+                        <span>전체 진도율 </span>
+                        <span class="progress-pct">0% (0 / ${lessons.length}강)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                </div>
+                <div class="curr-list">
+            `;
+
+            Object.keys(sections).forEach(sec => {
+                thtml += `
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>${sec}</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                `;
+                sections[sec].forEach(l => {
+                    thtml += `
+                        <div class="curr-item" id="curr-item-${l.id}" onclick="loadLessonById('${l.id}')">
+                            <div class="ci-icon"><svg width="18" height="18" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M10 8l6 4-6 4z"></path></svg></div>
+                            <div class="ci-info">
+                                <div class="ci-title" style="line-height:1.4;">${l.lesson_title}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                thtml += `</div></div>`;
+            });
+            thtml += `</div>`;
+            sidebar.innerHTML = thtml;
+        }
+
+        // 아이디로 영상 불러오기 (클릭이벤트 전용)
+        function loadLessonById(id) {
+            const lesson = allLessons.find(l => l.id === id);
+            if(lesson) loadLessonPlayer(lesson);
+        }
+
+        // 영상 플레이어 및 하단 정보 갈아치우기
+        function loadLessonPlayer(lesson) {
+            // 1. 영상 주소 파싱 (유튜브, 비메오 지원)
+            let embedUrl = lesson.video_url;
+            if (embedUrl) {
+                // 유튜브
+                if (embedUrl.includes('youtu.be/')) embedUrl = `https://www.youtube.com/embed/${embedUrl.split('youtu.be/')[1].split('?')[0]}`;
+                else if (embedUrl.includes('youtube.com/watch?v=')) embedUrl = `https://www.youtube.com/embed/${embedUrl.split('v=')[1].split('&')[0]}`;
+                // 비메오
+                else if (embedUrl.includes('vimeo.com/')) embedUrl = `https://player.vimeo.com/video/${embedUrl.split('.com/')[1].split('?')[0]}?title=0&byline=0&portrait=0`;
+            }
+
+            // 2. 플레이어 삽입
+            const vc = document.querySelector('.video-container');
+            if(embedUrl) {
+                vc.innerHTML = `<iframe src="${embedUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            } else {
+                vc.innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#fff;">등록된 영상 링크가 없습니다.</div>`;
+            }
+
+            // 3. 영상 제목 텍스트 적용
+            document.querySelector('.current-lesson-title').innerText = lesson.lesson_title;
+            document.querySelector('.lesson-meta').innerText = lesson.section_title;
+
+            // 4. 하단 탭(요약본 & 첨부파일) 내용 새로고침
+            renderNotesTab(lesson.description);
+
+            // 5. 사이드바 활성(파란색) 효과 갱신
+            document.querySelectorAll('.curr-item').forEach(el => {
+                el.classList.remove('active');
+                const svg = el.querySelector('svg');
+                if(svg && el.querySelector('.ci-icon').classList.contains('playing')) {
+                    el.querySelector('.ci-icon').classList.remove('playing');
+                    svg.innerHTML = `<circle cx="12" cy="12" r="10"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M10 8l6 4-6 4z"></path>`;
+                    svg.setAttribute('stroke', '#94a3b8');
+                }
+            });
+            
+            const citem = document.getElementById(`curr-item-${lesson.id}`);
+            if(citem) {
+                citem.classList.add('active');
+                const activeIconWrap = citem.querySelector('.ci-icon');
+                activeIconWrap.classList.add('playing');
+                const svg = activeIconWrap.querySelector('svg');
+                if(svg) {
+                    svg.setAttribute('stroke', '#0ea5e9');
+                    // 재생중 아이콘 형태(음파/정지가 아닌 간단한 체크마크 또는 활성화 형태) 
+                    svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>`;
+                }
+            }
+        }
+
+        // [강의 노트 & 자료] 탭 다시 그리기 (요약 설명 + 공통 첨부파일)
+        function renderNotesTab(descText) {
+            const noteTab = document.getElementById('tab-note');
+            let html = '';
+
+            // 챕터 전용 요약 텍스트
+            if (descText && descText.trim() !== '') {
+                html += `
+                <div style="margin-bottom:36px;">
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; color:#1e293b;">📝 이번 챕터 핵심 요약</h3>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; font-size:15px; line-height:1.7; color:#475569; white-space:pre-wrap;">${descText}</div>
+                </div>`;
+            }
+
+            // 공통 수업 첨부파일
+            if (allMaterials && allMaterials.length > 0) {
+                html += `<h3 style="font-size:18px; margin-bottom:16px; font-weight:800; color:#1e293b;">📁 스터디 공통 교재 및 자료 다운로드</h3>`;
+                allMaterials.forEach(mat => {
+                    const isLink = mat.material_type === 'link';
+                    const icon = isLink ? '🔗' : '📄';
+                    const dlText = isLink ? '구글드라이브 열기' : 'PC 다운로드';
+                    const bg = isLink ? '#eff6ff' : '#f0fdf4';
+                    const tx = isLink ? '#3b82f6' : '#16a34a';
+
+                    html += `
+                    <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon" style="background:${bg}; color:${tx}; font-size:18px;">${icon}</div>
+                            <div class="dl-texts">
+                                <strong>${mat.title}</strong>
+                            </div>
+                        </div>
+                        <button class="dl-btn" onclick="window.open('${mat.file_url}', '_blank')">${dlText}</button>
+                    </div>`;
+                });
+            }
+
+            if(html === '') {
+                html = `<div style="text-align:center; padding:50px 0; color:#94a3b8; font-size:15px;">등록된 핵심 요약이나 수업 배포 자료가 아직 없습니다.</div>`;
+            }
+
+            noteTab.innerHTML = html;
+        }
+
         // Tab Switch Logic
         function switchTab(tabId, btnElement) {
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -368,10 +556,10 @@
             const svg = element.querySelector('svg');
             if (items.style.display === 'none') {
                 items.style.display = 'block';
-                svg.style.transform = 'rotate(0deg)';
+                if(svg) svg.style.transform = 'rotate(0deg)';
             } else {
                 items.style.display = 'none';
-                svg.style.transform = 'rotate(-90deg)';
+                if(svg) svg.style.transform = 'rotate(-90deg)';
             }
         }
 
@@ -379,12 +567,9 @@
         function toggleDarkMode() {
             document.body.classList.toggle('dark-mode');
             const icon = document.getElementById('darkIconMoon');
-            
             if (document.body.classList.contains('dark-mode')) {
-                // Change icon to Sun
                 icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
             } else {
-                // Change icon to Moon
                 icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
             }
         }
