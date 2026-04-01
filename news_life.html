@@ -635,7 +635,7 @@
             <div class="news-list-area">
                 <div class="list-header">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                    전체뉴스
+                    여행·건강·생활
                 </div>
                 
                 <div id="allNewsContainer">
@@ -696,7 +696,7 @@
         // 메인 GNB의 '전체뉴스' 링크 활성화 스타일 (선택사항)
         const menuLinks = document.querySelectorAll('.gnb-new a');
         menuLinks.forEach(a => {
-            if(a.innerText === '전체뉴스') {
+            if(a.innerText === '여행·건강·생활') {
                 a.style.color = '#1e56a0';
                 a.style.fontWeight = '800';
             }
@@ -713,7 +713,7 @@
         if(!sb) return;
         
         // Count query
-        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published');
+        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published').eq('section1', '여행·건강·생활');
         if(!countErr) totalItems = count || 0;
         
         const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
@@ -735,6 +735,7 @@
         const { data, error } = await sb.from('articles')
             .select('*')
             .eq('status', 'published')
+            .eq('section1', '여행·건강·생활')
             .order('created_at', { ascending: false })
             .range(startIdx, endIdx);
             
@@ -797,6 +798,7 @@
         const { data, error } = await sb.from('articles')
             .select('id, title, view_count')
             .eq('status', 'published')
+            .eq('section1', '여행·건강·생활')
             .order('view_count', { ascending: false })
             .limit(5);
             
