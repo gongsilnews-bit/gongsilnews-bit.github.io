@@ -58,6 +58,7 @@
             font-style: italic;
             margin-right: 20px;
             letter-spacing: -1px;
+            cursor: pointer;
         }
         .top-desc {
             font-size: 14px;
@@ -138,6 +139,7 @@
         }
         .header img.ht-logo {
             height: 50px;
+            cursor: pointer;
             transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
         }
         .header.is-sticky img.ht-logo {
@@ -407,7 +409,7 @@
     <!-- 1. Top Nav Bar -->
     <div class="top-bar">
         <div class="top-bar-left">
-            <div class="top-logo">공실뉴스</div>
+            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
             <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
         </div>
         <div class="top-bar-right">
@@ -433,7 +435,7 @@
             <div class="header-top">
                 <div class="ht-left"></div>
                 <div class="ht-center">
-                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
+                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
                 </div>
                 <div class="ht-right">
                     <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
@@ -860,5 +862,6 @@
     }
     
     </script>
+    <script src="script.js"></script>
 </body>
 </html>
