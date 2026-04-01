@@ -790,69 +790,91 @@
 
                 // Redirect to the gongsil page when a cluster is clicked
                 kakao.maps.event.addListener(clusterer, 'clusterclick', function(cluster) {
-                    const markers = cluster.getMarkers();
-                    const overlay = document.getElementById('property-list-overlay');
-                    const content = document.getElementById('property-list-content');
-                    
-                    content.innerHTML = ''; // clear old list
-                    
-                    function formatMoney(n) {
-                        if (!n) return '0';
-                        n = parseInt(n);
-                        if (n >= 10000) {
-                            const uk = Math.floor(n / 10000);
-                            const rest = n % 10000;
-                            return uk + '억' + (rest > 0 ? ' ' + rest : '');
-                        }
-                        return n + '';
-                    }
-
-                    markers.forEach(m => {
-                        const p = m.propertyData;
-                        if (!p) return;
+                    try {
+                        const markers = cluster.getMarkers();
+                        const overlay = document.getElementById('property-list-overlay');
+                        const content = document.getElementById('property-list-content');
                         
-                        let priceText = (p.trade_type || '') + ' ';
-                        if (p.trade_type === '월세') {
-                            priceText += `${formatMoney(p.deposit)} / ${formatMoney(p.monthly_rent)}`;
-                        } else {
-                            priceText += `${formatMoney(p.deposit)}`;
+                        if (!overlay || !content) {
+                            alert("오버레이 패널을 찾을 수 없습니다.");
+                            return;
                         }
 
-                        const dateStr = p.created_at ? p.created_at.substring(0, 10).replace(/-/g, '.') : '';
-                        const titleStr = `${p.building_name || ''} ${p.dong_number || ''} ${p.room_number || ''}`.trim() || `${p.dong || ''} 매물`;
-                        const sizeArea = `${p.supply_area ? p.supply_area+'m²' : ''} / ${p.dedicated_area ? p.dedicated_area+'m²' : ''}`.replace(/^ \/ | \/ $/g, '');
+                        content.innerHTML = ''; // clear old list
                         
-                        let imageHtml = '';
-                        if (p.images && p.images.length > 0) {
-                            let imgUrl = p.images[0];
-                            if (!imgUrl.startsWith('http')) {
-                                imgUrl = `https://kjrjrjnsiynrcelzepju.supabase.co/storage/v1/object/public/properties/${imgUrl}`;
+                        function formatMoney(n) {
+                            if (!n) return '0';
+                            n = parseInt(n);
+                            if (n >= 10000) {
+                                const uk = Math.floor(n / 10000);
+                                const rest = n % 10000;
+                                return uk + '억' + (rest > 0 ? ' ' + rest : '');
                             }
-                            imageHtml = `<div style="width: 70px; height: 70px; border-radius: 6px; background: url('${imgUrl}') center/cover; margin-left: 10px; border: 1px solid #eee; flex-shrink: 0;"></div>`;
+                            return n + '';
                         }
 
-                        const itemHtml = `
-                            <div style="padding: 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items:flex-start; justify-content: space-between; transition: background 0.2s;" 
-                                 onmouseover="this.style.background='#f8f9fc'" onmouseout="this.style.background='#fff'"
-                                 onclick="window.location.href='gongsil/index.html?view_id=${p.id}'">
-                                <div style="flex:1; overflow: hidden;">
-                                    <h4 style="margin: 0 0 4px 0; font-size: 14px; color: #222; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${titleStr}</h4>
-                                    <div style="color: #1e56a0; font-weight: 800; font-size: 15px; margin-bottom: 4px;">${priceText}</div>
-                                    <div style="color: #666; font-size: 11px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.property_type || '구분없음'} | ${sizeArea}</div>
-                                    <div style="color: #666; font-size: 11px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">룸 ${p.room_count||0}개, 욕실 ${p.bathroom_count||0}개, ${p.options || ''}</div>
-                                    <div style="display: flex; gap: 6px; align-items: center; font-size: 11px; flex-wrap: wrap;">
-                                        <span style="color: #e53935; border: 1px solid #ffcdd2; background: #ffebee; padding: 2px 4px; border-radius: 3px; font-weight: bold;">수수료율조율</span>
-                                        <span style="color: #d32f2f; font-weight: 900; letter-spacing: 0.5px;">${p.author_phone || '연락처 비공개'}</span>
-                                        <span style="color: #aaa; margin-left: auto;">${dateStr}</span>
+                        let validCount = 0;
+                        markers.forEach(m => {
+                            try {
+                                const p = m.propertyData;
+                                if (!p) return;
+                                
+                                let priceText = (p.trade_type || '') + ' ';
+                                if (p.trade_type === '월세') {
+                                    priceText += `${formatMoney(p.deposit)} / ${formatMoney(p.monthly_rent)}`;
+                                } else {
+                                    priceText += `${formatMoney(p.deposit)}`;
+                                }
+
+                                const dateStr = p.created_at ? p.created_at.substring(0, 10).replace(/-/g, '.') : '';
+                                const titleStr = `${p.building_name || ''} ${p.dong_number || ''} ${p.room_number || ''}`.trim() || `${p.dong || ''} 매물`;
+                                const supply = p.supply_area ? p.supply_area+'m²' : '';
+                                const ded = p.dedicated_area ? p.dedicated_area+'m²' : '';
+                                const sizeArea = supply || ded ? `${supply} / ${ded}`.replace(/^ \/ | \/ $/g, '') : '';
+                                
+                                let imageHtml = '';
+                                if (p.images && Array.isArray(p.images) && p.images.length > 0) {
+                                    let imgUrl = p.images[0];
+                                    if (!imgUrl.startsWith('http')) {
+                                        imgUrl = `https://kjrjrjnsiynrcelzepju.supabase.co/storage/v1/object/public/properties/${imgUrl}`;
+                                    }
+                                    imageHtml = `<div style="width: 70px; height: 70px; border-radius: 6px; background: url('${imgUrl}') center/cover; margin-left: 10px; border: 1px solid #eee; flex-shrink: 0;"></div>`;
+                                }
+
+                                const itemHtml = `
+                                    <div style="padding: 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items:flex-start; justify-content: space-between; transition: background 0.2s;" 
+                                         onmouseover="this.style.background='#f8f9fc'" onmouseout="this.style.background='#fff'"
+                                         onclick="window.location.href='gongsil/index.html?view_id=${p.id}'">
+                                        <div style="flex:1; overflow: hidden;">
+                                            <h4 style="margin: 0 0 4px 0; font-size: 14px; color: #222; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${titleStr}</h4>
+                                            <div style="color: #1e56a0; font-weight: 800; font-size: 15px; margin-bottom: 4px;">${priceText}</div>
+                                            <div style="color: #666; font-size: 11px; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.property_type || '구분없음'} | ${sizeArea}</div>
+                                            <div style="color: #666; font-size: 11px; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">룸 ${p.room_count||0}개, 욕실 ${p.bathroom_count||0}개, ${p.options || ''}</div>
+                                            <div style="display: flex; gap: 6px; align-items: center; font-size: 11px; flex-wrap: wrap;">
+                                                <span style="color: #e53935; border: 1px solid #ffcdd2; background: #ffebee; padding: 2px 4px; border-radius: 3px; font-weight: bold;">수수료율조율</span>
+                                                <span style="color: #d32f2f; font-weight: 900; letter-spacing: 0.5px;">${p.author_phone || '연락처 비공개'}</span>
+                                                <span style="color: #aaa; margin-left: auto;">${dateStr}</span>
+                                            </div>
+                                        </div>
+                                        ${imageHtml}
                                     </div>
-                                </div>
-                                ${imageHtml}
-                            </div>
-                        `;
-                        content.insertAdjacentHTML('beforeend', itemHtml);
-                    });
-                    
-                    overlay.style.display = 'block';
+                                `;
+                                content.insertAdjacentHTML('beforeend', itemHtml);
+                                validCount++;
+                            } catch (itemErr) {
+                                console.error('Error rendering item:', itemErr);
+                            }
+                        });
+                        
+                        if (validCount === 0) {
+                            content.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;">해당 지역에 등록된 매물 상세 정보가 없습니다.</div>';
+                        }
+                        
+                        overlay.style.display = 'block';
+                    } catch (e) {
+                        console.error('Cluster click error:', e);
+                        alert("리스트를 불러오는 중 오류가 발생했습니다: " + e.message);
+                    }
                 });
 
                 // Fetch Properties from Supabase, Geocode, and add to Clusterer
