@@ -9,8 +9,7 @@ header_html = html[:split_idx]
 content = header_html + """
     <style>
         .news-layout {
-            display: grid;
-            grid-template-columns: 1fr 340px;
+            display: flex;
             gap: 40px;
             margin-top: 30px;
             margin-bottom: 60px;
@@ -18,11 +17,7 @@ content = header_html + """
         
         /* Left: Read Area */
         .news-read-area {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
-            border: 1px solid #e1e4e8;
-            padding: 30px 40px;
+            flex: 1;
         }
         
         .detail-breadcrumb { font-size: 14px; color: #1e56a0; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.5px; }
@@ -48,7 +43,8 @@ content = header_html + """
         
         /* Right: Sidebar */
         .news-sidebar {
-            width: 100%; /* controlled by grid column */
+            width: 320px;
+            flex-shrink: 0;
         }
         .sb-banner {
             width: 100%;
