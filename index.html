@@ -40,142 +40,54 @@
         /* 1. Top Nav Bar */
         .top-bar {
             background-color: var(--brand-navy);
-            height: 60px;
+            height: 40px;
             color: #ffffff;
+            font-size: 13px;
+        }
+        .top-bar .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 50px;
-            min-width: 1200px;
+            height: 100%;
+            padding: 0 20px;
         }
-        .top-bar-left { 
-            display: flex; 
-            align-items: center; 
-        }
-        .top-logo {
-            font-size: 24px;
-            font-weight: 900;
-            font-style: italic;
-            margin-right: 20px;
-            letter-spacing: -1px;
-            cursor: pointer;
-        }
-        .top-desc {
-            font-size: 14px;
-            font-weight: 400;
-            opacity: 0.9;
-            letter-spacing: -0.5px;
-        }
-        .top-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-        }
-        .top-bar-right svg {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            stroke: #fff;
-            opacity: 0.9;
-            transition: opacity 0.2s, stroke 0.2s;
-        }
-        .top-bar-right svg:hover {
-            opacity: 1;
-        }
-        
-        /* Expanding Search Bar */
-        .top-search-wrap {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-        }
-        .top-search-input {
-            width: 0;
-            opacity: 0;
-            padding: 0;
-            border: none;
-            outline: none;
-            border-radius: 4px;
-            height: 26px;
-            font-size: 13px;
-            background: #fff;
-            color: #333;
-            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s;
-        }
-        .top-search-wrap.active .top-search-input {
-            width: 180px;
-            opacity: 1;
-            padding: 0 10px;
-            margin-right: 10px;
-        }
+        .top-bar-left { font-weight: 300; letter-spacing: -0.5px; opacity: 0.9; }
+        .top-bar-right { font-size: 16px; cursor: pointer; }
 
         /* 2. Main Header */
         .header {
-            background: rgba(255, 255, 255, 1);
-            border-bottom: 2px solid #111111;
-            padding-top: 24px;
-            position: sticky;
-            top: -1px;
-            z-index: 9999999;
-            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+            height: 90px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--border-light);
         }
-        .header.is-sticky {
-            padding-top: 10px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
-            border-bottom: 2px solid #111111;
-        }
-        .header-top {
+        .header .container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+            height: 100%;
+            padding: 0 20px;
         }
-        .header.is-sticky .header-top {
-            margin-bottom: 12px;
-        }
-        .header img.ht-logo {
-            height: 50px;
-            cursor: pointer;
-            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
-        }
-        .header.is-sticky img.ht-logo {
-            height: 32px;
-        }
-        .ht-left, .ht-right { flex: 1; }
-        .ht-right { display: flex; justify-content: flex-end; }
-        .ht-center { flex: 0 0 auto; }
-        
-        .free-banner {
-            color: #1e56a0;
-            font-weight: 800;
-            font-size: 18px;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        
-        .header-bottom {
-            padding-bottom: 16px;
-            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
-        }
-        .header.is-sticky .header-bottom {
-            padding-bottom: 10px;
-        }
-        .gnb-new {
+        .logo-area { display: flex; align-items: center; }
+        .logo-area img { height: 45px; margin-right: 40px; }
+        .gnb {
             display: flex;
-            justify-content: space-between;
-            font-size: 16px;
-            font-weight: 800;
-            color: #222;
-            align-items: center;
+            gap: 35px;
+            font-size: 17px;
+            font-weight: 700;
+            color: #111;
         }
-        .gnb-new a { transition: color 0.2s; }
-        .gnb-new a:hover { color: var(--brand-blue); }
-        .gnb-new .divider {
-            width: 1px; height: 16px; background: #ddd; margin: 0 5px;
+        .gnb a:hover { color: var(--brand-blue); }
+        .util-menu {
+            font-size: 14px;
+            color: #444;
+            font-weight: 500;
+        }
+        .util-menu a { position: relative; padding: 0 10px; }
+        .util-menu a:first-child::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 3px; width: 1px; height: 12px;
+            background: #ccc;
         }
 
         /* Component: Section Title */
@@ -216,74 +128,56 @@
         .py-60 { padding-top: 60px; padding-bottom: 60px; }
         .px-20 { padding-left: 20px; padding-right: 20px; }
 
-        /* 3. Hero Section */
+        /* 3. Hero Section (Map & News App) */
         .hero-section {
             display: flex;
-            gap: 24px;
+            gap: 20px;
+            height: 460px;
             position: relative;
         }
         .hero-left {
-            flex: 2; /* takes more space */
-            position: relative;
+            flex: 0 0 380px; /* App layout width */
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            background: #fff;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
         }
-        .app-mock { 
-            width: 360px;
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(5px);
-            border-radius: 12px;
-            padding: 20px; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 15px; 
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            height: 100%;
-        }
-        .app-search {
-            display: flex; align-items: center; background: #f1f3f5; border-radius: 8px; padding: 12px; margin-bottom: 5px; cursor: text;
-        }
-        .app-search input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: #333; margin-left: 8px; }
+        /* App Style Mockup inside Hero Left */
+        .app-mock { padding: 20px; display: flex; flex-direction: column; gap: 15px; }
         .app-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
-        .app-item:last-child { border-bottom: none; padding-bottom: 0; }
         .app-img { width: 80px; height: 80px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
         .app-txt h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
         .app-txt p { font-size: 14px; color: #c00; font-weight: 800; }
         .app-txt span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
         
-        .map-btn {
-            position: absolute; top: 15px; left: calc(50% + 140px); transform: translateX(-50%); background: #1a4282; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 99999; 
-        }
-
         .hero-right {
-            flex: 1; /* roughly 380px */
-            display: flex;
-            flex-direction: column;
+            flex: 1;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid var(--border-light);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+            position: relative;
         }
-        .hn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1a4282; padding-bottom: 10px;}
-        .hn-header h2 { font-size: 18px; font-weight: 800; color: #1a4282; }
-        .hn-header a { font-size: 12px; color: #666; font-weight: 600; }
-        .hn-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
-        .hn-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
-        .hn-img { width: 90px; height: 65px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
-        .hn-txt h4 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: #111; word-break: keep-all; }
-        .hn-txt span { font-size: 12px; color: #999; }
-        .hn-ad { flex: 1; background: #e2e2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 13px; font-weight: bold;}
+        .hero-right iframe {
+            width: 100%; height: 100%; border: none;
+        }
         
         /* Floating Quick Menu */
         .quick-menu {
-            position: fixed;
-            top: 250px;
-            left: 50%;
-            margin-left: 620px;
+            position: absolute;
+            top: 0;
+            right: -80px; /* Outside container */
             width: 70px;
             background: #fff;
             border: 1px solid var(--border-light);
-            border-radius: 8px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-radius: 4px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
             display: flex;
             flex-direction: column;
             text-align: center;
-            z-index: 9999;
-            overflow: hidden;
         }
         .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
         .qm-item:last-child { border-bottom: none; }
@@ -317,7 +211,7 @@
         .hi-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
         .hi-item img { width: 140px; height: 100px; background: #ddd; object-fit: cover; border-radius: 4px; }
         .hi-txt h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: #111; }
-        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
         
         .hi-right { flex: 1; height: 260px; }
 
@@ -367,7 +261,7 @@
         .st-badge.black { background: #222; }
         .st-txt { padding: 20px; }
         .st-title { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; }
-        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;}
+        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; mt-15px;}
         .st-price { font-size: 15px; font-weight: 700; color: #ff5722; }
 
         /* 10. Knowhow & Notice Section */
@@ -408,74 +302,28 @@
 
     <!-- 1. Top Nav Bar -->
     <div class="top-bar">
-        <div class="top-bar-left">
-            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
-            <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
-        </div>
-        <div class="top-bar-right">
-            <!-- Search -->
-            <div class="top-search-wrap" id="topSearchWrap">
-                <input type="text" class="top-search-input" id="topSearchInput" placeholder="검색어를 입력하세요">
-                <svg onclick="document.getElementById('topSearchWrap').classList.toggle('active'); document.getElementById('topSearchInput').focus();" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            </div>
-            
-            <!-- Login/User -->
-            <svg id="headerLoginBtn" style="cursor: pointer;" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            
-            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
-                <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
-                <span id="headerLogoutBtn" style="cursor:pointer; font-size:12px; color:#aaa;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">로그아웃</span>
-            </div>
+        <div class="container">
+            <div class="top-bar-left">공실뉴스 부동산 중개망의 스마트한 변화</div>
+            <div class="top-bar-right">🔍</div>
         </div>
     </div>
 
     <!-- 2. Main Header -->
     <header class="header">
-        <div class="container px-20">
-            <div class="header-top">
-                <div class="ht-left"></div>
-                <div class="ht-center">
-                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
-                </div>
-                <div class="ht-right">
-                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
-                        <!-- The scrolling ticker -->
-                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
-                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
-                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
-                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
-                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
-                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
-                            </ul>
-                        </div>
-                        
-                        <!-- The dropdown on hover -->
-                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
-                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
-                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
-                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
-                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
-                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="header-bottom">
-                <nav class="gnb-new">
-                    <a href="news_all.html">전체뉴스</a>
-                    <a href="news.html">우리동네뉴스</a>
-                    <a href="news_finance.html">부동산·주식·재테크</a>
-                    <a href="news_politics.html">정치·경제·사회</a>
-                    <a href="news_law.html">세무·법률</a>
-                    <a href="news_life.html">여행·건강·생활</a>
-                    <a href="news_etc.html">기타</a>
-                    <span class="divider"></span>
-                    <a href="gongsil/index.html">공실열람</a>
-                    <a href="#">자료실</a>
-                    <a href="#">부동산특강</a>
-                    <a href="#">중개업소무료가입</a>
+        <div class="container">
+            <div class="logo-area">
+                <img src="logo.png" alt="공실뉴스 로고" onerror="this.src='https://via.placeholder.com/150x45?text=GONGSIL+NEWS'">
+                <nav class="gnb">
+                    <a href="#">공지사항</a>
+                    <a href="#">업데이트안내</a>
+                    <a href="#">부동산스터디</a>
+                    <a href="#">가이드북받기</a>
+                    <a href="#">공실열람(지도)</a>
                 </nav>
+            </div>
+            <div class="util-menu">
+                <a href="#">회원가입</a>
+                <a href="#">로그인</a>
             </div>
         </div>
     </header>
@@ -483,74 +331,48 @@
     <main class="container px-20 relative" style="position:relative;">
         
         <!-- Quick Menu Floating -->
-        <div class="quick-menu" id="quickMenu">
+        <div class="quick-menu">
             <div class="qm-item"><span>📌</span>관심매물</div>
             <div class="qm-item"><span>🕒</span>최근조회</div>
             <div class="qm-item"><span>📋</span>문의내역</div>
-            <div class="qm-item" onclick="window.scrollTo({top:0, behavior:'smooth'});" style="background:#f9f9f9;"><span>🔝</span>TOP</div>
+            <div class="qm-item"><span>🔝</span>TOP</div>
         </div>
 
-        <!-- 3. Hero Section (Revised with Image & Banner) -->
-        <div class="hero-section" style="padding: 0 25px 0 0; border: 0.5px solid #dcdcdc; border-top: none; margin-bottom: 0; background: #fff;">
-            <!-- Left: Map Image (Replaced with Real Kakao Map) -->
-            <div class="hero-left" style="display: flex; margin-top: 0; flex: 2.8; position: relative; min-height: 480px; padding: 0;">
-                <div id="map" style="position: absolute; top:0; left:0; width: 100%; height: 100%; display: block;"></div>
-                
-                <button class="map-btn" onclick="window.moveToCurrentLocation()">
-                    현위치에서 재검색
-                </button>
-                
-                <!-- Property List Overlay -->
-                <div id="property-list-overlay" style="display: block; position: absolute; top: 15px; left: 15px; width: 280px; background: #fff; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,0.2); z-index: 99999; max-height: calc(100% - 30px); overflow-y: auto;">
-                    <div style="padding: 12px 15px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: #fff; z-index: 999999; border-radius: 10px 10px 0 0;">
-                        <h3 style="margin:0; font-size: 15px; color: var(--brand-blue); display: flex; align-items: center;">
-                            우리동네공실 
-                            <svg style="margin-left: 4px;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </h3>
-                        <div style="display: flex; gap: 8px;">
-                            <select style="padding: 4px 8px; border-radius: 4px; border: 1px solid #ccc; font-size: 12px; outline: none; cursor: pointer;">
-                                <option>전체</option>
-                            </select>
-                            <button onclick="document.getElementById('property-list-overlay').style.display='none'" style="font-size: 16px; font-weight: bold; color: #999; cursor: pointer; padding: 0 4px;">&times;</button>
+        <!-- 3. Hero Section -->
+        <div class="hero-section mt-50">
+            <!-- Left: App Mockup List (News/Properties) -->
+            <div class="hero-left">
+                <div class="app-mock">
+                    <div class="app-item">
+                        <div class="app-img"></div>
+                        <div class="app-txt">
+                            <h3>강남구 대치동 은마아파트 1단지</h3>
+                            <p>전세 8억 5,000</p>
+                            <span>서울시 강남구 삼성로 212 · 76㎡ (23평)</span>
                         </div>
                     </div>
-                    <div id="property-list-content" style="padding: 0;">
-                        <!-- Items injected via JS -->
+                    <div class="app-item">
+                        <div class="app-img"></div>
+                        <div class="app-txt">
+                            <h3>반포자이 103동 15층 로얄층</h3>
+                            <p>매매 35억 2,000</p>
+                            <span>서울시 서초구 신반포로 270 · 116㎡ (35평)</span>
+                        </div>
+                    </div>
+                    <div class="app-item" style="border:none;">
+                        <div class="app-img"></div>
+                        <div class="app-txt">
+                            <h3>송파구 잠실엘스 14층 한강뷰</h3>
+                            <p>월세 2억 / 250</p>
+                            <span>서울시 송파구 잠실동 19 · 84㎡ (25평)</span>
+                        </div>
                     </div>
                 </div>
             </div>
             
-            <!-- Right: AD & HOT NEWS -->
-            <div class="hero-right" style="margin-top: 0;">
-                <div class="banner-box" style="margin-top: 0; margin-bottom: 30px; width: 100%; height: 180px; background: #f0f0f0; border: 1px solid #ccc; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: 800; color: #555; text-align: center;">배너 1</div>
-                
-                <div class="hn-header">
-                    <h2>HOT 공실뉴스</h2>
-                    <a href="#">더보기 &gt;</a>
-                </div>
-                <div class="hn-list" style="margin-bottom: 0;">
-                    <div class="hn-item">
-                        <div class="hn-img" style="background: url('https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80') center/cover;"></div>
-                        <div class="hn-txt">
-                            <h4>부동산 규제지역 추가 해제... 주택시장 훈풍 부나</h4>
-                            <span>2026.04.01</span>
-                        </div>
-                    </div>
-                    <div class="hn-item">
-                        <div class="hn-img" style="background: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80') center/cover;"></div>
-                        <div class="hn-txt">
-                            <h4>로또청약은 옛말이다 분양가 상한제 개편 이후</h4>
-                            <span>2026.03.31</span>
-                        </div>
-                    </div>
-                    <div class="hn-item">
-                        <div class="hn-img" style="background: url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=150&q=80') center/cover;"></div>
-                        <div class="hn-txt">
-                            <h4>강남 재건축 단지 신고가 속출... 하반기 전망은</h4>
-                            <span>2026.03.30</span>
-                        </div>
-                    </div>
-                </div>
+            <!-- Right: Map -->
+            <div class="hero-right">
+                <iframe src="gongsil/" title="공실지도"></iframe>
             </div>
         </div>
 
@@ -565,7 +387,7 @@
         <!-- 5. Hot Issue -->
         <div class="mt-50 mb-50">
             <div class="sec-title-wrap">
-                <h2 class="sec-title">부동산·주식·재테크</h2>
+                <h2 class="sec-title">부동산 핫이슈</h2>
             </div>
             <div class="hot-issue-wrap">
                 <div class="hi-left">
@@ -594,10 +416,10 @@
             </div>
         </div>
 
-        <!-- 6. Video News / Local News -->
+        <!-- 6. Video News -->
         <div class="video-wrap mb-50">
             <div class="sec-title-wrap">
-                <h2 class="sec-title">우리동네뉴스</h2>
+                <h2 class="sec-title">비디오뉴스</h2>
             </div>
             <div class="video-grid">
                 <div class="vid-item">
@@ -617,11 +439,11 @@
 
     </main>
 
-    <!-- 7. Drone Video / Archive -->
+    <!-- 7. Premium Report -->
     <div class="premium-bg">
         <div class="container px-20">
             <div class="sec-title-wrap">
-                <h2 class="sec-title" style="color:#fff;">드론영상 (자료실)</h2>
+                <h2 class="sec-title" style="color:#fff;">프리미엄 리포트</h2>
             </div>
             <div class="prem-grid">
                 <div class="prem-card">
@@ -648,132 +470,25 @@
         </div>
     </div>
 
-    <!-- 7-2. Politics / Economy / Society -->
-    <div class="container px-20 mt-50 mb-50">
-        <div class="sec-title-wrap">
-            <h2 class="sec-title">정치·경제·사회</h2>
-        </div>
-        <div class="hot-issue-wrap">
-            <div class="hi-left">
-                <div class="hi-list">
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[정치/경제] 주요 정책 변동 및 향후 경제 전망</h3>
-                            <p>정부의 새로운 정책에 따른 경제 시장의 변화와 주요 사회적 이슈를 점검합니다. 전문가들은 이번 발표가 하반기 경제 전반에 미칠 영향을...</p>
-                        </div>
-                    </div>
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[사회] 지역 개발 및 인프라 확충 사업 본격화</h3>
-                            <p>각 지자체별 주요 인프라 사업이 본격적으로 시작되면서 지역 사회의 기대감이 높아지고 있습니다. 특히 교통망 확충에 따른 주변 지역의...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="hi-right">
-                <div class="box-placeholder">
-                    <span style="color:#999;">광고 또는 비디오 박스 영역</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7-3. Tax/Law / Travel/Health/Life -->
-    <div class="container px-20 mt-50 mb-50">
-        <div class="hot-issue-wrap" style="gap: 40px;">
-            <div class="hi-left" style="flex: 1;">
-                <div class="sec-title-wrap">
-                    <h2 class="sec-title">세무·법률</h2>
-                </div>
-                <div class="hi-list">
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[세무] 다주택자 양도세 중과 완화 조치 연장</h3>
-                            <p>기획재정부가 발표한 세제개편안에 따르면, 다주택자에 대한 양도세 중과 배제 조치가 내년 말까지 연장될 예정입니다...</p>
-                        </div>
-                    </div>
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[법률] 바뀐 상가건물 임대차보호법 핵심 요약</h3>
-                            <p>계약갱신요구권, 권리금 회수 등 소상공인을 위한 중요한 법률 개정 사항을 알기 쉽게 정리했습니다...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="hi-left" style="flex: 1;">
-                <div class="sec-title-wrap">
-                    <h2 class="sec-title">여행·건강·생활</h2>
-                </div>
-                <div class="hi-list">
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[여행] 이번 주말 훌쩍 떠나기 좋은 가을 명소</h3>
-                            <p>날씨가 선선해지면서 가슴 속까지 힐링되는 국내 여행지 5곳을 전문가가 직접 엄선해 추천합니다...</p>
-                        </div>
-                    </div>
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[건강] 환절기 면역력을 높여주는 슈퍼푸드</h3>
-                            <p>바쁜 직장인들도 일상에서 쉽게 챙겨 먹으며 생활의 활력을 극대화 할 수 있는 간단한 음식들을 소개합니다...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 7-4. Misc / Notice -->
-    <div class="container px-20 mt-50 mb-50">
-        <div class="hot-issue-wrap">
-            <div class="hi-left">
-                <div class="sec-title-wrap">
-                    <h2 class="sec-title">기타</h2>
-                </div>
-                <div class="hi-list">
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[기타] 프롭테크 시장의 새로운 도약, 스타트업 열전</h3>
-                            <p>부동산에 IT기술을 결합한 프롭테크 시장이 급성장하고 있습니다. 주요 스타트업들의 혁신적인 서비스와 트렌드를...</p>
-                        </div>
-                    </div>
-                    <div class="hi-item">
-                        <div class="hi-img"><img src="https://via.placeholder.com/140x100" alt=""></div>
-                        <div class="hi-txt">
-                            <h3>[기타] 2026 공실뉴스 서비스 전면 개편안 가이드</h3>
-                            <p>이용자들의 편의성을 극대화하기 위해 새로운 UI/UX 로 탈바꿈했습니다. 새로워진 공실뉴스 100% 활용법...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="hi-right" style="position:relative; margin-top:52px;">
-                <div class="box-placeholder" style="background:#f9f9fb; border:1px solid #e0e0e0; border-radius:12px; height:auto; min-height:220px; align-items:flex-start; padding: 25px;">
-                    <div style="width:100%;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #1a4282; padding-bottom:12px; margin-bottom:15px;">
-                            <h3 style="font-size:16px; font-weight:800; color:#1a4282; margin:0;">공지사항</h3>
-                            <a href="#" style="font-size:12px; color:#666; text-decoration:none;">더보기 &gt;</a>
-                        </div>
-                        <ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px; font-size:13px; color:#444;">
-                            <li style="display:flex; justify-content:space-between; cursor:pointer;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:70%;">• 신규가입자 무료 1개월 연장 이벤트</span> <span style="color:#999; font-size:11px;">04.01</span></li>
-                            <li style="display:flex; justify-content:space-between; cursor:pointer;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:70%;">• 개인정보처리방침 개정 사전 안내</span> <span style="color:#999; font-size:11px;">03.28</span></li>
-                            <li style="display:flex; justify-content:space-between; cursor:pointer;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:70%;">• 공실뉴스 모바일 앱 업데이트 출시</span> <span style="color:#999; font-size:11px;">03.20</span></li>
-                            <li style="display:flex; justify-content:space-between; cursor:pointer;"><span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:70%;">• 서비스 정기 점검 안내 (금일 자정)</span> <span style="color:#999; font-size:11px;">03.15</span></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- 8. Expert Column -->
     <div class="container px-20 mt-50 mb-50">
-    <!-- Removed Expert Column -->
+        <div class="sec-title-wrap">
+            <h2 class="sec-title">전문가 칼럼</h2>
+        </div>
+        <div class="expert-wrap">
+            <div class="expert-left">
+                <div class="ex-item">
+                    <div class="ex-img"></div>
+                    <div class="ex-txt">
+                        <h3>상가 임대차 보호법 개정에 따른 실무 대처법</h3>
+                        <p>바뀐 법령을 제대로 알지 못하면 중개 사고로 이어질 수 있다. 현직 세무사가 말하는 상가 중개 시 반드시 체크해야 할 특약사항 3가지...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="expert-right">
+                <div class="box-placeholder"><span style="color:#999;">배너 영역</span></div>
+            </div>
+        </div>
 
         <!-- 9. Study -->
         <div class="sec-title-wrap">
@@ -803,7 +518,36 @@
             </div>
         </div>
 
-        <!-- Removed Knowhow & Notice -->
+        <!-- 10. Knowhow & Notice -->
+        <div class="bottom-wrap mb-50">
+            <div class="bm-left">
+                <div class="sec-title-wrap">
+                    <h2 class="sec-title">중개 실무 노하우</h2>
+                </div>
+                <div class="kh-list">
+                    <div class="kh-item">
+                        <img src="https://via.placeholder.com/120x80" alt="">
+                        <div class="kh-txt">
+                            <h3>"확인설명서" 안 쓰면 과태료 폭탄? 꼼꼼 작성 가이드</h3>
+                            <p>공인중개사법 개정에 따른 확인설명서 세부 작성 요령 및 주의사항 안내</p>
+                        </div>
+                    </div>
+                    <div class="kh-item">
+                        <img src="https://via.placeholder.com/120x80" alt="">
+                        <div class="kh-txt">
+                            <h3>다가구 주택 전세사기 예방 특약 총정리</h3>
+                            <p>세입자를 보호하고 중개인의 책임을 다하는 안전한 다가구 계약 특약</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bm-right">
+                <div class="sec-title-wrap">
+                    <h2 class="sec-title">최신 공지사항</h2>
+                </div>
+                <div class="box-placeholder"><span style="color:#999;">공지사항 박스영역</span></div>
+            </div>
+        </div>
     </div> <!-- /main container -->
 
     <!-- 11. Chatbot Banner -->
@@ -837,275 +581,5 @@
         </div>
     </footer>
 
-    <!-- Kakao Map SDK & Supabase -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase_gongsi_config.js"></script>
-    <script src="supabase_auth.js"></script>
-    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=435d3602201a49ea712e5f5a36fe6efc&libraries=clusterer,services"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', async function() {
-            const container = document.getElementById('map');
-            if (!container || typeof kakao === 'undefined') return;
-
-            kakao.maps.load(async function() {
-                // Kakao Map Init (Set to Gangnam/Seocho as default)
-                const options = {
-                    center: new kakao.maps.LatLng(37.498095, 127.027610), 
-                    level: 6
-                };
-                window.mapInstance = new kakao.maps.Map(container, options);
-                const mapInstance = window.mapInstance;
-
-                // Move to Current Location Script
-                window.moveToCurrentLocation = function() {
-                    if (navigator.geolocation) {
-                        navigator.geolocation.getCurrentPosition(function(position) {
-                            const lat = position.coords.latitude;
-                            const lon = position.coords.longitude;
-                            mapInstance.setCenter(new kakao.maps.LatLng(lat, lon));
-                            mapInstance.setLevel(5); // zoom in nicely
-                        }, function(error) {
-                            alert("현위치를 가져올 수 없습니다. 위치 정보 제공에 동의해주세요.");
-                        });
-                    } else {
-                        alert("이 브라우저에서는 위치 정보를 지원하지 않습니다.");
-                    }
-                };
-
-                // Clusterer Setup
-                const clusterer = new kakao.maps.MarkerClusterer({
-                    map: mapInstance,
-                    averageCenter: true,
-                    minLevel: 1,
-                    minClusterSize: 1, // cluster even for 1 item
-                    disableClickZoom: true,
-                    calculator: [5, 20],
-                    texts: function(count) {
-                        let fontSize = count < 5 ? '15px' : (count < 20 ? '16px' : '18px');
-                        return `<div style="
-                            display: flex; justify-content: center; align-items: center;
-                            border-radius: 50%;
-                            background: rgba(66, 133, 244, 0.85); color: #fff;
-                            font-weight: bold; border: 2px solid #fff;
-                            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-                            width: 100%; height: 100%; font-size: ${fontSize};
-                            box-sizing: border-box; cursor: pointer;
-                            transition: transform 0.2s ease;
-                        " onmouseover="this.style.transform='scale(1.15)';" onmouseout="this.style.transform='scale(1)';">${count}</div>`;
-                    },
-                    styles: [
-                        { width: '40px', height: '40px', background: 'transparent', border: 'none', color: 'transparent' },
-                        { width: '50px', height: '50px', background: 'transparent', border: 'none', color: 'transparent' },
-                        { width: '60px', height: '60px', background: 'transparent', border: 'none', color: 'transparent' }
-                    ]
-                });
-
-                window.renderPropertyList = function(markersToRender) {
-                    try {
-                        const overlay = document.getElementById('property-list-overlay');
-                        const content = document.getElementById('property-list-content');
-                        
-                        if (!overlay || !content) return;
-                        content.innerHTML = '';
-                        
-                        function formatMoney(n) {
-                            if (!n) return '0';
-                            n = parseInt(n);
-                            if (n >= 10000) {
-                                const uk = Math.floor(n / 10000);
-                                const rest = n % 10000;
-                                return uk + '억' + (rest > 0 ? ' ' + rest : '');
-                            }
-                            return n + '';
-                        }
-
-                        let validCount = 0;
-                        markersToRender.forEach(m => {
-                            try {
-                                const p = m.propertyData;
-                                if (!p) return;
-                                
-                                let priceText = (p.trade_type || '') + ' ';
-                                if (p.trade_type === '월세') {
-                                    priceText += `${formatMoney(p.deposit)} / ${formatMoney(p.monthly_rent)}`;
-                                } else {
-                                    priceText += `${formatMoney(p.deposit)}`;
-                                }
-
-                                const dateStr = p.created_at ? p.created_at.substring(0, 10).replace(/-/g, '.') : '';
-                                const titleStr = `${p.building_name || ''} ${p.dong_number || ''} ${p.room_number || ''}`.trim() || `${p.dong || ''} 매물`;
-                                const supply = p.supply_area ? p.supply_area+'m²' : '';
-                                const ded = p.dedicated_area ? p.dedicated_area+'m²' : '';
-                                const sizeArea = supply || ded ? `${supply} / ${ded}`.replace(/^ \/ | \/ $/g, '') : '';
-                                
-                                let imageHtml = '';
-                                if (p.images && Array.isArray(p.images) && p.images.length > 0) {
-                                    let imgUrl = p.images[0];
-                                    if (!imgUrl.startsWith('http')) {
-                                        imgUrl = `https://kjrjrjnsiynrcelzepju.supabase.co/storage/v1/object/public/properties/${imgUrl}`;
-                                    }
-                                    imageHtml = `<div style="width: 55px; height: 55px; border-radius: 6px; background: url('${imgUrl}') center/cover; margin-left: 8px; border: 1px solid #eee; flex-shrink: 0;"></div>`;
-                                }
-
-                                const itemHtml = `
-                                    <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items:flex-start; justify-content: space-between; transition: background 0.2s;" 
-                                         onmouseover="this.style.background='#f8f9fc'" onmouseout="this.style.background='#fff'"
-                                         onclick="window.location.href='gongsil/index.html?view_id=${p.id}'">
-                                        <div style="flex:1; overflow: hidden;">
-                                            <h4 style="margin: 0 0 4px 0; font-size: 13px; color: #222; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${titleStr}</h4>
-                                            <div style="color: #1e56a0; font-weight: 800; font-size: 14px; margin-bottom: 4px;">${priceText}</div>
-                                            <div style="color: #666; font-size: 10.5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.property_type || '구분없음'} | ${sizeArea}</div>
-                                            <div style="color: #666; font-size: 10.5px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">룸 ${p.room_count||0}개, 욕실 ${p.bathroom_count||0}개, ${p.options || ''}</div>
-                                            <div style="display: flex; gap: 4px; align-items: center; font-size: 10px; flex-wrap: wrap;">
-                                                <span style="color: #e53935; border: 1px solid #ffcdd2; background: #ffebee; padding: 2px 3px; border-radius: 3px; font-weight: bold;">수수료율조율</span>
-                                                <span style="color: #d32f2f; font-weight: 900; letter-spacing: 0px;">${p.author_phone || '연락처 비공개'}</span>
-                                            </div>
-                                        </div>
-                                        ${imageHtml}
-                                    </div>
-                                `;
-                                content.insertAdjacentHTML('beforeend', itemHtml);
-                                validCount++;
-                            } catch (itemErr) {
-                                console.error('Error rendering item:', itemErr);
-                            }
-                        });
-                        
-                        if (validCount === 0) {
-                            content.innerHTML = '<div style="padding: 20px; text-align: center; color: #888;">해당 지역에 등록된 매물 상세 정보가 없습니다.</div>';
-                        }
-                        
-                        overlay.style.display = 'block';
-                    } catch (e) {
-                        console.error('List rendering error:', e);
-                    }
-                };
-
-                // Redirect to the gongsil page when a cluster is clicked
-                kakao.maps.event.addListener(clusterer, 'clusterclick', function(cluster) {
-                    window.renderPropertyList(cluster.getMarkers());
-                });
-
-                // Fetch Properties from Supabase, Geocode, and add to Clusterer
-                try {
-                    if (window.gongsiClient) {
-                        const { data, error } = await window.gongsiClient
-                            .from('properties')
-                            .select('*')
-                            .eq('status', 'active');
-                        
-                        if (error) throw error;
-                        
-                        if (data && data.length > 0) {
-                            const geocoder = new kakao.maps.services.Geocoder();
-                            let completed = 0;
-                            const markers = [];
-                            let bounds = new kakao.maps.LatLngBounds();
-
-                            data.forEach(p => {
-                                const addr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''}`.trim();
-                                if (!addr) {
-                                    completed++;
-                                    checkDone();
-                                    return;
-                                }
-                                
-                                geocoder.addressSearch(addr, function(result, status) {
-                                    if (status === kakao.maps.services.Status.OK) {
-                                        const latLng = new kakao.maps.LatLng(parseFloat(result[0].y), parseFloat(result[0].x));
-                                        const marker = new kakao.maps.Marker({
-                                            position: latLng,
-                                            opacity: 0 // invisible marker itself
-                                        });
-                                        marker.propertyData = p; // attach data to marker
-                                        markers.push(marker);
-                                        bounds.extend(latLng);
-                                    }
-                                    
-                                    completed++;
-                                    checkDone();
-                                });
-                            });
-
-                            function checkDone() {
-                                if (completed === data.length) {
-                                    if (markers.length > 0) {
-                                        clusterer.addMarkers(markers);
-                                        // Render initial property list logic using all markers
-                                        window.renderPropertyList(markers);
-                                        // User requested default view at Gangnam, so do not setBounds
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        console.error('window.gongsiClient is missing! Check supabase_gongsi_config.js');
-                    }
-                } catch (err) {
-                    console.error('Failed to load properties for map:', err);
-                }
-            });
-        });
-    </script>
-    <script>
-        // Text Banner Ticker Animation & Dropdown
-        document.addEventListener("DOMContentLoaded", function() {
-            const container = document.getElementById('txt-banner-container');
-            const bannerList = document.getElementById('txt-banner-list');
-            const dropdown = document.querySelector('.txt-dropdown');
-            if (!bannerList || !container || !dropdown) return;
-            
-            const items = bannerList.querySelectorAll('li');
-            if (items.length <= 1) return;
-            
-            let idx = 0;
-            const itemHeight = 24; 
-            
-            // clone first item and append
-            const firstClone = items[0].cloneNode(true);
-            bannerList.appendChild(firstClone);
-            const totalItems = items.length + 1;
-            
-            let tickerInterval;
-            
-            function startTicker() {
-                tickerInterval = setInterval(() => {
-                    idx++;
-                    bannerList.style.transition = 'transform 0.5s ease-in-out';
-                    bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
-                    
-                    if (idx === totalItems - 1) {
-                        setTimeout(() => {
-                            bannerList.style.transition = 'none';
-                            bannerList.style.transform = `translateY(0)`;
-                            idx = 0;
-                        }, 500); // 0.5s wait to match transition time
-                    }
-                }, 3000);
-            }
-            
-            startTicker();
-            
-            container.addEventListener('mouseenter', () => {
-                clearInterval(tickerInterval);
-                dropdown.style.display = 'block';
-            });
-            
-            container.addEventListener('mouseleave', () => {
-                startTicker();
-                dropdown.style.display = 'none';
-            });
-        });
-
-        // Sticky Header scroll detection
-        document.addEventListener("scroll", () => {
-            const header = document.querySelector('.header');
-            if (window.scrollY > 40) {
-                header.classList.add('is-sticky');
-            } else {
-                header.classList.remove('is-sticky');
-            }
-        });
-    </script>
 </body>
 </html>
