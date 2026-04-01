@@ -268,17 +268,20 @@
         
         /* Floating Quick Menu */
         .quick-menu {
-            position: absolute;
-            top: 0;
-            right: -80px; /* Outside container */
+            position: fixed;
+            top: 250px;
+            left: 50%;
+            margin-left: 620px;
             width: 70px;
             background: #fff;
             border: 1px solid var(--border-light);
-            border-radius: 4px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
             text-align: center;
+            z-index: 9999;
+            overflow: hidden;
         }
         .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
         .qm-item:last-child { border-bottom: none; }
@@ -478,11 +481,11 @@
     <main class="container px-20 relative" style="position:relative;">
         
         <!-- Quick Menu Floating -->
-        <div class="quick-menu">
+        <div class="quick-menu" id="quickMenu">
             <div class="qm-item"><span>📌</span>관심매물</div>
             <div class="qm-item"><span>🕒</span>최근조회</div>
             <div class="qm-item"><span>📋</span>문의내역</div>
-            <div class="qm-item"><span>🔝</span>TOP</div>
+            <div class="qm-item" onclick="window.scrollTo({top:0, behavior:'smooth'});" style="background:#f9f9f9;"><span>🔝</span>TOP</div>
         </div>
 
         <!-- 3. Hero Section (Revised with Image & Banner) -->
