@@ -812,30 +812,51 @@
     // 3. 우측 사이드바: 추천공실 매물리스트
     //    매물 클릭 시 공실열람으로 이동
     async function loadRecommendSidebarProps() {
-        // 임시 샘플 표출 (실제 DB 연결할 경우 maps_apart 테이블 등에서 추출)
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        
         const container = document.getElementById('recommendPropSidebarContainer');
-        const cdnBase = 'https://raw.githubusercontent.com/gongsilnews-bit/gongsilnews-bit.github.io/main';
         
-        const sampleProps = [
-            { title: "서초대로오피스텔 101동 101호", price: "매매 10억", meta: "서초동 · 면적 84㎡(25.4평)<br>동 3개, 욕실 2개, 엘리베이터, 주차가능", badge: "공동중개", img: cdnBase + "/images/dummy1.jpg" },
-            { title: "강남대로빌딩 301호", price: "월세 1억/500", meta: "역삼동 · 면적 150㎡(45평)<br>사무실용도, 접근성 우수", badge: "수수료조율", img: cdnBase + "/images/dummy2.jpg" },
-            { title: "논현빌라 201동 101호", price: "전세 5억", meta: "논현동 · 면적 59㎡(18평)<br>신축투룸, 풀옵션", badge: "추천", img: cdnBase + "/images/dummy3.jpg" },
-            { title: "목동신시가지 7단지 701동", price: "매매 15억", meta: "목동 · 면적 134㎡(40평)<br>대형평수, 학군우수", badge: "급매", img: cdnBase + "/images/dummy4.jpg" }
-        ];
+        // Fetch up to 4 recent properties that might be interesting
+        const { data, error } = await sb.from('properties')
+            .select('*')
+            .eq('status', '매물')
+            .order('created_at', { ascending: false })
+            .limit(4);
+            
+        if (error || !data || data.length === 0) {
+            container.innerHTML = '<div style="padding:10px; color:#999; text-align:center;">추천 공실이 없습니다.</div>';
+            return;
+        }
         
-        container.innerHTML = sampleProps.map(item => `
-            <div class="prop-item" onclick="window.location.href='gongsil/index.html'">
+        container.innerHTML = data.map(item => {
+            const title = item.title || item.address || '부동산 매물';
+            const price = `${item.trade_type || '매매'} ${item.trade_type === '월세' ? (item.deposit || 0) + '/' + (item.rent_fee || 0) : (item.price || 0) + '만'}`;
+            const meta = `${item.region1 || ''} ${item.region2 || ''} · 면적 ${item.area_exclusive || 0}㎡<br>${item.category || ''}`;
+            const badge = item.is_hot ? "추천" : "신규";
+            // Photo URL logic
+            let imgUrl = 'https://via.placeholder.com/80?text=NoImg';
+            if (item.photos && item.photos.length > 0) {
+                imgUrl = 'https://oagiznhdhhpsbllzdxhn.supabase.co/storage/v1/object/public/property-photos/' + item.photos[0];
+            } else if (item.agent_id) {
+                 // Try looking up if they have uploaded photos, but for now fallback
+                 imgUrl = 'https://via.placeholder.com/80?text=매물';
+            }
+            
+            return `
+            <div class="prop-item" onclick="window.location.href='gongsil/index.html?view_id=${item.id}'">
                 <div class="prop-info">
-                    <div class="prop-title">${item.title}</div>
-                    <div class="prop-price">${item.price}</div>
-                    <div class="prop-meta">${item.meta}</div>
-                    <span class="prop-badge">${item.badge}</span>
+                    <div class="prop-title" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width: 190px;">${title}</div>
+                    <div class="prop-price">${price}</div>
+                    <div class="prop-meta">${meta}</div>
+                    <span class="prop-badge">${badge}</span>
                 </div>
                 <div class="prop-img-wrapper">
-                    <img src="${item.img}" class="prop-img" onerror="this.src='https://via.placeholder.com/80?text=NoImg'">
+                    <img src="${imgUrl}" class="prop-img" onerror="this.src='https://via.placeholder.com/80?text=NO+IMG'">
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
     }
     
     </script>
