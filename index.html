@@ -368,13 +368,26 @@
                     <img src="logo.png" alt="부동산 정보채널 공실뉴스" style="height: 50px;" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
                 </div>
                 <div class="ht-right">
-                    <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
-                        <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
-                            <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
-                            <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
-                            <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
-                            <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
-                        </ul>
+                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
+                        <!-- The scrolling ticker -->
+                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
+                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- The dropdown on hover -->
+                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -964,10 +977,13 @@
         });
     </script>
     <script>
-        // Text Banner Ticker Animation
+        // Text Banner Ticker Animation & Dropdown
         document.addEventListener("DOMContentLoaded", function() {
+            const container = document.getElementById('txt-banner-container');
             const bannerList = document.getElementById('txt-banner-list');
-            if (!bannerList) return;
+            const dropdown = document.querySelector('.txt-dropdown');
+            if (!bannerList || !container || !dropdown) return;
+            
             const items = bannerList.querySelectorAll('li');
             if (items.length <= 1) return;
             
@@ -979,19 +995,35 @@
             bannerList.appendChild(firstClone);
             const totalItems = items.length + 1;
             
-            setInterval(() => {
-                idx++;
-                bannerList.style.transition = 'transform 0.5s ease-in-out';
-                bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
-                
-                if (idx === totalItems - 1) {
-                    setTimeout(() => {
-                        bannerList.style.transition = 'none';
-                        bannerList.style.transform = `translateY(0)`;
-                        idx = 0;
-                    }, 500); // 0.5s wait to match transition time
-                }
-            }, 3000);
+            let tickerInterval;
+            
+            function startTicker() {
+                tickerInterval = setInterval(() => {
+                    idx++;
+                    bannerList.style.transition = 'transform 0.5s ease-in-out';
+                    bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
+                    
+                    if (idx === totalItems - 1) {
+                        setTimeout(() => {
+                            bannerList.style.transition = 'none';
+                            bannerList.style.transform = `translateY(0)`;
+                            idx = 0;
+                        }, 500); // 0.5s wait to match transition time
+                    }
+                }, 3000);
+            }
+            
+            startTicker();
+            
+            container.addEventListener('mouseenter', () => {
+                clearInterval(tickerInterval);
+                dropdown.style.display = 'block';
+            });
+            
+            container.addEventListener('mouseleave', () => {
+                startTicker();
+                dropdown.style.display = 'none';
+            });
         });
     </script>
 </body>
