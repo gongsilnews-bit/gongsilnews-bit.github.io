@@ -446,10 +446,12 @@
                 }, 500);
             }
 
+            const fallbackUrl = urlParams.get('from') === 'main' ? 'index.html#special-lecture' : 'study.html';
+            
             if(!courseId) {
                 // 미리보기가 아닌데 ID가 없을 경우에만 차단 (미리보기 시에도 없으면 차단함)
-                alert("삭제 되거나 잘못된 강의 주소입니다. 스터디 메인으로 이동합니다.");
-                location.href = "study.html";
+                alert("삭제 되거나 잘못된 강의 주소입니다. 이전 화면으로 이동합니다.");
+                location.href = fallbackUrl;
                 return;
             }
 

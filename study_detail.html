@@ -1261,15 +1261,20 @@
             const urlParams = new URLSearchParams(window.location.search);
             const courseId = urlParams.get('id');
 
+            const fallbackUrl = urlParams.get('from') === 'main' ? 'index.html#special-lecture' : 'study.html';
+
             // 1. 코스 ID가 없으면 접근 차단
             if (!courseId) {
-                alert("[오류] 데이터가 지정되지 않았습니다. 메인 화면으로 이동합니다.");
-                location.href = 'study.html';
+                alert("[오류] 데이터가 지정되지 않았습니다. 이전 화면으로 이동합니다.");
+                location.href = fallbackUrl;
                 return;
             }
 
             const sb = window.gongsiClient;
-            if (!sb) return;
+            if (!sb) {
+                alert("통신 라이브러리 초기화 중입니다. 다시 시도해주세요.");
+                return;
+            }
 
             try {
                 // DOM 요소 가져오기
@@ -1351,7 +1356,7 @@
             } catch(e) {
                 console.error("데이터 통신 에러:", e);
                 alert("존재하지 않거나 삭제된 강의입니다.");
-                location.href = 'study.html';
+                location.href = fallbackUrl;
             }
         });
     </script>
