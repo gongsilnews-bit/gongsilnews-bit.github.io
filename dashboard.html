@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드 - 공실뉴스 관리자</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+        body {
+            margin: 0; padding: 20px 28px;
+            font-family: 'Pretendard Variable', -apple-system, sans-serif;
+            background: #f4f5f7;
+            color: #1f2937;
+        }
+
+        h1.dash-title {
+            font-size: 22px; font-weight: 800;
+            color: #111827; margin: 0 0 20px;
+            display: flex; align-items: center; gap: 10px;
+        }
+        h1.dash-title span.dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: #3b82f6; display: inline-block;
+        }
+
+        /* KPI 카드 그리드 */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .kpi-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
+            border-left: 4px solid transparent;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.09); }
+        .kpi-card.blue  { border-left-color: #3b82f6; }
+        .kpi-card.green { border-left-color: #10b981; }
+        .kpi-card.orange{ border-left-color: #f59e0b; }
+        .kpi-card.red   { border-left-color: #ef4444; }
+        .kpi-card.purple{ border-left-color: #8b5cf6; }
+
+        .kpi-label { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .kpi-val   { font-size: 32px; font-weight: 800; color: #111827; line-height: 1; }
+        .kpi-sub   { font-size: 12px; color: #9ca3af; margin-top: 6px; }
+        .kpi-icon  { font-size: 26px; margin-bottom: 10px; }
+
+        /* 중반 2단 레이아웃 */
+        .mid-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .card-title {
+            font-size: 14px; font-weight: 700;
+            color: #374151; margin: 0 0 16px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-title .badge {
+            font-size: 11px; padding: 2px 8px; border-radius: 20px;
+            background: #eff6ff; color: #3b82f6; font-weight: 600;
+        }
+
+        /* 최근 등록 테이블 */
+        .recent-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .recent-table th {
+            text-align: left; padding: 8px 10px;
+            font-size: 11px; font-weight: 700; color: #9ca3af;
+            border-bottom: 1px solid #f3f4f6;
+            text-transform: uppercase; letter-spacing: 0.3px;
+        }
+        .recent-table td { padding: 10px 10px; border-bottom: 1px solid #f9fafb; color: #374151; }
+        .recent-table tr:last-child td { border-bottom: none; }
+        .recent-table tr:hover td { background: #f9fafb; }
+
+        .type-badge {
+            display: inline-block;
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 4px;
+            white-space: nowrap;
+        }
+        .type-badge.apt    { background: #dbeafe; color: #1d4ed8; }
+        .type-badge.ofc    { background: #d1fae5; color: #065f46; }
+        .type-badge.store  { background: #fef3c7; color: #92400e; }
+        .type-badge.other  { background: #f3f4f6; color: #4b5563; }
+
+        /* 최근 회원 리스트 */
+        .member-list { list-style: none; margin: 0; padding: 0; }
+        .member-list li {
+            display: flex; align-items: center; gap: 10px;
+            padding: 9px 4px; border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        .member-list li:last-child { border-bottom: none; }
+        .avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: white; font-weight: 700; font-size: 13px;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .member-info { flex: 1; }
+        .member-name { font-weight: 600; color: #111; }
+        .member-email { font-size: 11px; color: #9ca3af; }
+        .member-role {
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 4px;
+        }
+        .member-role.realtor { background: #dbeafe; color: #1d4ed8; }
+        .member-role.general { background: #f3f4f6; color: #6b7280; }
+
+        /* 하단 2단 (문의/뉴스) */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        /* 빠른 링크 */
+        .quick-links { display: flex; flex-direction: column; gap: 8px; }
+        .quick-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 11px 14px; border-radius: 10px;
+            background: #f9fafb; cursor: pointer;
+            text-decoration: none; color: #374151;
+            font-size: 13px; font-weight: 600;
+            transition: background 0.2s, transform 0.15s;
+            border: 1px solid #e5e7eb;
+        }
+        .quick-link:hover { background: #eff6ff; border-color: #bfdbfe; transform: translateX(4px); }
+        .quick-link svg { width: 18px; height: 18px; stroke: #6b7280; flex-shrink: 0; }
+        .quick-link:hover svg { stroke: #3b82f6; }
+        .quick-link span.count {
+            margin-left: auto; font-size: 12px; font-weight: 700;
+            color: #3b82f6; background: #eff6ff;
+            padding: 2px 8px; border-radius: 10px;
+        }
+
+        /* 최근 문의/댓글 */
+        .comment-list { list-style: none; margin: 0; padding: 0; }
+        .comment-list li {
+            padding: 10px 4px; border-bottom: 1px solid #f3f4f6;
+            font-size: 13px; color: #4b5563;
+        }
+        .comment-list li:last-child { border-bottom: none; }
+        .comment-list .c-author { font-weight: 600; color: #111; margin-right: 6px; }
+        .comment-list .c-time { font-size: 11px; color: #9ca3af; float: right; }
+        .comment-list .c-text { margin-top: 3px; color: #6b7280; font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* 상태 도트 */
+        .status-dot {
+            width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+            margin-right: 5px; vertical-align: middle;
+        }
+        .status-dot.online { background: #10b981; }
+        .status-dot.offline { background: #d1d5db; }
+
+        /* 로딩 */
+        .loading { color: #9ca3af; font-size: 13px; text-align: center; padding: 20px; }
+
+        /* 갱신 버튼 */
+        .refresh-btn {
+            margin-left: auto; font-size: 12px; color: #6b7280;
+            background: none; border: 1px solid #e5e7eb; border-radius: 6px;
+            padding: 4px 10px; cursor: pointer; transition: all 0.2s;
+        }
+        .refresh-btn:hover { background: #f3f4f6; color: #374151; }
+        .last-updated { font-size: 11px; color: #9ca3af; margin-left: 8px; }
+    </style>
+</head>
+<body>
+
+<h1 class="dash-title">
+    <span class="dot"></span>
+    모니터링 대시보드
+    <span class="last-updated" id="lastUpdated"></span>
+    <button class="refresh-btn" onclick="loadAll()">⟳ 새로고침</button>
+</h1>
+
+<!-- KPI 카드 -->
+<div class="kpi-grid">
+    <div class="kpi-card blue">
+        <div class="kpi-icon">🏢</div>
+        <div class="kpi-label">공실 등록 물건</div>
+        <div class="kpi-val" id="kpiProperties">-</div>
+        <div class="kpi-sub" id="kpiPropSub">로딩 중...</div>
+    </div>
+    <div class="kpi-card green">
+        <div class="kpi-icon">👤</div>
+        <div class="kpi-label">전체 회원</div>
+        <div class="kpi-val" id="kpiMembers">-</div>
+        <div class="kpi-sub" id="kpiMemSub">로딩 중...</div>
+    </div>
+    <div class="kpi-card orange">
+        <div class="kpi-icon">📰</div>
+        <div class="kpi-label">등록 기사</div>
+        <div class="kpi-val" id="kpiArticles">-</div>
+        <div class="kpi-sub" id="kpiArtSub">로딩 중...</div>
+    </div>
+    <div class="kpi-card red">
+        <div class="kpi-icon">💬</div>
+        <div class="kpi-label">댓글 / 문의</div>
+        <div class="kpi-val" id="kpiComments">-</div>
+        <div class="kpi-sub" id="kpiComSub">로딩 중...</div>
+    </div>
+</div>
+
+<!-- 중단: 최근 물건 + 회원 현황 -->
+<div class="mid-grid">
+    <div class="card">
+        <div class="card-title">
+            🏠 최근 등록 공실 물건
+            <span class="badge" id="recentPropCount">-</span>
+        </div>
+        <table class="recent-table">
+            <thead>
+                <tr>
+                    <th>매매종류</th>
+                    <th>주소</th>
+                    <th>금액</th>
+                    <th>연락처</th>
+                    <th>등록일</th>
+                </tr>
+            </thead>
+            <tbody id="recentPropertiesBody">
+                <tr><td colspan="5" class="loading">데이터 불러오는 중...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="card">
+        <div class="card-title">
+            👥 최근 가입 회원
+            <span class="badge" id="recentMemCount">-</span>
+        </div>
+        <ul class="member-list" id="recentMembersList">
+            <li class="loading">데이터 불러오는 중...</li>
+        </ul>
+    </div>
+</div>
+
+<!-- 하단: 빠른링크 + 최근 댓글 -->
+<div class="bottom-grid">
+    <div class="card">
+        <div class="card-title">⚡ 바로가기</div>
+        <div class="quick-links">
+            <a class="quick-link" onclick="window.parent && window.parent.loadPage && window.parent.loadPage(null, '공실관리', 'admin.html')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/></svg>
+                공실 관리
+                <span class="count" id="qlProps">-</span>
+            </a>
+            <a class="quick-link" onclick="window.parent && window.parent.loadPage && window.parent.loadPage(null, '기사관리', 'article_admin.html')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                기사 관리
+                <span class="count" id="qlArticles">-</span>
+            </a>
+            <a class="quick-link" onclick="window.parent && window.parent.loadPage && window.parent.loadPage(null, '고객관리', 'customer_admin.html')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                고객 관리
+                <span class="count" id="qlMembers">-</span>
+            </a>
+            <a class="quick-link" onclick="window.parent && window.parent.loadPage && window.parent.loadPage(null, '댓글·문의', 'comment_admin.html')">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                댓글 / 문의
+                <span class="count" id="qlComments">-</span>
+            </a>
+            <a class="quick-link" href="register.html" target="_parent">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                공실 등록하기
+            </a>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-title">💬 최근 댓글 / 문의</div>
+        <ul class="comment-list" id="recentCommentsList">
+            <li class="loading">데이터 불러오는 중...</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    function waitForClient(cb, tries = 0) {
+        if (window.gongsiClient) { cb(window.gongsiClient); return; }
+        if (tries > 30) { console.error("gongsiClient not ready"); return; }
+        setTimeout(() => waitForClient(cb, tries + 1), 200);
+    }
+
+    function fmt(n) { return Number(n).toLocaleString(); }
+    function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        const diff = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+        if (diff < 60) return '방금 전';
+        if (diff < 3600) return Math.floor(diff / 60) + '분 전';
+        if (diff < 86400) return Math.floor(diff / 3600) + '시간 전';
+        return Math.floor(diff / 86400) + '일 전';
+    }
+
+    async function loadAll() {
+        document.getElementById('lastUpdated').textContent = '';
+        waitForClient(async (sb) => {
+            await Promise.all([
+                loadKPIs(sb),
+                loadRecentProperties(sb),
+                loadRecentMembers(sb),
+                loadRecentComments(sb)
+            ]);
+            const now = new Date();
+            document.getElementById('lastUpdated').textContent =
+                `마지막 갱신: ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+        });
+    }
+
+    async function loadKPIs(sb) {
+        // 공실 물건 수
+        const { count: propCount } = await sb.from('properties').select('*', { count: 'exact', head: true });
+        document.getElementById('kpiProperties').textContent = fmt(propCount ?? 0);
+        document.getElementById('kpiPropSub').textContent = '전체 등록 공실';
+        document.getElementById('qlProps').textContent = fmt(propCount ?? 0);
+
+        // 회원 수
+        const { count: memCount } = await sb.from('members').select('*', { count: 'exact', head: true });
+        document.getElementById('kpiMembers').textContent = fmt(memCount ?? 0);
+        // 부동산 회원 수
+        const { count: realtorCount } = await sb.from('members').select('*', { count: 'exact', head: true }).eq('role', 'realtor');
+        document.getElementById('kpiMemSub').textContent = `부동산회원 ${fmt(realtorCount ?? 0)}명 포함`;
+        document.getElementById('qlMembers').textContent = fmt(memCount ?? 0);
+
+        // 기사 수
+        const { count: artCount } = await sb.from('articles').select('*', { count: 'exact', head: true });
+        document.getElementById('kpiArticles').textContent = fmt(artCount ?? 0);
+        document.getElementById('kpiArtSub').textContent = '전체 등록 기사';
+        document.getElementById('qlArticles').textContent = fmt(artCount ?? 0);
+
+        // 댓글/문의 수
+        const { count: comCount } = await sb.from('comments').select('*', { count: 'exact', head: true });
+        document.getElementById('kpiComments').textContent = fmt(comCount ?? 0);
+        document.getElementById('kpiComSub').textContent = '전체 댓글 및 문의';
+        document.getElementById('qlComments').textContent = fmt(comCount ?? 0);
+    }
+
+    async function loadRecentProperties(sb) {
+        const { data, error } = await sb.from('properties')
+            .select('property_type, address, price, contact, created_at, sale_type')
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        const tbody = document.getElementById('recentPropertiesBody');
+        document.getElementById('recentPropCount').textContent = data?.length ?? 0;
+
+        if (error || !data || data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="loading">데이터 없음</td></tr>';
+            return;
+        }
+
+        const typemap = { 'apt': ['아파트','apt'], 'ofc': ['오피스텔','ofc'], 'store': ['상가','store'] };
+        tbody.innerHTML = data.map(p => {
+            const [label, cls] = typemap[p.property_type] || [p.property_type || '기타', 'other'];
+            const addr = (p.address || '-').replace(/^[^\s]+\s/, '').substring(0, 14);
+            const price = p.price ? p.price + '억' : '-';
+            const contact = (p.contact || '-').substring(0, 13);
+            return `<tr>
+                <td><span class="type-badge ${cls}">${label}</span></td>
+                <td>${addr}</td>
+                <td style="font-weight:700; color:#ef4444;">${price}</td>
+                <td style="color:#6b7280; font-size:12px;">${contact}</td>
+                <td style="color:#9ca3af; font-size:11px;">${timeAgo(p.created_at)}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    async function loadRecentMembers(sb) {
+        const { data, error } = await sb.from('members')
+            .select('name, email, role, created_at')
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        const list = document.getElementById('recentMembersList');
+        document.getElementById('recentMemCount').textContent = data?.length ?? 0;
+
+        if (error || !data || data.length === 0) {
+            list.innerHTML = '<li class="loading">데이터 없음</li>';
+            return;
+        }
+
+        list.innerHTML = data.map(m => {
+            const initial = (m.name || m.email || '?')[0].toUpperCase();
+            const roleClass = m.role === 'realtor' ? 'realtor' : 'general';
+            const roleLabel = m.role === 'realtor' ? '부동산' : m.role === 'admin' ? '관리자' : '일반';
+            return `<li>
+                <div class="avatar">${initial}</div>
+                <div class="member-info">
+                    <div class="member-name">${m.name || '이름없음'}</div>
+                    <div class="member-email">${m.email}</div>
+                </div>
+                <span class="member-role ${roleClass}">${roleLabel}</span>
+                <span style="font-size:11px; color:#9ca3af; margin-left:6px;">${timeAgo(m.created_at)}</span>
+            </li>`;
+        }).join('');
+    }
+
+    async function loadRecentComments(sb) {
+        const { data, error } = await sb.from('comments')
+            .select('author, content, created_at')
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        const list = document.getElementById('recentCommentsList');
+        if (error || !data || data.length === 0) {
+            list.innerHTML = '<li class="loading">댓글 없음</li>';
+            return;
+        }
+
+        list.innerHTML = data.map(c => `
+            <li>
+                <span class="c-time">${timeAgo(c.created_at)}</span>
+                <span class="c-author">${c.author || '익명'}</span>
+                <div class="c-text">${(c.content || '').substring(0, 60)}</div>
+            </li>`
+        ).join('');
+    }
+
+    // 자동 로드
+    loadAll();
+    // 60초마다 자동 갱신
+    setInterval(loadAll, 60000);
+</script>
+</body>
+</html>
