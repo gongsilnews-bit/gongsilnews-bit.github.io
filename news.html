@@ -999,14 +999,13 @@
             if (!sb) return;
             const { data: { session } } = await sb.auth.getSession();
             if (!session || !session.user) {
-                alert('회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!');
-                window.location.href = 'login.html';
+                window.showToast('회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!', 'login.html');
                 return;
             }
             const sz = document.getElementById('fontSizeSlider').value;
             const lh = document.getElementById('lineHeightSlider').value;
             localStorage.setItem('gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
-            alert('나만의 글자 설정이 성공적으로 저장되었습니다.');
+            window.showToast('✔️ 나만의 글자 설정이 성공적으로 저장되었습니다.');
             document.getElementById('fontSizeModal').style.display = 'none';
         };
 

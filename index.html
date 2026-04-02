@@ -442,6 +442,21 @@
         .f-links { text-align: center; margin-bottom: 20px; }
         .f-links a { font-size: 14px; font-weight: 700; color: #333; margin: 0 10px; }
         .f-copyright { text-align: center; font-size: 12px; color: #999; }
+
+        /* --- 스터디(특강) 관련 스타일 --- */
+        .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .lecture-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; border: 1px solid #e2e8f0; }
+        .lecture-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .lecture-thumb { width: 100%; height: 180px; background: #eee; position: relative; }
+        .lecture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .badge-new { position: absolute; top: 12px; left: 12px; background: #ff9f1c; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .bookmark-btn { position: absolute; top: 12px; right: 12px; color: rgba(255,255,255,0.8); font-size: 20px; }
+        .lecture-info { padding: 16px; }
+        .lecture-cat { font-size: 11px; color: #ff9f1c; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .lecture-title { font-size: 16px; font-weight: bold; color: #222; line-height: 1.4; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 12px; }
+        .lecture-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #888; margin-bottom:12px; }
+        .instructor { font-weight: 600; color: #444; }
+        .rating { display: flex; align-items: center; gap: 4px; color: #ff9f1c; }
     </style>
 </head>
 <body>
@@ -671,6 +686,19 @@
         </div>
 
     </main>
+
+    <!-- 스터디 연동: 부동산특강 -->
+    <div class="container px-20 mb-50" id="special-lecture">
+        <div class="sec-title-wrap" style="display:flex; justify-content:space-between; align-items:flex-end;">
+            <h2 class="sec-title">부동산특강 (공실스터디)</h2>
+            <a href="study.html" class="view-all" style="font-size: 14px; color: #666; text-decoration: none; padding-bottom:14px;">전체보기 〉</a>
+        </div>
+        <div class="lecture-grid" id="mainSpecialLectureGrid">
+            <div style="grid-column: 1 / -1; text-align:center; padding: 100px 0; color:#64748b; font-size:16px; font-weight:600;">
+                현재 등록된 강의 데이터를 불러오는 중입니다...
+            </div>
+        </div>
+    </div>
 
     <!-- 7. Drone Video / Archive -->
     <div class="premium-bg">
@@ -1207,6 +1235,75 @@
         <script>
         // Run immediately since keys are defined globally
         loadMarketIndices(supabaseUrl, supabaseKey);
+
+        // 스터디 강의 로드 함수
+        async function loadMainSpecialLectures() {
+            const grid = document.getElementById('mainSpecialLectureGrid');
+            if(!grid) return;
+            
+            try {
+                const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
+                const { data, error } = await supabase
+                    .from('study_courses')
+                    .select('*')
+                    .eq('status', 'published')
+                    .order('created_at', { ascending: false })
+                    .limit(4);
+
+                if(error) throw error;
+
+                if(!data || data.length === 0) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:50px 0;color:#94a3b8;font-size:16px;">진행 중인 부동산 특강이 없습니다.</div>`;
+                    return;
+                }
+
+                const defaultImages = [
+                    'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=400'
+                ];
+
+                let html = '';
+                data.forEach((course, idx) => {
+                    const imgUrl = (course.thumbnail_urls && course.thumbnail_urls.length > 0) ? course.thumbnail_urls[0] : defaultImages[idx % defaultImages.length];
+                    const priceText = course.price > 0 ? course.price.toLocaleString() + ' P' : '✨ 무료 수강';
+                    const isNew = idx < 2 ? '<span class="badge-new">NEW🔥</span>' : ''; 
+                    const catArr = ['실무/마케팅', '경매/특수물건', '재개발/투자', '세무/법률'];
+                    const mockCat = catArr[idx % catArr.length];
+
+                    html += `
+                    <div class="lecture-card" onclick="location.href='study_detail.html?id=${course.id}'">
+                        <div class="lecture-thumb">
+                            <img src="${imgUrl}" alt="썸네일" loading="lazy">
+                            ${isNew}
+                            <div class="bookmark-btn">🔖</div>
+                        </div>
+                        <div class="lecture-info">
+                            <div class="lecture-cat">${mockCat}</div>
+                            <h3 class="lecture-title" style="word-break:keep-all;">${course.title}</h3>
+                            <div class="lecture-meta">
+                                <span class="instructor">공실마스터 특강</span>
+                                <div class="rating">★ 4.9 (${Math.floor(Math.random() * 200 + 10)})</div>
+                            </div>
+                            <div style="font-weight:800; color:#111; font-size:17px; background:#f8fafc; padding:10px 14px; border-radius:8px; display:inline-block; border:1px solid #e2e8f0;">
+                                ${priceText}
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                grid.innerHTML = html;
+
+            } catch(e) {
+                console.error(e);
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:red;padding:40px;">오류: ${e.message}</div>`;
+            }
+        }
+        
+        loadMainSpecialLectures();
     </script>
 </body>
 </html>

@@ -13,18 +13,38 @@ let currentPeriod = 'all'; // 현재 선택된 기간 필터
 let ps; // 장소 검색 객체
 let currentOverlay = null; // 현재 열린 오버레이
 
-// 간단한 토스트 메시지 띄우기 함수
-window.showToast = function(msg) {
+// 모든 알림을 커스텀 토스트로 띄우기 위한 전역 덮어쓰기
+const originalAlert = window.alert;
+window.alert = function(msg) {
+    if (typeof window.showToast === 'function') {
+        window.showToast('🚨 ' + msg);
+    } else {
+        originalAlert(msg);
+    }
+};
+
+// 간단한 토스트 메시지 띄우기 함수 (커스텀 뷰 적용)
+window.showToast = function(msg, redirectUrl = null) {
     let t = document.getElementById('gongsil-toast');
     if (!t) {
         t = document.createElement('div');
         t.id = 'gongsil-toast';
-        t.style.cssText = 'position:fixed; top:20px; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.8); color:#fff; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+        t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:6px;';
         document.body.appendChild(t);
     }
-    t.innerText = msg;
+    t.innerHTML = msg;
     t.style.opacity = '1';
-    setTimeout(() => { t.style.opacity = '0'; }, 3000);
+    
+    if (window.gongsilToastTimer) clearTimeout(window.gongsilToastTimer);
+    
+    if (redirectUrl) {
+        window.gongsilToastTimer = setTimeout(() => { 
+            t.style.opacity = '0';
+            window.location.href = redirectUrl;
+        }, 1500);
+    } else {
+        window.gongsilToastTimer = setTimeout(() => { t.style.opacity = '0'; }, 3000);
+    }
 };
 
 // 뉴스 네비게이션 설정
