@@ -1311,7 +1311,10 @@
                 }
                 
                 // 🔥 링크 업데이트 🔥
-                const watchUrl = `study_watch.html?id=${course.id}`;
+                let watchUrl = `study_watch.html?id=${course.id}`;
+                if (urlParams.get('from') === 'main') {
+                    watchUrl += '&from=main';
+                }
                 
                 if(btnPurchase) {
                     btnPurchase.innerText = costNum > 0 ? `${costStr} 결제 후 수강하기` : '👉 무료 수강 시작하기';
