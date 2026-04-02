@@ -1065,7 +1065,26 @@
                             const markers = [];
                             let bounds = new kakao.maps.LatLngBounds();
 
+                            function addMarker(p, lat, lng) {
+                                const latLng = new kakao.maps.LatLng(lat, lng);
+                                const marker = new kakao.maps.Marker({
+                                    position: latLng,
+                                    opacity: 0
+                                });
+                                marker.propertyData = p;
+                                markers.push(marker);
+                                bounds.extend(latLng);
+                            }
+
                             data.forEach(p => {
+                                // ✅ 좌표가 이미 DB에 저장된 경우 geocoding 스킵
+                                if (p.lat && p.lng) {
+                                    addMarker(p, parseFloat(p.lat), parseFloat(p.lng));
+                                    completed++;
+                                    checkDone();
+                                    return;
+                                }
+
                                 const addr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''}`.trim();
                                 if (!addr) {
                                     completed++;
@@ -1075,16 +1094,8 @@
                                 
                                 geocoder.addressSearch(addr, function(result, status) {
                                     if (status === kakao.maps.services.Status.OK) {
-                                        const latLng = new kakao.maps.LatLng(parseFloat(result[0].y), parseFloat(result[0].x));
-                                        const marker = new kakao.maps.Marker({
-                                            position: latLng,
-                                            opacity: 0 // invisible marker itself
-                                        });
-                                        marker.propertyData = p; // attach data to marker
-                                        markers.push(marker);
-                                        bounds.extend(latLng);
+                                        addMarker(p, parseFloat(result[0].y), parseFloat(result[0].x));
                                     }
-                                    
                                     completed++;
                                     checkDone();
                                 });
@@ -1094,9 +1105,7 @@
                                 if (completed === data.length) {
                                     if (markers.length > 0) {
                                         clusterer.addMarkers(markers);
-                                        // Render initial property list logic using all markers
                                         window.renderPropertyList(markers);
-                                        // User requested default view at Gangnam, so do not setBounds
                                     }
                                 }
                             }

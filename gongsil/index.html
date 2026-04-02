@@ -2206,13 +2206,61 @@
 
                 let completedCount = 0;
 
-                // 데이터가 없을 경우 처리
                 if (props.length === 0) {
                     window.updateListByMapBounds();
                     return;
                 }
 
+                function placeMarker(p, lat, lng) {
+                    p.lat = lat;
+                    p.lng = lng;
+                    const coords = new kakao.maps.LatLng(lat, lng);
+                    const isGeneralBuilding = p.main_category === '상가·업무·공장·토지' || p.main_category === '빌라·주택';
+
+                    let markerConfig = { position: coords };
+                    if (p.is_room_private && isGeneralBuilding) {
+                        const svgObj = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="30" fill="%233b82f6" fill-opacity="0.4"/></svg>`;
+                        markerConfig.image = new kakao.maps.MarkerImage(`data:image/svg+xml;utf8,${svgObj}`, new kakao.maps.Size(80, 80), { offset: new kakao.maps.Point(40, 40) });
+                    }
+
+                    const marker = new kakao.maps.Marker(markerConfig);
+                    marker.propertyData = p;
+                    propertyMarkers.push(marker);
+
+                    const infowindow = new kakao.maps.InfoWindow({
+                        content: `<div style="padding:5px;font-size:12px;">${formatPriceDisplay(p)}</div>`
+                    });
+                    kakao.maps.event.addListener(marker, 'click', () => {
+                        window.currentlySelectedPropertyId = p.id;
+                        document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
+                        const targetCard = document.getElementById(`property-card-${p.id}`);
+                        if (targetCard) {
+                            targetCard.classList.add('active');
+                            targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                        window.showPropertyDetail(p);
+                        if (window._syncBookmarkIcon) window._syncBookmarkIcon(p.id);
+                        infowindow.open(window.mapInstance, marker);
+                        setTimeout(() => infowindow.close(), 3000);
+                    });
+                }
+
                 props.forEach(p => {
+                    // ✅ 좌표가 이미 DB에 저장된 경우 geocoding 스킵
+                    if (p.lat && p.lng) {
+                        placeMarker(p, parseFloat(p.lat), parseFloat(p.lng));
+                        completedCount++;
+                        if (completedCount === props.length) {
+                            if (window.filterAndRenderMap) {
+                                window.filterAndRenderMap();
+                            } else {
+                                if (clusterer) clusterer.addMarkers(propertyMarkers);
+                                window.updateListByMapBounds();
+                            }
+                        }
+                        return;
+                    }
+
                     const isGeneralBuilding = p.main_category === '상가·업무·공장·토지' || p.main_category === '빌라·주택';
                     let searchAddr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''} ${p.detail_address || ''}`;
                     if (p.is_room_private && isGeneralBuilding) {
@@ -2222,42 +2270,12 @@
                     geocoder.addressSearch(searchAddr, (result, status) => {
                         completedCount++;
                         if (status === kakao.maps.services.Status.OK) {
-                            p.lat = parseFloat(result[0].y);
-                            p.lng = parseFloat(result[0].x);
-                            const coords = new kakao.maps.LatLng(p.lat, p.lng);
-                            
-                            let markerConfig = { position: coords };
-                            if (p.is_room_private && isGeneralBuilding) {
-                                const svgObj = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><circle cx="40" cy="40" r="30" fill="%233b82f6" fill-opacity="0.4"/></svg>`;
-                                markerConfig.image = new kakao.maps.MarkerImage(`data:image/svg+xml;utf8,${svgObj}`, new kakao.maps.Size(80, 80), { offset: new kakao.maps.Point(40, 40) });
-                            }
-                            
-                            const marker = new kakao.maps.Marker(markerConfig);
-                            marker.propertyData = p; // 속성 데이터를 마커에 저장
-                            propertyMarkers.push(marker);
-
-                            const infowindow = new kakao.maps.InfoWindow({
-                                content: `<div style="padding:5px;font-size:12px;">${formatPriceDisplay(p)}</div>`
-                            });
-                            kakao.maps.event.addListener(marker, 'click', () => {
-                                window.currentlySelectedPropertyId = p.id;
-                                document.querySelectorAll('.property-card').forEach(c => c.classList.remove('active'));
-                                const targetCard = document.getElementById(`property-card-${p.id}`);
-                                if (targetCard) {
-                                    targetCard.classList.add('active');
-                                    targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                }
-                                window.showPropertyDetail(p);
-                                if (window._syncBookmarkIcon) window._syncBookmarkIcon(p.id);
-                                infowindow.open(window.mapInstance, marker);
-                                setTimeout(() => infowindow.close(), 3000);
-                            });
+                            placeMarker(p, parseFloat(result[0].y), parseFloat(result[0].x));
                         }
 
-                        // 모든 지오코딩 작업이 완료되었을 때 클러스터 설정
                         if (completedCount === props.length) {
                             if (window.filterAndRenderMap) {
-                                window.filterAndRenderMap(); // 필터 재적용 및 표시
+                                window.filterAndRenderMap();
                             } else {
                                 if (clusterer) clusterer.addMarkers(propertyMarkers);
                                 window.updateListByMapBounds();
