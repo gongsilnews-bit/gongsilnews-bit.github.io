@@ -31,11 +31,12 @@
         /* ------------------ 좌측 사이드바 ------------------ */
         .sidebar {
             width: 80px;
-            background-color: #ffffff;
-            border-right: 1px solid #e1e4e8;
+            background-color: #1a3a6b;
+            border-right: none;
             display: flex;
             flex-direction: column;
             z-index: 10;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.12);
         }
 
         /* 사이드바 헤더 (로고 영역) */
@@ -46,7 +47,7 @@
             justify-content: center;
             padding: 0;
             cursor: pointer;
-            border-bottom: 1px solid #e1e4e8;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
         }
 
         /* 메뉴 리스트 */
@@ -70,7 +71,7 @@
             justify-content: center;
             padding: 18px 0;
             text-decoration: none;
-            color: #6b7280;
+            color: rgba(255,255,255,0.65);
             border-left: 3px solid transparent;
             font-size: 11px;
             font-weight: 600;
@@ -82,30 +83,30 @@
             width: 22px;
             height: 22px;
             margin-bottom: 6px;
-            stroke: #6b7280;
+            stroke: rgba(255,255,255,0.65);
             transition: all 0.2s ease;
         }
 
         .menu-link:hover {
-            color: #ff9f1c;
-            background-color: #fffaf0;
+            color: #ffffff;
+            background-color: rgba(255,255,255,0.12);
         }
 
         .menu-link:hover svg {
-            stroke: #ff9f1c;
+            stroke: #ffffff;
             transform: translateY(-2px);
         }
 
         /* 활성화된 메뉴 */
         .menu-link.active {
-            color: #ff9f1c; /* 오렌지색상 포인트 */
-            background-color: #fffaf0;
-            border-left-color: #ff9f1c;
+            color: #ffffff;
+            background-color: rgba(255,255,255,0.18);
+            border-left-color: #5aabff;
             font-weight: 700;
         }
 
         .menu-link.active svg {
-            stroke: #ff9f1c;
+            stroke: #5aabff;
         }
 
         /* ------------------ 우측 메인 콘텐츠 ------------------ */
@@ -252,7 +253,7 @@
                     </a>
                 </li>
                 <!-- 정보설정은 메뉴 맨 하단에 독립적으로 추가 -->
-                <li class="menu-item" style="margin-top:20px; border-top:1px solid #e1e4e8;">
+                <li class="menu-item" style="margin-top:20px; border-top:1px solid rgba(255,255,255,0.15);">
                     <a class="menu-link" onclick="loadPage(event, '정보설정', 'profile_edit.html')">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         <span>정보설정</span>
