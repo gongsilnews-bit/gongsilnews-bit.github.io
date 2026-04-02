@@ -484,7 +484,7 @@
                             </ul>
                         </div>
                     </div>
-                    <a href="#">부동산특강</a>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/') { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
                     <a href="#">중개업소무료가입</a>
                 </nav>
             </div>
@@ -788,7 +788,7 @@
 
         <!-- 9. Study -->
         <div class="sec-title-wrap">
-            <h2 class="sec-title">공실 스터디</h2>
+            <h2 class="sec-title" id="special-lecture">부동산특강</h2>
         </div>
         <div class="study-grid mb-50">
             <div class="study-card">

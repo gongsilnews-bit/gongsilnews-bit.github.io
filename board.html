@@ -484,7 +484,7 @@
                             </ul>
                         </div>
                     </div>
-                    <a href="#">부동산특강</a>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/') { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
                     <a href="#">중개업소무료가입</a>
                 </nav>
             </div>
