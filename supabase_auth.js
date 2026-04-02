@@ -275,7 +275,15 @@ function _gongsiAuthInit(supabase) {
 
                         <!-- 부동산 회원 필드 -->
                         <div id="gregRealtorFields">
-                            <h3 style="font-size:14px; margin:0 0 15px 0; color:#111; padding-bottom:8px; border-bottom:1px solid #ccc;">🏢 부동산 / 기업 정보 입력</h3>
+                            <h3 style="font-size:13px; margin:0 0 12px 0; color:#111; padding-bottom:7px; border-bottom:1px solid #ccc;">🏢 부동산 / 기업 정보 입력</h3>
+
+                            <!-- 안내 메시지 -->
+                            <div style="background:#fff8e1; border:1px solid #ffe082; border-radius:7px; padding:10px 12px; margin-bottom:14px; font-size:11.5px; color:#7a5800; line-height:1.6;">
+                                ⚠️ <strong>상호명, 대표자명, 휴대번호, 주소</strong>는 필수 입력 항목입니다.<br>
+                                나머지 항목(사업자번호, 등록증 첨부 등)은 나중에 <strong>정보 수정</strong>에서 완료하실 수 있습니다.<br>
+                                단, <strong>미입력 항목이 있으면 공실 매물 등록이 제한</strong>됩니다.
+                            </div>
+
                             <div class="greg-grid">
                                 <div>
                                     <label class="greg-label">상호명 <span style="color:red">*</span></label>
@@ -286,16 +294,16 @@ function _gongsiAuthInit(supabase) {
                                     <input type="text" id="gregCeo" class="greg-input greg-req" placeholder="대표자 성함">
                                 </div>
                                 <div>
-                                    <label class="greg-label">중개등록번호 <span style="color:red">*</span></label>
-                                    <input type="text" id="gregCompReg" class="greg-input greg-req" placeholder="등록번호 입력">
+                                    <label class="greg-label" style="color:#888;">중개등록번호 <span style="font-size:10px; color:#aaa;">(선택)</span></label>
+                                    <input type="text" id="gregCompReg" class="greg-input" placeholder="등록번호 입력">
                                 </div>
                                 <div>
-                                    <label class="greg-label">사업자등록번호 <span style="color:red">*</span></label>
-                                    <input type="text" id="gregBizReg" class="greg-input greg-req" placeholder="000-00-00000">
+                                    <label class="greg-label" style="color:#888;">사업자등록번호 <span style="font-size:10px; color:#aaa;">(선택)</span></label>
+                                    <input type="text" id="gregBizReg" class="greg-input" placeholder="000-00-00000">
                                 </div>
                                 <div>
-                                    <label class="greg-label">일반번호 <span style="color:red">*</span></label>
-                                    <input type="tel" id="gregTel" class="greg-input greg-req" placeholder="02-000-0000">
+                                    <label class="greg-label" style="color:#888;">일반번호 <span style="font-size:10px; color:#aaa;">(선택)</span></label>
+                                    <input type="tel" id="gregTel" class="greg-input" placeholder="02-000-0000">
                                 </div>
                                 <div>
                                     <label class="greg-label">휴대번호 <span style="color:red">*</span></label>
@@ -308,20 +316,20 @@ function _gongsiAuthInit(supabase) {
                                         <button type="button" class="greg-btn-sm" id="gregBtnZip">주소 찾기</button>
                                     </div>
                                     <input type="text" id="gregAddr" class="greg-input greg-req" style="margin-bottom:8px;" placeholder="기본 주소" readonly>
-                                    <input type="text" id="gregAddrDet" class="greg-input greg-req" placeholder="상세 주소를 입력하세요">
+                                    <input type="text" id="gregAddrDet" class="greg-input" placeholder="상세 주소 (선택)">
                                 </div>
                                 <div class="greg-full">
-                                    <label class="greg-label">사업자등록증 첨부 <span style="color:red">*</span></label>
+                                    <label class="greg-label" style="color:#888;">사업자등록증 첨부 <span style="font-size:10px; color:#aaa;">(선택 — 나중에 정보수정에서 업로드 가능)</span></label>
                                     <div class="greg-file-box">
                                         <div class="greg-file-msg" id="gregFileMsg1">📸 클릭하여 파일 첨부 (사진)</div>
-                                        <input type="file" id="gregFile1" class="greg-req" accept="image/*">
+                                        <input type="file" id="gregFile1" accept="image/*">
                                     </div>
                                 </div>
                                 <div class="greg-full">
-                                    <label class="greg-label">중개등록증 첨부 <span style="color:red">*</span></label>
+                                    <label class="greg-label" style="color:#888;">중개등록증 첨부 <span style="font-size:10px; color:#aaa;">(선택 — 나중에 정보수정에서 업로드 가능)</span></label>
                                     <div class="greg-file-box">
                                         <div class="greg-file-msg" id="gregFileMsg2">📸 클릭하여 파일 첨부 (사진)</div>
-                                        <input type="file" id="gregFile2" class="greg-req" accept="image/*">
+                                        <input type="file" id="gregFile2" accept="image/*">
                                     </div>
                                 </div>
                             </div>
