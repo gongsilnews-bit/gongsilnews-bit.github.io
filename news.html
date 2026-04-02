@@ -731,6 +731,31 @@
                                 <a id="btnViewOriginal" href="#" style="font-size: 13px; font-weight: bold; color: #1e56a0; border: 1px solid #1e56a0; border-radius: 20px; padding: 4px 14px; text-decoration: none; transition: all 0.2s; display:none;" onmouseover="this.style.background='#1e56a0'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#1e56a0';">원문보기</a>
                                 <span class="btn-scrap" style="display:flex; align-items:center; cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#ff9f1c'" onmouseout="this.style.color='#888'" title="스크랩" onclick="window.scrapArticle()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"></path></svg></span>
                                 <span class="btn-share" style="display:flex; align-items:center; cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#ff9f1c'" onmouseout="this.style.color='#888'" title="공유" onclick="window.shareArticleUrl()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>
+                                <!-- 글자 크기 조절 버튼 -->
+                                <span style="cursor:pointer; color:#888; transition:color 0.2s; font-size:14px; font-weight:700; display:flex; align-items:baseline; gap:1px; letter-spacing:-1px;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="글자 크기" onclick="document.getElementById('fontSizeModal').style.display='flex'">
+                                    <span style="font-size:13px;">가</span><span style="font-size:17px;">가</span>
+                                </span>
+                                <!-- 프린트 -->
+                                <span style="cursor:pointer; color:#888; transition:color 0.2s; display:flex; align-items:center;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="기사 인쇄" onclick="window.print()">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 글자 크기 조절 모달 -->
+                    <div id="fontSizeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                        <div style="background:#fff; border-radius:16px; padding:36px 40px; width:380px; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                            <button onclick="document.getElementById('fontSizeModal').style.display='none'" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:22px; cursor:pointer; color:#888;">&#10005;</button>
+                            <div style="margin-bottom:28px;">
+                                <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자크기</div>
+                                <input type="range" id="fontSizeSlider" min="13" max="24" value="17" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>가</span><span style="font-size:16px;">가</span></div>
+                            </div>
+                            <div>
+                                <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자행간</div>
+                                <input type="range" id="lineHeightSlider" min="140" max="240" value="180" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>좁게</span><span>넓게</span></div>
                             </div>
                         </div>
                     </div>
@@ -964,6 +989,27 @@
                 document.body.appendChild(toast);
                 setTimeout(() => toast.remove(), 2500);
             }
+        };
+
+        // 글자 크기 실시간 적용 (인라인 스타일 강제 오버라이드)
+        window.applyReadingStyle = function() {
+            const sz = parseInt(document.getElementById('fontSizeSlider').value);
+            const lh = parseInt(document.getElementById('lineHeightSlider').value);
+            const body = document.getElementById('detailBody');
+            if(!body) return;
+
+            let styleTag = document.getElementById('readingStyleOverride');
+            if(!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'readingStyleOverride';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = `
+                #detailBody, #detailBody * {
+                    font-size: ${sz}px !important;
+                    line-height: ${(lh / 100).toFixed(2)} !important;
+                }
+            `;
         };
     </script>
     <!-- ═══ 사이드바 매물 상세 패널 ═══ -->
