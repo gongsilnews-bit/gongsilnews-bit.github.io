@@ -592,15 +592,20 @@
         
         async function fetchApartmentPublicData(propertyInfo) {
             const apiContainer = document.getElementById('publicApiDataModule');
+            const apiTabBtn = document.getElementById('tabBtnPublicData');
+            
             if(!apiContainer) return;
 
             // 아파트/오피스텔 카테고리가 아닐 경우 숨김
             if (propertyInfo.main_category !== 'apart' && propertyInfo.main_category !== '아파트·오피스텔') {
                 apiContainer.style.display = 'none';
+                if(apiTabBtn) apiTabBtn.style.display = 'none';
                 return;
             }
 
             apiContainer.style.display = 'block';
+            if(apiTabBtn) apiTabBtn.style.display = 'flex';
+            
             apiContainer.innerHTML = `<div style="padding:40px; text-align:center; color:#1a73e8; font-weight:bold;">🔄 공공데이터포털 실거래가 및 단지정보를 실시간으로 불러오는 중입니다...</div>`;
 
             try {
@@ -800,16 +805,19 @@
                 <!-- 탭 -->
                 <div class="detail-tabs">
                     <div class="tab-item active" id="tabBtnInfo" onclick="window.switchDetailTab('info')">매물정보</div>
+                    <div class="tab-item" id="tabBtnPublicData" onclick="window.switchDetailTab('public')" style="display:none; color:#1a73e8;">#실거래단지정보</div>
                     <div class="tab-item" id="tabBtnRealtor" onclick="window.switchDetailTab('realtor')">등록자정보</div>
+                </div>
+
+                <!-- 탭 내용 영역 (공공데이터) -->
+                <div id="tabPublicSection" style="display:none; padding:20px 0;">
+                    <div id="publicApiDataModule" class="extra-info-group">
+                        <!-- 스크립트(fetchApartmentPublicData)에 의해 동적으로 채워집니다. -->
+                    </div>
                 </div>
 
                 <!-- 탭 내용 영역 (매물정보) -->
                 <div id="tabInfoSection">
-                
-                <!-- 공공데이터 오픈 API 렌더링 영역 (테이블 위로 이동) -->
-                <div id="publicApiDataModule" class="extra-info-group" style="padding-bottom:15px; border-bottom:10px solid #f5f5f5;">
-                    <!-- 스크립트(fetchApartmentPublicData)에 의해 동적으로 채워집니다. -->
-                </div>
 
                 <!-- 매물 텍스트 정보 표 -->
                 <div class="detail-info-table">
@@ -1891,20 +1899,24 @@
 
             window.switchDetailTab = function(tab) {
                 const btnInfo = document.getElementById('tabBtnInfo');
+                const btnPublic = document.getElementById('tabBtnPublicData');
                 const btnRealtor = document.getElementById('tabBtnRealtor');
                 const secInfo = document.getElementById('tabInfoSection');
+                const secPublic = document.getElementById('tabPublicSection');
                 const secRealtor = document.getElementById('tabRealtorSection');
+
+                [btnInfo, btnPublic, btnRealtor].forEach(b => b && b.classList.remove('active'));
+                [secInfo, secPublic, secRealtor].forEach(s => s && (s.style.display = 'none'));
 
                 if (tab === 'info') {
                     if(btnInfo) btnInfo.classList.add('active');
-                    if(btnRealtor) btnRealtor.classList.remove('active');
                     if(secInfo) secInfo.style.display = 'block';
-                    if(secRealtor) secRealtor.style.display = 'none';
+                } else if (tab === 'public') {
+                    if(btnPublic) btnPublic.classList.add('active');
+                    if(secPublic) secPublic.style.display = 'block';
                 } else if (tab === 'realtor') {
                     if(btnRealtor) btnRealtor.classList.add('active');
-                    if(btnInfo) btnInfo.classList.remove('active');
                     if(secRealtor) secRealtor.style.display = 'block';
-                    if(secInfo) secInfo.style.display = 'none';
                 }
             };
 
