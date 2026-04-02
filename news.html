@@ -753,7 +753,7 @@
                                 <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>가</span><span style="font-size:16px;">가</span></div>
                             </div>
                             <div>
-                                <div class="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자행간</div>
+                                <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자행간</div>
                                 <input type="range" id="lineHeightSlider" min="140" max="240" value="180" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
                                 <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>좁게</span><span>넓게</span></div>
                             </div>
@@ -1000,6 +1000,7 @@
             const { data: { session } } = await sb.auth.getSession();
             if (!session || !session.user) {
                 alert('회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!');
+                window.location.href = 'login.html';
                 return;
             }
             const sz = document.getElementById('fontSizeSlider').value;
