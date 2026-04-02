@@ -391,6 +391,43 @@ function _gongsiAuthInit(supabase) {
                 modal.querySelector('#gregFileMsg2').style.fontWeight = f ? 'bold' : 'normal';
             });
 
+            // 입력 필드 자동 하이픈 포매팅 (숫자만 입력해도 - 추가)
+            function autoFormatPhone(e) {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                if (val.startsWith('02')) {
+                    if (val.length < 3) { e.target.value = val; return; }
+                    if (val.length < 6) { e.target.value = val.replace(/(\d{2})(\d{1,3})/, '$1-$2'); return; }
+                    if (val.length < 10) { e.target.value = val.replace(/(\d{2})(\d{3})(\d{1,4})/, '$1-$2-$3'); return; }
+                    e.target.value = val.replace(/(\d{2})(\d{4})(\d{1,4})/, '$1-$2-$3');
+                } else {
+                    if (val.length < 4) { e.target.value = val; return; }
+                    if (val.length < 7) { e.target.value = val.replace(/(\d{3})(\d{1,3})/, '$1-$2'); return; }
+                    if (val.length < 11) { e.target.value = val.replace(/(\d{3})(\d{3})(\d{1,4})/, '$1-$2-$3'); return; }
+                    e.target.value = val.replace(/(\d{3})(\d{4})(\d{1,4})/, '$1-$2-$3');
+                }
+            }
+            
+            function autoFormatBizNo(e) {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                if (val.length < 4) { e.target.value = val; return; }
+                if (val.length < 6) { e.target.value = val.replace(/(\d{3})(\d{1,2})/, '$1-$2'); return; }
+                e.target.value = val.replace(/(\d{3})(\d{2})(\d{1,5})/, '$1-$2-$3');
+            }
+
+            function autoFormatBrokerReg(e) {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                // 일반적인 중개등록번호 자리수 가이드: XXXXX-YYYY-ZZZZZ 형태로 유도
+                if (val.length < 6) { e.target.value = val; return; }
+                if (val.length < 10) { e.target.value = val.replace(/(\d{5})(\d{1,4})/, '$1-$2'); return; }
+                e.target.value = val.replace(/(\d{5})(\d{4})(\d{1,5})/, '$1-$2-$3');
+            }
+
+            modal.querySelector('#gregPhone').addEventListener('input', autoFormatPhone);
+            modal.querySelector('#gregTel').addEventListener('input', autoFormatPhone);
+            modal.querySelector('#gregCell').addEventListener('input', autoFormatPhone);
+            modal.querySelector('#gregBizReg').addEventListener('input', autoFormatBizNo);
+            modal.querySelector('#gregCompReg').addEventListener('input', autoFormatBrokerReg);
+
             modal.querySelector('#gregForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const loader = modal.querySelector('#gregLoader');
