@@ -486,7 +486,7 @@ content = header_html + """
             const session = data?.session;
             
             if (!session || !session.user) {
-                window.showToast('🚨 회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!');
+                window.showToast('🚨 회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
                 setTimeout(() => {
                     const loginBtn = document.getElementById('headerLoginBtn');
                     if (loginBtn) loginBtn.click();
@@ -496,10 +496,10 @@ content = header_html + """
             const sz = document.getElementById('fontSizeSlider').value;
             const lh = document.getElementById('lineHeightSlider').value;
             localStorage.setItem('gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
-            window.showToast('✔️ 나만의 글자 설정이 성공적으로 저장되었습니다.');
+            window.showToast('✔️ 나만의 글자 설정이 성공적으로 저장되었습니다.', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
             document.getElementById('fontSizeModal').style.display = 'none';
         } catch (e) {
-            window.showToast('저장 중 오류 발생: ' + (e.message || e));
+            window.showToast('저장 중 오류 발생: ' + (e.message || e), null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
             console.error('saveReadingPref error:', e);
         }
     };

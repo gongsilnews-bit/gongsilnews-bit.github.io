@@ -23,15 +23,15 @@ window.alert = function(msg) {
     }
 };
 
-// 간단한 토스트 메시지 띄우기 함수 (커스텀 뷰 적용)
-window.showToast = function(msg, redirectUrl = null) {
+// 간단한 토스트 메시지 띄우기 함수 (커스텀 뷰 적용, 위치 동적 지정 가능)
+window.showToast = function(msg, redirectUrl = null, verticalPos = 'top:20px; transform:translateX(-50%);') {
     let t = document.getElementById('gongsil-toast');
     if (!t) {
         t = document.createElement('div');
         t.id = 'gongsil-toast';
-        t.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:12px 24px;border-radius:30px;font-size:14px;font-weight:600;z-index:99999;opacity:0;transition:opacity 0.3s;pointer-events:none;box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:6px;';
         document.body.appendChild(t);
     }
+    t.style.cssText = `position:fixed; left:50%; ${verticalPos} background:#222; color:#fff; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:600; z-index:99999; opacity:0; transition:opacity 0.3s; pointer-events:none; box-shadow:0 4px 12px rgba(0,0,0,0.15); display:flex; align-items:center; gap:6px; white-space:nowrap;`;
     t.innerHTML = msg;
     t.style.opacity = '1';
     
