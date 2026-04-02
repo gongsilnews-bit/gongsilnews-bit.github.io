@@ -247,6 +247,7 @@ content = header_html + """
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="supabase_gongsi_config.js"></script>
     <script src="supabase_auth.js"></script>
+    <script src="script.js?v=1.4"></script>
     
     <script>
     document.addEventListener('DOMContentLoaded', async () => {
