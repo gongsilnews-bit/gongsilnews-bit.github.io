@@ -472,7 +472,18 @@
                     <a href="news_etc.html">기타</a>
                     <span class="divider"></span>
                     <a href="gongsil/index.html">공실열람</a>
-                    <a href="#">자료실</a>
+                    <div style="position: relative; display: inline-block;" onmouseover="this.querySelector('.gnb-dropdown').style.display='block'" onmouseout="this.querySelector('.gnb-dropdown').style.display='none'">
+                        <a href="board.html" style="padding: 10px 0; transition: color 0.2s;" onmouseover="this.style.color='#1e56a0'" onmouseout="this.style.color=''">자료실</a>
+                        <div class="gnb-dropdown" style="display: none; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 140px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: center;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=drone" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">드론영상</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=app" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">APP(앱)</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=design" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">디자인</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=sound" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">음원</a></li>
+                                <li><a href="board.html?cat=form" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#1e56a0'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">계약서/양식</a></li>
+                            </ul>
+                        </div>
+                    </div>
                     <a href="#">부동산특강</a>
                     <a href="#">중개업소무료가입</a>
                 </nav>
@@ -555,11 +566,11 @@
         </div>
 
         <!-- 4. Ticker Section -->
-        <div class="ticker">
-            <div class="ticker-item"><span>매매가격지수 (서울)</span><span class="ticker-val">102.3 ▲ 0.12%</span></div>
-            <div class="ticker-item"><span>전세가격지수 (서울)</span><span class="ticker-val">105.1 ▲ 0.24%</span></div>
-            <div class="ticker-item"><span>코스피</span><span class="ticker-val">2,750.31 ▲ 1.45%</span></div>
-            <div class="ticker-item"><span>코스닥</span><span class="ticker-val down">890.11 ▼ 0.32%</span></div>
+        <div class="ticker" id="market-ticker">
+            <div class="ticker-item"><span id="lbl-APT_SALE">매매가격지수 (서울)</span><span class="ticker-val" id="val-APT_SALE">...</span></div>
+            <div class="ticker-item"><span id="lbl-APT_RENT">전세가격지수 (서울)</span><span class="ticker-val" id="val-APT_RENT">...</span></div>
+            <div class="ticker-item"><span id="lbl-KOSPI">코스피</span><span class="ticker-val" id="val-KOSPI">...</span></div>
+            <div class="ticker-item"><span id="lbl-KOSDAQ">코스닥</span><span class="ticker-val down" id="val-KOSDAQ">...</span></div>
         </div>
 
         <!-- 5. Hot Issue -->
@@ -1105,6 +1116,65 @@
             } else {
                 header.classList.remove('is-sticky');
             }
+        });
+    </script>
+    <!-- Supabase and Ticker Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        // Supabase 초기화 (기존 index.html에 있던 설정 활용)
+        const supabaseUrl = 'YOUR_SUPABASE_URL'; // 나중에 github action/env로 처리하거나 여기서 임시로 불러옴
+        const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; 
+
+        // Ticker 데이터를 Supabase에서 가져오는 함수
+        async function loadMarketIndices(url, key) {
+            try {
+                const supabase = window.supabase.createClient(url, key);
+                const { data, error } = await supabase.from('market_indices').select('*');
+                if (error) { console.error('Error fetching indices:', error); return; }
+                
+                if (data && data.length > 0) {
+                    data.forEach(item => {
+                        const lblId = 'lbl-' + item.id;
+                        const valId = 'val-' + item.id;
+                        
+                        const lblEl = document.getElementById(lblId);
+                        const valEl = document.getElementById(valId);
+                        
+                        if(lblEl) lblEl.textContent = item.index_name;
+                        if(valEl) {
+                            valEl.textContent = item.index_value + ' ' + item.change_rate;
+                            if (item.status_icon === 'down') {
+                                valEl.style.color = '#1976d2'; // 파란색
+                            } else if (item.status_icon === 'up') {
+                                valEl.style.color = '#d32f2f'; // 빨간색
+                            } else {
+                                valEl.style.color = '#333';
+                            }
+                        }
+                    });
+                }
+            } catch(e) {
+                console.error('Ticker Exception:', e);
+            }
+        }
+    </script>
+    <script src="script.js"></script> <!-- 기존 스크립트가 있다면 -->
+    <!-- Supabase Key Injector -->
+    <script>
+        // Use the env variables if they were injected, otherwise we rely on user manually inserting them.
+        fetch('.env').then(res => res.text()).then(text => {
+            let supaUrl = '';
+            let supaKey = '';
+            text.split('\\n').forEach(line => {
+                if(line.startsWith('SUPABASE_URL=')) supaUrl = line.split('=')[1].trim();
+                if(line.startsWith('SUPABASE_KEY=')) supaKey = line.split('=')[1].trim();
+            });
+            if(supaUrl && supaKey) {
+                loadMarketIndices(supaUrl, supaKey);
+            }
+        }).catch(err => {
+            // .env fetch might fail on github pages, so we fallback to a config file eventually.
+            // For local dev with python server it works.
         });
     </script>
 </body>
