@@ -447,15 +447,14 @@ content = header_html + """
     
     // 글자 크기 / 행간 실시간 적용
     window.applyReadingStyle = function() {
-        const sz  = document.getElementById('fontSizeSlider').value;
-        const lh  = document.getElementById('lineHeightSlider').value;
+        const sz  = parseInt(document.getElementById('fontSizeSlider').value);
+        const lh  = parseInt(document.getElementById('lineHeightSlider').value);
         const body = document.getElementById('detailBody');
         if(body) {
             body.style.fontSize   = sz + 'px';
             body.style.lineHeight = (lh / 100).toFixed(2);
         }
     };
-    window.applyReadingStyle = applyReadingStyle;
 
     // 찜하기 토글
     window.toggleScrap = function() {
