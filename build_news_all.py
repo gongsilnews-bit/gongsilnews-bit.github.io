@@ -188,12 +188,13 @@ content = header_html + """
                 </div>
                 
                 <div id="allNewsContainer">
-                    <!-- Skeleton Loading UI -->
+                    <!-- SSG Content -->
+                    {{SSG_CONTENT_ALLNEWS}}
                 </div>
                 
                 <div class="pagination">
-                    <button class="page-btn" id="btnPrevPage" onclick="changePage(-1)">&lt; 이전</button>
-                    <span class="page-info"><span id="currentPageDisplay">1</span> / <span id="totalPagesDisplay">-</span></span>
+                    <button class="page-btn" id="btnPrevPage" onclick="changePage(-1)" disabled>&lt; 이전</button>
+                    <span class="page-info"><span id="currentPageDisplay">1</span> / <span id="totalPagesDisplay">{{SSG_TOTAL_PAGES}}</span></span>
                     <button class="page-btn" id="btnNextPage" onclick="changePage(1)">다음 &gt;</button>
                 </div>
             </div>

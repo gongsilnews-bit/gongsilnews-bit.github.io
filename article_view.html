@@ -411,7 +411,7 @@ function render() {
 
     // ── HTML 조립 ──
     document.getElementById('pageBody').innerHTML =
-    '<div style="display:flex; gap:30px; width:100%; margin:0 auto; align-items:flex-start;">'+
+    '<div style="display:flex; gap:30px; max-width:1100px; margin:0 auto; align-items:flex-start;">'+
       
       // ── 좌측 실제 기사 뷰 영역 ──
       '<div style="flex:1; min-width:0; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); overflow:hidden;">'+
@@ -430,21 +430,17 @@ function render() {
           '<div style="margin-bottom:0;">'+
             '<div style="font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600;">'+crumb+'</div>'+
             '<h1 style="font-size: 32px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 16px; letter-spacing:-1px; word-break:keep-all;">'+escHtml(a.title||'(제목 없음)')+'</h1>'+
-            '<div class="article-meta-row" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 30px;">'+
-               '<div class="article-meta-left" style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">'+
+            '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 30px;">'+
+               '<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">'+
                     '<span style="color:#111; font-weight:bold;">'+(a.reporter_name||'공실뉴스')+'</span>'+
                     '<span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>'+
                     '<span>입력 '+pubDate+'</span>'+
                     '<span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>'+
                     '<span>조회수 '+(a.view_count||0)+'</span>'+
                '</div>'+
-               '<div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">'+
-                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="goBack()">⬅️ 목록</button>'+
-                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#3b82f6; cursor:pointer;" onclick="goEdit()">✏️ 수정</button>'+
-                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#ef4444; cursor:pointer;" onclick="deleteArticle()">🗑️ 삭제</button>'+
+               '<div style="display: flex; gap: 8px; align-items: center;">'+
                     '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="shareArticle()">🔗 주소복사</button>'+
-                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="window.open(\'index.html?article_id=\'+articleId, \'_blank\')">💻 미리보기</button>'+
-                    statusBtnHtml +
+                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" data-msg="미리보기 화면입니다" onclick="alert(this.dataset.msg)">💻 미리보기</button>'+
                '</div>'+
             '</div>'+
           '</div>'+
@@ -453,12 +449,23 @@ function render() {
             subtitleHtml +
             bodyHtml +
           '</div>'+
-          footerHtml +
         '</div>'+
       '</div>'+
       
       // ── 우측 사이드바 영역 ──
       '<div class="article-sidebar" style="width:280px; flex-shrink:0;">'+
+        '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
+          '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">⚙️ 기사 관리</div>'+
+          '<div class="admin-actions">'+
+            approveBtnHtml +
+            '<div style="display:flex; gap:6px; margin-top:8px;">'+
+              '<button class="btn-full btn-edit" onclick="goEdit()" style="flex:1; background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe; padding:8px 0; border-radius:4px; cursor:pointer;">기사 수정</button>'+
+              '<button class="btn-full btn-delete" onclick="deleteArticle()" style="flex:1; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:8px 0; border-radius:4px; cursor:pointer;">기사 삭제</button>'+
+            '</div>'+
+            '<button class="btn-full" onclick="goBack()" style="margin-top:8px; width:100%; background:#fff; border:1px solid #ddd; color:#555; padding:8px 0; border-radius:4px; cursor:pointer;">← 목록으로 돌아가기</button>'+
+          '</div>'+
+        '</div>'+
+        
         '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
           '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">📋 기사 서비스 로그</div>'+
           '<div class="sidebar-memo">'+
@@ -477,47 +484,7 @@ function render() {
           '<ul class="sidebar-log-list" id="recentLogList" style="list-style:none; padding:0; margin:0; font-size:13px; color:#555;">'+buildRecentLog(a)+'</ul>'+
         '</div>'+
       '</div>'+
-    '</div>';
-    
-    // 렌더링 후 댓글 데이터 로드
-    setTimeout(function() {
-        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
-        const profile = ud.profile || {};
-        const userName = profile.name || (ud.email ? ud.email.split('@')[0] : '');
-        
-        const commentUserNameEl = document.getElementById('commentUserName');
-        const commentInputEl = document.getElementById('commentInput');
-        
-        if (commentUserNameEl) {
-            if (ud.email) {
-                commentUserNameEl.innerText = userName;
-                commentUserNameEl.style.color = '#333';
-            } else {
-                commentUserNameEl.innerText = '로그인이 필요합니다';
-                commentUserNameEl.style.color = '#999';
-            }
-        }
-        
-        if (commentInputEl) {
-            if (ud.email) {
-                commentInputEl.disabled = false;
-                commentInputEl.placeholder = '댓글을 남겨보세요';
-            } else {
-                commentInputEl.disabled = true;
-                commentInputEl.placeholder = '로그인 후 댓글을 달 수 있습니다.';
-            }
-            commentInputEl.value = '';
-            const lenEl = document.getElementById('commentLength');
-            if (lenEl) lenEl.innerText = '0';
-            
-            // 글자수 카운팅
-            commentInputEl.oninput = function() {
-                if (this.value.length > 400) this.value = this.value.substring(0, 400);
-                if (lenEl) lenEl.innerText = this.value.length;
-            };
-        }
-        loadPortalComments(articleId);
-    }, 100);
+    '</div>;
 
     // 댓글 글자수 카운터 (중복이지만 만약을 위해 남김)
     var ta = document.getElementById('commentInput');

@@ -120,7 +120,7 @@ content = header_html + """
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
                         </span>
                         <!-- 공유하기 -->
-                        <span style="cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#ff9f1c'" onmouseout="this.style.color='#888'" title="공유하기" onclick="window.shareUrl()">
+                        <span style="cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#ff9f1c'" onmouseout="this.style.color='#888'" title="공유하기" onclick="window.openShareModal()">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         </span>
                         <!-- 글자 크기 조절 버튼 -->
@@ -154,6 +154,28 @@ content = header_html + """
                     </div>
                 </div>
 
+                <!-- 공유하기 모달 -->
+                <div id="shareArticleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                    <div style="background:#fff; border-radius:16px; padding:32px 24px; width:340px; box-sizing:border-box; position:relative; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                        <button onclick="document.getElementById('shareArticleModal').style.display='none'" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; color:#888; cursor:pointer;">✕</button>
+                        <h3 style="margin:0 0 24px 0; font-size:18px; color:#111; font-weight:800;">공유하기</h3>
+                        
+                        <button onclick="window.shareArticleToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#FEE500; color:#111; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 3c5.523 0 10 3.866 10 8.636 0 4.77-4.477 8.636-10 8.636-1.745 0-3.385-.386-4.832-1.07l-4.223 1.155a.49.49 0 0 1-.58-.65l1.096-3.876C2.264 14.162 1 12.167 1 11.636 1 6.866 5.477 3 12 3z"/></svg>
+                            카카오톡으로 기사 공유
+                        </button>
+                        
+                        <button onclick="window.shareGongsilToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#1a73e8; color:#fff; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:16px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                            공실매물 공유하기
+                        </button>
+                        
+                        <button onclick="window.copyArticleShareLink()" style="width:100%; background:#f5f5f5; border:none; color:#555; font-size:14px; cursor:pointer; padding:12px; border-radius:8px; font-weight:600;">
+                            기사 링크 복사
+                        </button>
+                    </div>
+                </div>
+
                 <div class="article-body" id="detailBody">
                     <div style="display:flex; gap:10px; align-items:center;">
                         <div class="save-btn" id="saveArticleBtn" style="cursor:pointer;" title="이 기사 저장하기">
@@ -162,7 +184,7 @@ content = header_html + """
                         <div class="tts-btn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleTTS()" id="ttsBtn" title="음성으로 듣기">
                             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ttsIcon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
                         </div>
-                        <div class="share-btn" style="cursor:pointer;" onclick="shareArticle()" title="공유하기">
+                        <div class="share-btn" style="cursor:pointer;" onclick="window.openShareModal()" title="공유하기">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                         </div>
                         <div class="font-size-btn" style="cursor:pointer;" onclick="document.getElementById('fontSizeModal').style.display='flex'" title="글자크기/행간 설정">
@@ -262,6 +284,7 @@ content = header_html + """
 
     <!-- Supabase 등 공통 스크립트 로드 -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.4.0/kakao.min.js"></script>
     <script src="supabase_gongsi_config.js"></script>
     <script src="supabase_auth.js"></script>
     <script src="script.js?v=1.4"></script>
@@ -666,11 +689,102 @@ content = header_html + """
         });
     });
     
-    window.shareUrl = function() {
+    window.openShareModal = function() {
+        document.getElementById('shareArticleModal').style.display = 'flex';
+    };
+
+    window.copyArticleShareLink = function() {
         navigator.clipboard.writeText(window.location.href).then(() => {
-            alert("URL이 복사되었습니다. 원하는 곳에 붙여넣기 하세요!");
+            alert("기사 URL이 복사되었습니다.");
+            document.getElementById('shareArticleModal').style.display = 'none';
         });
-    }
+    };
+
+    window.shareArticleToKakao = function() {
+        if (typeof Kakao === 'undefined') {
+            alert('카카오 공유 기능을 불러오지 못했습니다.');
+            return;
+        }
+        if (!Kakao.isInitialized()) {
+            Kakao.init('435d3602201a49ea712e5f5a36fe6efc');
+        }
+        
+        let pTitle = document.getElementById('detailTitle')?.innerText || '공실뉴스 기사';
+        let pImg = 'https://via.placeholder.com/800x400/1e56a0/ffffff?text=GongsilNews';
+        const imgEl = document.querySelector('.article-img');
+        if (imgEl && imgEl.src && !imgEl.src.includes('NoImage')) {
+            pImg = imgEl.src;
+        }
+
+        try {
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: pTitle,
+                    description: '공실뉴스에서 상세 기사를 확인해보세요.',
+                    imageUrl: pImg,
+                    link: {
+                        mobileWebUrl: window.location.href,
+                        webUrl: window.location.href,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '기사 보기',
+                        link: {
+                            mobileWebUrl: window.location.href,
+                            webUrl: window.location.href,
+                        },
+                    },
+                ],
+            });
+            document.getElementById('shareArticleModal').style.display = 'none';
+        } catch (err) {
+            console.error('Kakao Share error:', err);
+            alert('카카오톡 공유에 실패했습니다.');
+        }
+    };
+
+    window.shareGongsilToKakao = function() {
+        if (typeof Kakao === 'undefined') {
+            alert('카카오 공유 기능을 불러오지 못했습니다.');
+            return;
+        }
+        if (!Kakao.isInitialized()) {
+            Kakao.init('435d3602201a49ea712e5f5a36fe6efc'); 
+        }
+        
+        // 공실 가이드맵 절대주소
+        const gongsilUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'gongsil/index.html';
+        
+        try {
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: '공실뉴스 - 공실가이드맵',
+                    description: '다양한 매물을 공실가이드맵에서 한눈에 확인해보세요!',
+                    imageUrl: 'https://via.placeholder.com/800x400/1a73e8/ffffff?text=Gongsil+Map',
+                    link: {
+                        mobileWebUrl: gongsilUrl,
+                        webUrl: gongsilUrl,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '공실매물 보러가기',
+                        link: {
+                            mobileWebUrl: gongsilUrl,
+                            webUrl: gongsilUrl,
+                        },
+                    },
+                ],
+            });
+            document.getElementById('shareArticleModal').style.display = 'none';
+        } catch (err) {
+            console.error('Kakao Share error:', err);
+            alert('카카오톡 공유에 실패했습니다.');
+        }
+    };
     
     async function loadPopularSidebarNews() {
         const sb = window.gongsiClient || window.supabaseClient;
