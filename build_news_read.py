@@ -145,7 +145,7 @@ content = header_html + """
                         
                         <div style="border:1px solid #ddd; border-radius:6px; padding:15px; margin-bottom:30px; background:#fff;">
                             <div style="font-weight:bold; margin-bottom:12px; color:#333; font-size:14px;" id="commentUserName">로그인이 필요합니다</div>
-                            <textarea id="commentInput" placeholder="댓글을 남겨보세요" style="width:100%; height:80px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
+                            <textarea id="commentInput" placeholder="댓글을 남겨보세요" style="width:100%; height:44px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
                             <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px; margin-top:8px;">
                                 <div style="font-size:13px; color:#999; display:flex; align-items:center; gap:16px;">
                                     <span><span style="font-weight:bold; color:#111;" id="commentLength">0</span> / 400</span>
