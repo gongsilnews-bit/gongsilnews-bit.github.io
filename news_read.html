@@ -640,19 +640,19 @@
 
     <main class="container px-20 relative">
         <div id="scrollIndicator" style="position:fixed; top:0; left:0; height:4px; background:#f97316; z-index:999999; width:0%; transition:width 0.1s;"></div>
-        <div class="news-layout">
+        <div class="news-layout" id="mainLayout" style="opacity:0; transition: opacity 0.4s ease;">
             <!-- 좌측 본문 영역 (1200px 레이아웃의 좌측 본문) -->
             <div class="news-read-area">
-                <div class="detail-breadcrumb" id="detailCategory">로딩 중...</div>
-                <h1 class="detail-title" id="detailTitle">기사를 불러오는 중입니다...</h1>
+                <div class="detail-breadcrumb" id="detailCategory">&nbsp;</div>
+                <h1 class="detail-title" id="detailTitle">&nbsp;</h1>
                 
                 <div class="detail-meta">
                     <div class="meta-info">
-                        <span id="detailAuthor" style="color: #111; font-weight: bold;">공실뉴스</span>
+                        <span id="detailAuthor" style="color: #111; font-weight: bold;"></span>
                         <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
-                        <span id="detailDate">입력 -</span>
+                        <span id="detailDate"></span>
                         <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
-                        <span id="detailViews">조회수 0</span>
+                        <span id="detailViews"></span>
                     </div>
                     <div class="meta-stats" style="display: flex; gap: 16px; align-items: center;">
                         <!-- 찜하기 -->
@@ -711,10 +711,6 @@
                         <div class="print-btn" style="cursor:pointer;" onclick="window.print()" title="인쇄하기">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         </div>
-                    </div>
-                    <div style="padding: 100px 0; text-align: center; color:#888;">
-                        <svg class="animate-spin" style="animation: spin 1s linear infinite; margin: 0 auto 10px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
-                        로딩 중...
                     </div>
                 </div>
                 
@@ -834,6 +830,7 @@
         
         if(error || !news) {
             document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 불러오는 중 오류가 발생했습니다.</div>';
+            document.getElementById('mainLayout').style.opacity = '1';
             return;
         }
         
@@ -892,6 +889,9 @@
                 }
             });
         }
+        
+        // 레이아웃 페이드 인
+        document.getElementById('mainLayout').style.opacity = '1';
     }
     
     // 댓글 관련 기능 추가
@@ -902,7 +902,7 @@
         
         document.getElementById('portalCommentCount').innerText = '0개의 댓글';
         const listEl = document.getElementById('portalCommentList');
-        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">댓글을 불러오는 중...</div>';
+        if (listEl) listEl.innerHTML = '';
         
         const { data: comments, error } = await sb.from('comments').select('*').eq('article_id', articleId).order('created_at', { ascending: false });
         if (error) {
