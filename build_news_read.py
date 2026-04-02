@@ -526,6 +526,11 @@ content = header_html + """
             const session = data?.session;
             
             if (!session || !session.user) {
+                // 사용자가 저장하려고 했던 값을 임시 저장. 로그인 후 모달이 다시 열리게 함
+                const sz = document.getElementById('fontSizeSlider').value;
+                const lh = document.getElementById('lineHeightSlider').value;
+                localStorage.setItem('pending_gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
+
                 window.showToast('🚨 회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
                 setTimeout(() => {
                     if (window.handleLoginClick) window.handleLoginClick();
@@ -589,7 +594,9 @@ content = header_html + """
     window.loadReadingPref = async function() {
         try {
             const prefStr = localStorage.getItem('gongsil_reading_pref');
-            if (!prefStr) return;
+            const pendingStr = localStorage.getItem('pending_gongsil_reading_pref');
+            if (!prefStr && !pendingStr) return;
+            
             const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
             if (!sb) return;
             const { data, error } = await sb.auth.getSession();
@@ -597,12 +604,27 @@ content = header_html + """
             const session = data?.session;
             
             if (session && session.user) {
-                const pref = JSON.parse(prefStr);
-                const sSlider = document.getElementById('fontSizeSlider');
-                const lSlider = document.getElementById('lineHeightSlider');
-                if (sSlider && pref.sz) sSlider.value = pref.sz;
-                if (lSlider && pref.lh) lSlider.value = pref.lh;
-                window.applyReadingStyle();
+                // 방금 로그인하고 되돌아온 경우 (설정 저장 대기 상태)
+                if (pendingStr) {
+                    const pref = JSON.parse(pendingStr);
+                    const sSlider = document.getElementById('fontSizeSlider');
+                    const lSlider = document.getElementById('lineHeightSlider');
+                    if (sSlider && pref.sz) sSlider.value = pref.sz;
+                    if (lSlider && pref.lh) lSlider.value = pref.lh;
+                    window.applyReadingStyle();
+                    
+                    // 모달 창을 다시 띄워줍니다
+                    document.getElementById('fontSizeModal').style.display = 'flex';
+                    // 임시 저장 값 비우기 (불필요한 반복 팝업 방지)
+                    localStorage.removeItem('pending_gongsil_reading_pref');
+                } else if (prefStr) {
+                    const pref = JSON.parse(prefStr);
+                    const sSlider = document.getElementById('fontSizeSlider');
+                    const lSlider = document.getElementById('lineHeightSlider');
+                    if (sSlider && pref.sz) sSlider.value = pref.sz;
+                    if (lSlider && pref.lh) lSlider.value = pref.lh;
+                    window.applyReadingStyle();
+                }
             }
         } catch (e) {
             console.error('loadReadingPref error:', e);
