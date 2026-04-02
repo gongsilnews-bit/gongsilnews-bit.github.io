@@ -1507,18 +1507,24 @@
                 }
 
                 if (curriContainer) curriContainer.innerHTML = curriHtml;
-                
-                // 4. 후기 팝업 자동 트리거 (ask_review 파라미터 감지 혹은 세션 스토리지 읽기)
-                if(urlParams.get('ask_review') === '1' || sessionStorage.getItem('just_watched_' + courseId) === '1') {
-                    // 세션의 경우 한 번 띄웠으면 바로 지워줍니다.
-                    sessionStorage.removeItem('just_watched_' + courseId);
-                    openReviewModal();
-                }
 
             } catch(e) {
                 console.error("데이터 통신 에러:", e);
                 alert("존재하지 않거나 삭제된 강의입니다.");
                 location.href = fallbackUrl;
+            }
+        });
+        
+        // BFCache (뒤로가기 복원) 및 일반 로드 시에도 안정적으로 후기 팝업 트리거
+        window.addEventListener('pageshow', (event) => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            if(!courseId) return;
+            
+            // 파라미터 감지 혹은 세션 스토리지 읽기
+            if(urlParams.get('ask_review') === '1' || sessionStorage.getItem('just_watched_' + courseId) === '1') {
+                sessionStorage.removeItem('just_watched_' + courseId);
+                setTimeout(() => openReviewModal(), 100);
             }
         });
     </script>
