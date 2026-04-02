@@ -1000,6 +1000,16 @@
                                     imageHtml = `<div style="width: 55px; height: 55px; border-radius: 6px; background: url('${imgUrl}') center/cover; margin-left: 8px; border: 1px solid #eee; flex-shrink: 0;"></div>`;
                                 }
 
+                                let badgeText = (function(pf="") {
+                                    if (!pf) return '공동중개';
+                                    pf = String(pf);
+                                    if (pf.includes('100')) return '수수료100%';
+                                    if (pf.includes('50')) return '수수료50%';
+                                    if (pf.includes('25')) return '수수료25%';
+                                    if (pf.includes('양타')) return '양타';
+                                    return '공동중개';
+                                })(p.brokerage_fee);
+
                                 const itemHtml = `
                                     <div style="padding: 12px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; align-items:flex-start; justify-content: space-between; transition: background 0.2s;" 
                                          onmouseover="this.style.background='#f8f9fc'" onmouseout="this.style.background='#fff'"
@@ -1010,17 +1020,7 @@
                                             <div style="color: #666; font-size: 10.5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.property_type || '구분없음'} | ${sizeArea}</div>
                                             <div style="color: #666; font-size: 10.5px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">룸 ${p.room_count||0}개, 욕실 ${p.bathroom_count||0}개, ${p.options || ''}</div>
                                             <div style="display: flex; gap: 4px; align-items: center; font-size: 10px; flex-wrap: wrap;">
-                                                <span style="font-size:11px; font-weight:bold; color:#ff5a5f; border:1px solid #ff5a5f; background:#fff; padding:2px 4px; border-radius:2px;">${
-                                                    (function(pf="") {
-                                                        if (!pf) return '공동중개';
-                                                        pf = String(pf);
-                                                        if (pf.includes('100')) return '수수료100%';
-                                                        if (pf.includes('50')) return '수수료50%';
-                                                        if (pf.includes('25')) return '수수료25%';
-                                                        if (pf.includes('양타')) return '양타';
-                                                        return '공동중개';
-                                                    })(p.brokerage_fee)
-                                                }</span>
+                                                <span style="font-size:11px; font-weight:bold; color:#ff5a5f; border:1px solid #ff5a5f; background:#fff; padding:2px 4px; border-radius:2px;">${badgeText}</span>
                                                 <span style="color: #d32f2f; font-weight: 900; letter-spacing: 0px;">${p.author_phone || '연락처 방문요망'}</span>
                                             </div>
                                         </div>
