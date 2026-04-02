@@ -47,12 +47,11 @@ async function handleAuthStateChange(user) {
 }
 
 // 구글 로그인 클릭 이벤트 (현재 페이지로 돌아오기 위해 window.location.href 사용)
-loginBtns.forEach(loginBtn => {
-    loginBtn.addEventListener('click', async (e) => {
-        e.preventDefault();
-        
+window.handleLoginClick = async function(e) {
+    if(e) e.preventDefault();
+    console.log("Login button clicked! Redirecting to OAuth...");
+    try {
         let redirectPath = window.location.pathname;
-        // GitHub Pages Clean URL(예: /gongsil)인 경우 뒤에 /가 붙어 404가 나는 것을 방지하기 위해 .html을 붙임
         if (redirectPath !== '/' && !redirectPath.endsWith('.html') && !redirectPath.endsWith('/')) {
             redirectPath += '.html';
         }
@@ -68,7 +67,13 @@ loginBtns.forEach(loginBtn => {
             console.error("로그인 에러:", error);
             alert("구글 로그인 중 오류가 발생했습니다: " + error.message);
         }
-    });
+    } catch(err) {
+        console.error("Critical login error:", err);
+    }
+};
+
+loginBtns.forEach(loginBtn => {
+    loginBtn.addEventListener('click', window.handleLoginClick);
 });
 
 // 로그아웃 클릭 이벤트
