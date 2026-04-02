@@ -1149,25 +1149,26 @@
                 if (error) { console.error('Error fetching indices:', error); return; }
                 
                 if (data && data.length > 0) {
+                    const MathAbs = Math.abs;
+                    const tickerDiv = document.getElementById('market-ticker');
+                    if(!tickerDiv) return;
+                    
+                    let htmlChunk = '';
                     data.forEach(item => {
-                        const lblId = 'lbl-' + item.id;
-                        const valId = 'val-' + item.id;
+                        let colorStr = '#333';
+                        if (item.status_icon === 'down') colorStr = '#1976d2';
+                        else if (item.status_icon === 'up') colorStr = '#d32f2f';
                         
-                        const lblEl = document.getElementById(lblId);
-                        const valEl = document.getElementById(valId);
-                        
-                        if(lblEl) lblEl.textContent = item.index_name;
-                        if(valEl) {
-                            valEl.textContent = item.index_value + ' ' + item.change_rate;
-                            if (item.status_icon === 'down') {
-                                valEl.style.color = '#1976d2'; // 파란색
-                            } else if (item.status_icon === 'up') {
-                                valEl.style.color = '#d32f2f'; // 빨간색
-                            } else {
-                                valEl.style.color = '#333';
-                            }
-                        }
+                        htmlChunk += `<div class="ticker-item"><span>${item.index_name}</span><span class="ticker-val" style="color:${colorStr}">${item.index_value} ${item.change_rate}</span></div>`;
                     });
+                    
+                    // To make a seamless marquee left-to-right from -50% to 0%, 
+                    // we duplicate the chunk heavily to ensure width > 200%.
+                    let combinedHtml = '';
+                    for(let i=0; i<30; i++){
+                        combinedHtml += htmlChunk;
+                    }
+                    tickerDiv.innerHTML = combinedHtml;
                 }
             } catch(e) {
                 console.error('Ticker Exception:', e);
