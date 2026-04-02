@@ -604,7 +604,7 @@
             }
 
             apiContainer.style.display = 'block';
-            if(apiTabBtn) apiTabBtn.style.display = 'flex';
+            if(apiTabBtn) apiTabBtn.style.display = 'block';
             
             apiContainer.innerHTML = `<div style="padding:40px; text-align:center; color:#1a73e8; font-weight:bold;">🔄 공공데이터포털 실거래가 및 단지정보를 실시간으로 불러오는 중입니다...</div>`;
 
@@ -805,7 +805,7 @@
                 <!-- 탭 -->
                 <div class="detail-tabs">
                     <div class="tab-item active" id="tabBtnInfo" onclick="window.switchDetailTab('info')">매물정보</div>
-                    <div class="tab-item" id="tabBtnPublicData" onclick="window.switchDetailTab('public')" style="display:none; color:#1a73e8;">#실거래단지정보</div>
+                    <div class="tab-item" id="tabBtnPublicData" onclick="window.switchDetailTab('public')" style="display:none;">실거래단지정보</div>
                     <div class="tab-item" id="tabBtnRealtor" onclick="window.switchDetailTab('realtor')">등록자정보</div>
                 </div>
 
