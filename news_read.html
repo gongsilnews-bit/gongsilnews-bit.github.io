@@ -814,84 +814,91 @@
     
     async function loadArticle() {
         const sb = window.gongsiClient || window.supabaseClient;
-        if(!sb) return;
+        const mainLayout = document.getElementById('mainLayout');
+        if(!sb) {
+            if(mainLayout) mainLayout.style.opacity = '1';
+            return;
+        }
         
         const params = new URLSearchParams(window.location.search);
         const articleId = params.get('article_id');
         
         if(!articleId) {
             document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 찾을 수 없습니다.</div>';
+            if(mainLayout) mainLayout.style.opacity = '1';
             return;
         }
         
-        // 조회수 증가 및 기사 데이터 로딩
-        await sb.rpc('increment_view_count', { article_id: articleId });
-        const { data: news, error } = await sb.from('articles').select('*').eq('id', articleId).single();
-        
-        if(error || !news) {
-            document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 불러오는 중 오류가 발생했습니다.</div>';
-            document.getElementById('mainLayout').style.opacity = '1';
-            return;
-        }
-        
-        // 하이라이팅: 기사 카테고리 로직
-        const categoryBadge = news.section1 ? `[${news.section1}${news.section2 ? ' > '+news.section2 : ''}]` : '전체뉴스';
-        document.getElementById('detailCategory').innerText = categoryBadge;
-        document.getElementById('detailTitle').innerText = news.title;
-        const authorStr = news.reporter_name || '공실뉴스';
-        document.getElementById('detailAuthor').innerText = authorStr;
-        if(document.getElementById('footerReporter')) document.getElementById('footerReporter').innerText = authorStr;
-        
-        const dateStr = new Date(news.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
-        document.getElementById('detailDate').innerText = '입력 ' + dateStr;
-        document.getElementById('detailViews').innerText = '조회수 ' + (news.view_count || 1);
-        
-        let contentHtml = '';
-        if (news.image_url) {
-            contentHtml += `<div class="article-img-wrap"><img src="${news.image_url}" class="article-img" alt="기사 이미지" onerror="this.src='https://via.placeholder.com/600x400?text=NoImage'"></div>`;
-        }
-        if (news.subtitle) {
-            contentHtml += `<b style="margin-top:0;">${news.subtitle}</b>`;
-        }
-        
-        if (news.content && news.content.includes('<p>')) {
-             contentHtml += `${news.content}`;
-        } else if (news.content) {
-             const lines = news.content.split('\n');
-             lines.forEach(line => {
-                 if(line.trim() !== '') contentHtml += `<p>${line}</p>`;
-             });
-        }
-        document.getElementById('detailBody').innerHTML = contentHtml;
-        document.getElementById('articleFooterArea').style.display = 'block';
-        window.currentArticleId = articleId;
-        window.loadReadComments(articleId);
+        try {
+            // 조회수 증가 및 기사 데이터 로딩
+            await sb.rpc('increment_view_count', { article_id: articleId });
+            const { data: news, error } = await sb.from('articles').select('*').eq('id', articleId).single();
+            
+            if(error || !news) {
+                document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 불러오는 중 오류가 발생했습니다.</div>';
+                return;
+            }
+            
+            // 하이라이팅: 기사 카테고리 로직
+            const categoryBadge = news.section1 ? `[${news.section1}${news.section2 ? ' > '+news.section2 : ''}]` : '전체뉴스';
+            document.getElementById('detailCategory').innerText = categoryBadge;
+            document.getElementById('detailTitle').innerText = news.title;
+            const authorStr = news.reporter_name || '공실뉴스';
+            document.getElementById('detailAuthor').innerText = authorStr;
+            if(document.getElementById('footerReporter')) document.getElementById('footerReporter').innerText = authorStr;
+            
+            const dateStr = new Date(news.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+            document.getElementById('detailDate').innerText = '입력 ' + dateStr;
+            document.getElementById('detailViews').innerText = '조회수 ' + (news.view_count || 1);
+            
+            let contentHtml = '';
+            if (news.image_url) {
+                contentHtml += `<div class="article-img-wrap"><img src="${news.image_url}" class="article-img" alt="기사 이미지" onerror="this.src='https://via.placeholder.com/600x400?text=NoImage'"></div>`;
+            }
+            if (news.subtitle) {
+                contentHtml += `<b style="margin-top:0;">${news.subtitle}</b>`;
+            }
+            
+            if (news.content && news.content.includes('<p>')) {
+                 contentHtml += `${news.content}`;
+            } else if (news.content) {
+                 const lines = news.content.split('\n');
+                 lines.forEach(line => {
+                     if(line.trim() !== '') contentHtml += `<p>${line}</p>`;
+                 });
+            }
+            document.getElementById('detailBody').innerHTML = contentHtml;
+            document.getElementById('articleFooterArea').style.display = 'block';
+            window.currentArticleId = articleId;
+            window.loadReadComments(articleId);
 
-        // GNB 네비게이션 활성화
-        const menuLinks = document.querySelectorAll('.gnb-new a');
-        let matched = false;
-        if(news.section1) {
-            menuLinks.forEach(a => {
-                const text = a.innerText.trim();
-                // "부동산·주식·재테크", "정치·경제·사회" 등과 매칭되는지 확인.
-                if(text.includes(news.section1) || (news.section1.includes('부동산') && text.includes('부동산'))) {
-                    a.style.color = '#1e56a0';
-                    a.style.fontWeight = '800';
-                    matched = true;
-                }
-            });
+            // GNB 네비게이션 활성화
+            const menuLinks = document.querySelectorAll('.gnb-new a');
+            let matched = false;
+            if(news.section1) {
+                menuLinks.forEach(a => {
+                    const text = a.innerText.trim();
+                    if(text.includes(news.section1) || (news.section1.includes('부동산') && text.includes('부동산'))) {
+                        a.style.color = '#1e56a0';
+                        a.style.fontWeight = '800';
+                        matched = true;
+                    }
+                });
+            }
+            if(!matched) {
+                menuLinks.forEach(a => {
+                    if(a.innerText === '전체뉴스') {
+                        a.style.color = '#1e56a0';
+                        a.style.fontWeight = '800';
+                    }
+                });
+            }
+        } catch(e) {
+            console.error(e);
+            document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">오류가 발생하여 기사를 표시할 수 없습니다.</div>';
+        } finally {
+            if(mainLayout) mainLayout.style.opacity = '1';
         }
-        if(!matched) {
-            menuLinks.forEach(a => {
-                if(a.innerText === '전체뉴스') {
-                    a.style.color = '#1e56a0';
-                    a.style.fontWeight = '800';
-                }
-            });
-        }
-        
-        // 레이아웃 페이드 인
-        document.getElementById('mainLayout').style.opacity = '1';
     }
     
     // 댓글 관련 기능 추가
