@@ -1159,23 +1159,9 @@
         }
     </script>
     <script src="script.js"></script> <!-- 기존 스크립트가 있다면 -->
-    <!-- Supabase Key Injector -->
-    <script>
-        // Use the env variables if they were injected, otherwise we rely on user manually inserting them.
-        fetch('.env').then(res => res.text()).then(text => {
-            let supaUrl = '';
-            let supaKey = '';
-            text.split('\\n').forEach(line => {
-                if(line.startsWith('SUPABASE_URL=')) supaUrl = line.split('=')[1].trim();
-                if(line.startsWith('SUPABASE_KEY=')) supaKey = line.split('=')[1].trim();
-            });
-            if(supaUrl && supaKey) {
-                loadMarketIndices(supaUrl, supaKey);
-            }
-        }).catch(err => {
-            // .env fetch might fail on github pages, so we fallback to a config file eventually.
-            // For local dev with python server it works.
-        });
+        <script>
+        // Run immediately since keys are defined globally
+        loadMarketIndices(supabaseUrl, supabaseKey);
     </script>
 </body>
 </html>

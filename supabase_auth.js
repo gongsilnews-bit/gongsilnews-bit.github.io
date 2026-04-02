@@ -214,4 +214,4 @@ function updateRoleUI(userData) {
 // 실행
 initAuth();
 
-export { supabase };
+// export { supabase };
