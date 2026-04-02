@@ -73,20 +73,22 @@ function initMap() {
     mapInstance.setDraggable(true);
     mapInstance.setZoomable(true);
 
-    // 마커 클러스터러 생성 (주황색 테마 커스텀)
+    // 마커 클러스터러 생성 (브랜드 블루 테마 커스텀)
     const clustererInstance = new kakao.maps.MarkerClusterer({
         map: mapInstance,
         averageCenter: true,
         minLevel: 6,
         styles: [{
             width: '40px', height: '40px',
-            background: '#ff9f1c',
+            background: 'rgba(30, 86, 160, 0.85)',
             color: '#fff',
+            border: '2px solid #fff',
             textAlign: 'center',
-            lineHeight: '40px',
+            lineHeight: '36px',
             borderRadius: '50%',
             fontWeight: 'bold',
-            fontSize: '14px'
+            fontSize: '14px',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.3)'
         }]
     });
 
@@ -663,7 +665,7 @@ if (typeof kakao === 'undefined') {
             if (selectEl) {
                 catName = selectEl.options[selectEl.selectedIndex].text;
             }
-            sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#ff9f1c; margin-left:4px;">${count}</span>개`;
+            sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#1e56a0; margin-left:4px;">${count}</span>개`;
         };
 
         window.toggleMapSearch = function() {
