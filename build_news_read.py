@@ -149,7 +149,7 @@ content = header_html + """
                             <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>좁게</span><span>넓게</span></div>
                         </div>
                         <div style="margin-top:25px; text-align:center;">
-                            <button onclick="window.handleLoginClick(); window.saveReadingPref()" style="background:#ff9f1c; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#ff9f1c'">설정 저장하기</button>
+                            <button onclick="window.saveReadingPref()" style="background:#ff9f1c; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#ff9f1c'">설정 저장하기</button>
                         </div>
                     </div>
                 </div>
