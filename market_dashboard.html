@@ -131,7 +131,7 @@
             <div class="card-value" id="sum-rent-nat">—</div>
         </div>
         <div class="card selected">
-            <div class="card-icon" style="background:#fce4ec;color:#d32f2f;"><i class="fa-solid fa-magnifying-glass-chart"></i></div>
+            <div class="card-icon" style="background:#fce4ec;color:#d32f2f;"><i class="fa-solid fa-chart-line"></i></div>
             <div class="card-region-label" id="label-reg1">—</div>
             <div class="card-title">선택 지역 매매지수</div>
             <div class="card-value" id="sum-reg1-sale">—</div>
@@ -232,10 +232,10 @@
         type: 'line',
         data: {
             datasets: [
-                { label: '전국',   data: saleData['전국'],   borderColor: '#aaa',     backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                { label: '수도권', data: saleData['수도권'], borderColor: '#bbdefb',  backgroundColor: 'transparent', borderWidth: 2, tension: 0.4 },
-                { label: '서울',   data: saleData['서울'],   borderColor: '#0A2540',  backgroundColor: 'rgba(10,37,64,.1)', borderWidth: 2, fill: true, tension: 0.4 },
-                { label: '부산',   data: saleData['부산'],   borderColor: '#d32f2f',  backgroundColor: 'transparent', borderWidth: 2, borderDash: [5,5], tension: 0.4 },
+                { label: '전국',   data: saleData['전국'],   borderColor: '#bbb',    backgroundColor: 'transparent',        borderWidth: 1.5, tension: 0.3, pointRadius: 0 },
+                { label: '수도권', data: saleData['수도권'], borderColor: '#90caf9', backgroundColor: 'transparent',        borderWidth: 1.5, tension: 0.3, pointRadius: 0 },
+                { label: '서울',   data: saleData['서울'],   borderColor: '#0A2540', backgroundColor: 'rgba(10,37,64,.08)', borderWidth: 2.5, fill: true,  tension: 0.3, pointRadius: 0 },
+                { label: '부산',   data: saleData['부산'],   borderColor: '#e53935', backgroundColor: 'transparent',        borderWidth: 2.5, borderDash: [8, 6], tension: 0.3, pointRadius: 4, pointStyle: 'circle', pointBackgroundColor: '#e53935', pointBorderColor: '#fff', pointBorderWidth: 2 },
             ]
         },
         options: {
@@ -299,6 +299,8 @@
         // 선 그래프 datasets 3 갱신 (선택 지역 1개)
         lineChart.data.datasets[3].label = r1;
         lineChart.data.datasets[3].data  = saleData[r1];
+        lineChart.data.datasets[3].borderColor = '#e53935';
+        lineChart.data.datasets[3].pointBackgroundColor = '#e53935';
         lineChart.update();
 
         // 막대 그래프
