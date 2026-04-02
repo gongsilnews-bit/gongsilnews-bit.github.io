@@ -475,7 +475,7 @@ content = header_html + """
 
     // 설정 저장하기 (회원 전용)
     window.saveReadingPref = async function() {
-        const sb = window.gongsiClient || window.supabaseClient;
+        const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
         if (!sb) return;
         const { data: { session } } = await sb.auth.getSession();
         if (!session || !session.user) {
@@ -493,7 +493,7 @@ content = header_html + """
     window.loadReadingPref = async function() {
         const prefStr = localStorage.getItem('gongsil_reading_pref');
         if (!prefStr) return;
-        const sb = window.gongsiClient || window.supabaseClient;
+        const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
         if (!sb) return;
         const { data: { session } } = await sb.auth.getSession();
         if (session && session.user) {
