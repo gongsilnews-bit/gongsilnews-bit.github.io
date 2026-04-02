@@ -172,6 +172,323 @@ function _gongsiAuthInit(supabase) {
         handleAuthStateChange(session?.user ?? null);
     });
 
+    // 스크립트 동적 로드 함수 (회원가입 모달에서 주소 검색/압축용)
+    function loadScript(src, id) {
+        return new Promise((resolve) => {
+            if (document.getElementById(id)) { return resolve(); }
+            const s = document.createElement('script');
+            s.id = id; s.src = src; s.onload = resolve;
+            document.head.appendChild(s);
+        });
+    }
+
+    // 신규 가입 전용 정보 입력 모달(팝업)
+    async function showRegisterProfileModal(user) {
+        // 필수 의존성 스크립트 로드
+        await loadScript("https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js", "img-compress-js");
+        await loadScript("https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js", "daum-postcode-js");
+
+        let modal = document.getElementById('gongsilRegisterModal');
+        if (!modal) {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .greg-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:flex-start; padding:40px 20px; box-sizing:border-box; overflow-y:auto; z-index:9999999; }
+                .greg-box { background:#fff; border-radius:16px; width:100%; max-width:480px; box-shadow:0 10px 40px rgba(0,0,0,0.2); position:relative; padding:40px; animation: gregPopup 0.4s cubic-bezier(0.18, 0.89, 0.32, 1.28); margin-bottom: 40px; }
+                @keyframes gregPopup { from { opacity:0; transform:translateY(30px); } to { opacity:1; transform:translateY(0); } }
+                .greg-header { text-align:center; margin-bottom:30px; }
+                .greg-header h2 { font-size:22px; font-weight:800; color:#111; margin:0 0 8px 0; }
+                .greg-header p { font-size:14px; color:#666; margin:0; }
+                .greg-label { display:block; font-size:13px; font-weight:700; color:#444; margin-bottom:6px; }
+                .greg-input { width:100%; padding:12px; border:1.5px solid #ddd; border-radius:8px; font-size:14px; margin-bottom:15px; box-sizing:border-box; transition:border 0.2s; background:#fdfdfd; font-family:inherit;}
+                .greg-input:focus { outline:none; border-color:#1e56a0; background:#fff; box-shadow:0 0 0 3px rgba(30,86,160,0.1); }
+                .greg-input[readonly] { background:#f1f5f9; color:#666; }
+                .greg-roles { display:flex; gap:10px; margin-bottom:20px; }
+                .greg-role-btn { flex:1; padding:14px; border:2px solid #eee; border-radius:10px; background:#fff; cursor:pointer; text-align:center; transition:all 0.2s; }
+                .greg-role-btn span { display:block; font-size:13px; font-weight:800; color:#666; margin-top:4px; }
+                .greg-role-btn.active { border-color:#1e56a0; background:#f4f6fa; }
+                .greg-role-btn.active span { color:#1e56a0; }
+                #gregRealtorFields { display:none; background:#f8f9fa; border:1px solid #e0e0e0; padding:20px; border-radius:12px; margin-bottom:20px; }
+                .greg-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+                .greg-full { grid-column:span 2; }
+                .greg-row { display:flex; gap:8px; margin-bottom:8px; }
+                .greg-btn-sm { padding:0 12px; background:#333; color:#fff; border:none; border-radius:6px; font-size:13px; cursor:pointer; font-weight:bold; white-space:nowrap;}
+                .greg-file-box { border:1.5px dashed #ccc; padding:15px; border-radius:8px; text-align:center; cursor:pointer; position:relative; background:#fff; margin-bottom:12px; transition:border 0.2s;}
+                .greg-file-box:hover { border-color:#1e56a0; }
+                .greg-file-box input { position:absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+                .greg-file-msg { font-size:12px; color:#888; pointer-events:none; }
+                .greg-terms { border-top:1px solid #eee; padding-top:20px; margin-bottom:25px; }
+                .greg-term-item { display:flex; gap:8px; margin-bottom:10px; font-size:13px; color:#555; cursor:pointer; align-items:flex-start;}
+                .greg-term-item input { width:16px; height:16px; accent-color:#1e56a0; cursor:pointer; margin-top:0px; }
+                .greg-submit { width:100%; padding:15px; background:#1e56a0; color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:bold; cursor:pointer; transition:background 0.2s; box-shadow:0 4px 12px rgba(30,86,160,0.3); font-family:inherit;}
+                .greg-submit:hover { background:#16427d; }
+                .greg-submit:disabled { background:#ccc; cursor:not-allowed; box-shadow:none; }
+                .greg-loader { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.9); z-index:10; display:none; flex-direction:column; justify-content:center; align-items:center; border-radius:16px; }
+                .greg-spinner { width:40px; height:40px; border:4px solid #f3f3f3; border-top:4px solid #1e56a0; border-radius:50%; animation:gregSpin 1s linear infinite; margin-bottom:15px; }
+                @keyframes gregSpin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+            `;
+            document.head.appendChild(style);
+
+            modal = document.createElement('div');
+            modal.id = 'gongsilRegisterModal';
+            modal.className = 'greg-modal';
+            modal.innerHTML = `
+                <div class="greg-box">
+                    <div id="gregLoader" class="greg-loader">
+                        <div class="greg-spinner"></div>
+                        <p id="gregLoaderMsg" style="font-weight:bold; color:#1e56a0; font-size:15px;">정보 저장 중...</p>
+                    </div>
+
+                    <div class="greg-header">
+                        <h2>공실뉴스 가입 마무리!</h2>
+                        <p>원활한 서비스 이용을 위해 필수 정보를 입력해 주세요.</p>
+                    </div>
+
+                    <form id="gregForm">
+                        <label class="greg-label">이메일 (확인전용)</label>
+                        <input type="email" id="gregEmail" class="greg-input" value="${user.email}" readonly>
+
+                        <label class="greg-label">이름 <span style="color:red">*</span></label>
+                        <input type="text" id="gregName" class="greg-input" value="${user.user_metadata?.full_name || ''}" placeholder="성함을 입력하세요" required>
+
+                        <label class="greg-label">연락처 <span style="color:red">*</span></label>
+                        <input type="tel" id="gregPhone" class="greg-input" placeholder="010-0000-0000" required>
+
+                        <label class="greg-label">활동 유형 <span style="color:red">*</span></label>
+                        <div class="greg-roles">
+                            <div class="greg-role-btn active" data-role="general">
+                                <span style="font-size:24px; margin-bottom:5px;">👤</span>
+                                <span>일반 회원</span>
+                            </div>
+                            <div class="greg-role-btn" data-role="realtor">
+                                <span style="font-size:24px; margin-bottom:5px;">🏘️</span>
+                                <span>부동산 회원</span>
+                            </div>
+                        </div>
+                        <input type="hidden" id="gregRoleVal" value="general">
+
+                        <!-- 부동산 회원 필드 -->
+                        <div id="gregRealtorFields">
+                            <h3 style="font-size:14px; margin:0 0 15px 0; color:#111; padding-bottom:8px; border-bottom:1px solid #ccc;">🏢 부동산 / 기업 정보 입력</h3>
+                            <div class="greg-grid">
+                                <div>
+                                    <label class="greg-label">상호명 <span style="color:red">*</span></label>
+                                    <input type="text" id="gregCompName" class="greg-input greg-req" placeholder="예: 공실뉴스 부동산중개">
+                                </div>
+                                <div>
+                                    <label class="greg-label">대표자명 <span style="color:red">*</span></label>
+                                    <input type="text" id="gregCeo" class="greg-input greg-req" placeholder="대표자 성함">
+                                </div>
+                                <div>
+                                    <label class="greg-label">중개등록번호 <span style="color:red">*</span></label>
+                                    <input type="text" id="gregCompReg" class="greg-input greg-req" placeholder="등록번호 입력">
+                                </div>
+                                <div>
+                                    <label class="greg-label">사업자등록번호 <span style="color:red">*</span></label>
+                                    <input type="text" id="gregBizReg" class="greg-input greg-req" placeholder="000-00-00000">
+                                </div>
+                                <div>
+                                    <label class="greg-label">일반번호 <span style="color:red">*</span></label>
+                                    <input type="tel" id="gregTel" class="greg-input greg-req" placeholder="02-000-0000">
+                                </div>
+                                <div>
+                                    <label class="greg-label">휴대번호 <span style="color:red">*</span></label>
+                                    <input type="tel" id="gregCell" class="greg-input greg-req" placeholder="010-0000-0000">
+                                </div>
+                                <div class="greg-full">
+                                    <label class="greg-label">부동산 주소 <span style="color:red">*</span></label>
+                                    <div class="greg-row">
+                                        <input type="text" id="gregZip" class="greg-input greg-req" style="margin:0; flex:1;" placeholder="우편번호" readonly>
+                                        <button type="button" class="greg-btn-sm" id="gregBtnZip">주소 찾기</button>
+                                    </div>
+                                    <input type="text" id="gregAddr" class="greg-input greg-req" style="margin-bottom:8px;" placeholder="기본 주소" readonly>
+                                    <input type="text" id="gregAddrDet" class="greg-input greg-req" placeholder="상세 주소를 입력하세요">
+                                </div>
+                                <div class="greg-full">
+                                    <label class="greg-label">사업자등록증 첨부 <span style="color:red">*</span></label>
+                                    <div class="greg-file-box">
+                                        <div class="greg-file-msg" id="gregFileMsg1">📸 클릭하여 파일 첨부 (사진)</div>
+                                        <input type="file" id="gregFile1" class="greg-req" accept="image/*">
+                                    </div>
+                                </div>
+                                <div class="greg-full">
+                                    <label class="greg-label">중개등록증 첨부 <span style="color:red">*</span></label>
+                                    <div class="greg-file-box">
+                                        <div class="greg-file-msg" id="gregFileMsg2">📸 클릭하여 파일 첨부 (사진)</div>
+                                        <input type="file" id="gregFile2" class="greg-req" accept="image/*">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="greg-terms">
+                            <label class="greg-term-item">
+                                <input type="checkbox" id="gregChk1" required>
+                                <span><strong>[필수]</strong> 공실뉴스 서비스 이용약관 동의</span>
+                            </label>
+                            <label class="greg-term-item">
+                                <input type="checkbox" id="gregChk2" required>
+                                <span><strong>[필수]</strong> 개인정보 수집 및 이용 방침 동의</span>
+                            </label>
+                        </div>
+
+                        <button type="submit" id="gregSubmitBtn" class="greg-submit">공실뉴스 시작하기 ✨</button>
+                    </form>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // 이벤트 바인딩
+            const roleBtns = modal.querySelectorAll('.greg-role-btn');
+            const roleVal = modal.querySelector('#gregRoleVal');
+            const realtorFields = modal.querySelector('#gregRealtorFields');
+            const reqInputs = modal.querySelectorAll('.greg-req');
+            const submitBtn = modal.querySelector('#gregSubmitBtn');
+
+            roleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    roleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const role = btn.dataset.role;
+                    roleVal.value = role;
+
+                    if (role === 'realtor') {
+                        realtorFields.style.display = 'block';
+                        submitBtn.textContent = '부동산 가입 신청하기 🚀';
+                        reqInputs.forEach(i => i.required = true);
+                    } else {
+                        realtorFields.style.display = 'none';
+                        submitBtn.textContent = '공실뉴스 시작하기 ✨';
+                        reqInputs.forEach(i => {
+                            i.required = false;
+                            i.value = '';
+                        });
+                    }
+                });
+            });
+
+            modal.querySelector('#gregBtnZip').addEventListener('click', () => {
+                if (typeof daum === 'undefined') { alert("주소 스크립트 로드 대기 중입니다."); return; }
+                new daum.Postcode({
+                    oncomplete: function(data) {
+                        let addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress;
+                        modal.querySelector('#gregZip').value = data.zonecode;
+                        modal.querySelector('#gregAddr').value = addr;
+                        modal.querySelector('#gregAddrDet').focus();
+                    }
+                }).open();
+            });
+
+            modal.querySelector('#gregFile1').addEventListener('change', (e) => {
+                const f = e.target.files[0];
+                modal.querySelector('#gregFileMsg1').textContent = f ? `📄 ${f.name} (선택됨)` : '📸 클릭하여 파일 첨부 (사진)';
+                modal.querySelector('#gregFileMsg1').style.color = f ? '#1e56a0' : '#888';
+                modal.querySelector('#gregFileMsg1').style.fontWeight = f ? 'bold' : 'normal';
+            });
+            modal.querySelector('#gregFile2').addEventListener('change', (e) => {
+                const f = e.target.files[0];
+                modal.querySelector('#gregFileMsg2').textContent = f ? `📄 ${f.name} (선택됨)` : '📸 클릭하여 파일 첨부 (사진)';
+                modal.querySelector('#gregFileMsg2').style.color = f ? '#1e56a0' : '#888';
+                modal.querySelector('#gregFileMsg2').style.fontWeight = f ? 'bold' : 'normal';
+            });
+
+            modal.querySelector('#gregForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const loader = modal.querySelector('#gregLoader');
+                const loaderMsg = modal.querySelector('#gregLoaderMsg');
+                
+                function setLoad(text) {
+                    loader.style.display = 'flex';
+                    loaderMsg.textContent = text;
+                }
+                function offLoad() { loader.style.display = 'none'; }
+
+                const name = modal.querySelector('#gregName').value;
+                const phone = modal.querySelector('#gregPhone').value;
+                const role = roleVal.value;
+                const status = role === 'realtor' ? 'pending' : 'active';
+
+                setLoad("회원 정보를 등록하고 있습니다...");
+
+                try {
+                    let licenseUrl = null;
+                    let brokerLicenseUrl = null;
+
+                    if (role === 'realtor') {
+                        if (typeof imageCompression === 'undefined') { throw new Error("이미지 컴프레서 라이브러리가 로드되지 않았습니다."); }
+                        const lFile = modal.querySelector('#gregFile1').files[0];
+                        const bFile = modal.querySelector('#gregFile2').files[0];
+                        const upOpts = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+
+                        if (lFile) {
+                            setLoad("사업자등록증 사진 업로드 중...");
+                            const compL = await imageCompression(lFile, upOpts);
+                            const nameL = `${user.id}/${Date.now()}_license.${compL.name.split('.').pop()}`;
+                            const { error: eL } = await supabase.storage.from('member_documents').upload(nameL, compL);
+                            if (eL) throw eL;
+                            const { data: dL } = supabase.storage.from('member_documents').getPublicUrl(nameL);
+                            licenseUrl = dL.publicUrl;
+                        }
+
+                        if (bFile) {
+                            setLoad("중개등록증 사진 업로드 중...");
+                            const compB = await imageCompression(bFile, upOpts);
+                            const nameB = `${user.id}/${Date.now()}_broker.${compB.name.split('.').pop()}`;
+                            const { error: eB } = await supabase.storage.from('member_documents').upload(nameB, compB);
+                            if (eB) throw eB;
+                            const { data: dB } = supabase.storage.from('member_documents').getPublicUrl(nameB);
+                            brokerLicenseUrl = dB.publicUrl;
+                        }
+                    }
+
+                    const memberData = {
+                        id: user.id,
+                        email: user.email,
+                        role: 'general', // 관리자 승인을 위해 기본 general, 추후 변경
+                        name: name,
+                        phone: phone,
+                        status: status,
+                        created_at: new Date().toISOString()
+                    };
+
+                    if (role === 'realtor') {
+                        memberData.company_name = modal.querySelector('#gregCompName').value;
+                        memberData.company_reg_no = modal.querySelector('#gregCompReg').value;
+                        memberData.ceo_name = modal.querySelector('#gregCeo').value;
+                        memberData.biz_reg_no = modal.querySelector('#gregBizReg').value;
+                        memberData.tel_num = modal.querySelector('#gregTel').value;
+                        memberData.cell_num = modal.querySelector('#gregCell').value;
+                        memberData.zipcode = modal.querySelector('#gregZip').value;
+                        memberData.address = modal.querySelector('#gregAddr').value;
+                        memberData.address_detail = modal.querySelector('#gregAddrDet').value;
+                        memberData.license_image = licenseUrl;
+                        memberData.license_image_brokerage = brokerLicenseUrl;
+                    }
+
+                    const { error: inErr } = await supabase.from('members').insert([memberData]);
+                    if (inErr) throw inErr;
+
+                    offLoad();
+
+                    if (role === 'realtor') {
+                        alert("가입 신청이 완료되었습니다! 관리자 승인(최대 24시간) 후 부동산 회원 권한이 부여됩니다.");
+                    } else {
+                        alert("반갑습니다! 공실뉴스 가입이 완료되었습니다.");
+                    }
+
+                    modal.style.display = 'none';
+                    // 새로운 권한으로 UI 갱신을 위해 handleUserDocument 강제 재호출
+                    await handleUserDocument(user);
+
+                } catch (err) {
+                    offLoad();
+                    console.error("회원가입 처리 에러:", err);
+                    alert("처리 중 오류가 발생했습니다: " + err.message);
+                }
+            });
+        }
+        modal.style.display = 'flex';
+    }
+
     // DB에서 유저 권한 조회
     async function handleUserDocument(user) {
         try {
@@ -191,8 +508,8 @@ function _gongsiAuthInit(supabase) {
                 window.currentUser = { ...user, profile: userData };
                 localStorage.setItem('gongsil_user', JSON.stringify(window.currentUser));
             } else {
-                console.log("신규 가입자 감지 → 프로필 등록 페이지로 이동");
-                window.location.href = (window.BASE_PATH || '') + '/register_profile.html';
+                console.log("신규 가입자 감지 → 홈 화면 통합 모달형 프로필 등록 창 열기");
+                showRegisterProfileModal(user);
             }
         } catch (err) {
             console.error("회원 정보 조회 에러:", err);
