@@ -679,7 +679,13 @@ function _gongsiAuthInit(supabase) {
             : (window.BASE_PATH || '') + '/user_admin.html';
         let roleName = "일반회원";
         if (userData.role === 'admin') roleName = "최고관리자";
-        else if (userData.role === 'realtor') roleName = "부동산회원";
+        else if (userData.role === 'realtor') {
+            if (userData.verification_status === 'approved' || userData.verification_status === 'auto_verified') {
+                roleName = "부동산회원";
+            } else {
+                roleName = "부동산회원(정보입력중)";
+            }
+        }
         const membershipName = userData.membership === 'paid' ? " (유료)" : " (무료)";
         const displayText = userData.role === 'admin' ? roleName + " >>" : roleName + membershipName + " >>";
         userRoleBadges.forEach(badge => {
