@@ -457,13 +457,22 @@
 
             // 동적 뒤로가기 링크 할당
             const backBtn = document.querySelector('.back-btn');
+            let backUrlTemplate = `study_detail.html?id=${courseId}&ask_review=1`;
+            if (urlParams.get('from') === 'main') {
+                backUrlTemplate += '&from=main';
+            }
             if (backBtn) {
-                let backUrl = `study_detail.html?id=${courseId}`;
-                if (urlParams.get('from') === 'main') {
-                    backUrl += '&from=main';
-                }
-                backBtn.href = backUrl;
+                backBtn.href = backUrlTemplate;
                 backBtn.onclick = null; // 로딩용 핸들러 제거
+            }
+            
+            // 수강 완료(finish-btn) 클릭 시 리뷰 작성 페이지(뒤로 가기)로 이동 처리
+            const finishBtn = document.querySelector('.finish-btn');
+            if(finishBtn) {
+                finishBtn.onclick = () => {
+                    alert('수강 완료 처리되었습니다! 후기 작성 페이지로 이동합니다.');
+                    location.href = backUrlTemplate;
+                };
             }
 
             const sb = window.gongsiClient;

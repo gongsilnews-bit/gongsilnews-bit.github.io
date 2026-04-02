@@ -600,6 +600,86 @@
         .btn-modal-subscribe:hover {
             background: #e65c00;
         }
+
+        /* 후기 작성 모달 추가 스타일 */
+        .review-modal {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            position: relative;
+            padding: 30px;
+        }
+        .review-modal-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .review-modal-header h2 {
+            font-size: 22px;
+            color: #111;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .review-modal-header p {
+            font-size: 14px;
+            color: #666;
+        }
+        .star-rating-input {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+            flex-direction: row-reverse;
+        }
+        .star-rating-input input {
+            display: none;
+        }
+        .star-rating-input label {
+            font-size: 40px;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .star-rating-input label:hover,
+        .star-rating-input label:hover ~ label,
+        .star-rating-input input:checked ~ label {
+            color: #ffb400; /* 금별 색상 */
+        }
+        .review-textarea {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 16px;
+            font-size: 14px;
+            font-family: inherit;
+            height: 120px;
+            resize: none;
+            margin-bottom: 24px;
+            outline: none;
+            transition: 0.2s;
+        }
+        .review-textarea:focus {
+            border-color: #0ea5e9;
+            box-shadow: 0 0 0 3px rgba(14,165,233,0.1);
+        }
+        .btn-submit-review {
+            display: block;
+            width: 100%;
+            background: #0ea5e9;
+            color: #fff;
+            border: none;
+            padding: 16px 0;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-submit-review:hover {
+            background: #0284c7;
+        }
         .curri-list {
             background:#fff;
             border:1px solid #ddd;
@@ -1197,6 +1277,40 @@
         </div>
     </div>
 
+    <!-- 후기 작성 모달 HTML -->
+    <div id="reviewModal" class="preview-modal-overlay">
+        <div class="review-modal">
+            <div class="preview-modal-close" onclick="closeReviewModal()">
+                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </div>
+            <div class="review-modal-header">
+                <h2>강의는 만족하셨나요? 🤩</h2>
+                <p>별점과 솔직한 수강 후기를 남겨주세요!</p>
+            </div>
+            <form id="reviewForm" onsubmit="submitReview(event)">
+                <div class="star-rating-input">
+                    <!-- 5점 -->
+                    <input type="radio" id="star5" name="rating" value="5" />
+                    <label for="star5" title="5점">★</label>
+                    <!-- 4점 -->
+                    <input type="radio" id="star4" name="rating" value="4" />
+                    <label for="star4" title="4점">★</label>
+                    <!-- 3점 -->
+                    <input type="radio" id="star3" name="rating" value="3" />
+                    <label for="star3" title="3점">★</label>
+                    <!-- 2점 -->
+                    <input type="radio" id="star2" name="rating" value="2" />
+                    <label for="star2" title="2점">★</label>
+                    <!-- 1점 -->
+                    <input type="radio" id="star1" name="rating" value="1" />
+                    <label for="star1" title="1점">★</label>
+                </div>
+                <textarea class="review-textarea" placeholder="어떤 점이 좋았나요? 다음 수강생들을 위해 진솔한 후기를 남겨주시면 큰 힘이 됩니다." required></textarea>
+                <button type="submit" class="btn-submit-review">후기 등록하기</button>
+            </form>
+        </div>
+    </div>
+
     <!-- 미리보기 모달 제어 JS -->
     <script>
         function openPreviewModal() {
@@ -1211,6 +1325,47 @@
                 closePreviewModal();
             }
         });
+
+        // 후기 작성 모달 제어 JS
+        function openReviewModal() {
+            document.getElementById('reviewModal').style.display = 'flex';
+        }
+        function closeReviewModal() {
+            document.getElementById('reviewModal').style.display = 'none';
+        }
+        document.getElementById('reviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeReviewModal();
+            }
+        });
+
+        async function submitReview(e) {
+            e.preventDefault();
+            const ratingInput = document.querySelector('input[name="rating"]:checked');
+            const reviewText = document.querySelector('.review-textarea').value.trim();
+            
+            if (!ratingInput) {
+                alert("별점을 선택해주세요!");
+                return;
+            }
+            if (!reviewText) {
+                alert("후기 내용을 작성해주세요!");
+                return;
+            }
+            // 여기서 향후 백엔드(Supabase)에 후기를 전송하는 로직을 추가합니다.
+            // (ex: sb.from('study_reviews').insert({ course_id: courseId, rating: ratingInput.value, content: reviewText }))
+            
+            // 등록 완료 처리
+            setTimeout(() => {
+                alert("소중한 후기가 성공적으로 등록되었습니다. 감사합니다!");
+                closeReviewModal();
+                
+                // 후기 등록 후 URL 파라미터에서 ask_review=1 제거하여 새로고침 시 다시 뜨지 방지
+                const newParams = new URLSearchParams(window.location.search);
+                newParams.delete('ask_review');
+                history.replaceState(null, '', window.location.pathname + '?' + newParams.toString());
+            }, 300);
+        }
 
         // 클래스 소개 더보기 로직
         function expandIntro() {
@@ -1352,6 +1507,11 @@
                 }
 
                 if (curriContainer) curriContainer.innerHTML = curriHtml;
+                
+                // 4. 후기 팝업 자동 트리거 (ask_review 파라미터 감지)
+                if(urlParams.get('ask_review') === '1') {
+                    openReviewModal();
+                }
 
             } catch(e) {
                 console.error("데이터 통신 에러:", e);
