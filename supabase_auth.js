@@ -571,7 +571,7 @@ function _gongsiAuthInit(supabase) {
                     const memberData = {
                         id: user.id,
                         email: user.email,
-                        role: 'general', // 관리자 승인을 위해 기본 general, 추후 변경
+                        role: role,
                         name: name,
                         phone: phone,
                         status: status,
