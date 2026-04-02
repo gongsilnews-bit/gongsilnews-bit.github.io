@@ -278,6 +278,10 @@ window.showPropertyDetail = function(p) {
             galleryImg.src = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/600x400/DDDDDD/666666?text=No+Image';
         }
 
+        if (typeof window.fetchApartmentPublicData === 'function') {
+            window.fetchApartmentPublicData(p);
+        }
+
         detailView.style.display = 'flex';
     } catch (e) {
         console.error("Detail show error:", e);
