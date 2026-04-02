@@ -80,7 +80,7 @@ function initMap() {
         minLevel: 6,
         styles: [{
             width: '40px', height: '40px',
-            background: 'rgba(30, 86, 160, 0.85)',
+            background: 'rgba(80, 139, 245, 0.85)',
             color: '#fff',
             border: '2px solid #fff',
             textAlign: 'center',
@@ -419,7 +419,7 @@ async function loadPortalNews(category, isLoadMore = false) {
                             </ul>
                         </div>
                         <div class="portal-banner" style="min-height:300px; background:#fffcf0; border-color:#ffe0b2;">
-                            <div style="padding:40px; color:#1e56a0;">부동산·주식·재테크<br>프리미엄 리포트</div>
+                            <div style="padding:40px; color:#508bf5;">부동산·주식·재테크<br>프리미엄 리포트</div>
                         </div>
                     </div>
                 </div>
@@ -665,7 +665,7 @@ if (typeof kakao === 'undefined') {
             if (selectEl) {
                 catName = selectEl.options[selectEl.selectedIndex].text;
             }
-            sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#1e56a0; margin-left:4px;">${count}</span>개`;
+            sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#508bf5; margin-left:4px;">${count}</span>개`;
         };
 
         window.toggleMapSearch = function() {
@@ -944,7 +944,7 @@ async function loadNews(category) {
                 if (selectEl) {
                     catName = selectEl.options[selectEl.selectedIndex].text;
                 }
-                sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#1e56a0; margin-left:4px;">0</span>개`;
+                sidebarTitle.innerHTML = `${catName} 지도기사 <span style="color:#508bf5; margin-left:4px;">0</span>개`;
             }
         }
 
@@ -1240,8 +1240,8 @@ function renderMarkers(newsList) {
 
 
     // 커스텀 마커 이미지 (주황색 원 + 숫자 1, 테두리 흰색) - Base64 SVG
-    // SVG: <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" fill="#1e56a0" stroke="white" stroke-width="2"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white">1</text></svg>
-    const svgBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiMxZTU2YTAiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIj4xPC90ZXh0Pjwvc3ZnPg==";
+    // SVG: <svg width="40" height="40" xmlns="http://www.w3.org/2000/svg"><circle cx="20" cy="20" r="18" fill="#508bf5" stroke="white" stroke-width="2"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-size="16" font-family="sans-serif" font-weight="bold" fill="white">1</text></svg>
+    const svgBase64 = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMTgiIGZpbGw9IiM1MDhiZjUiIHN0cm9rZT0id2hpdGUiIHN0cm9rZS13aWR0aD0iMiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTUlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LXNpemU9IjE2IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIj4xPC90ZXh0Pjwvc3ZnPg==";
 
     const markerImageSize = new kakao.maps.Size(40, 40);
     const markerImageOption = { offset: new kakao.maps.Point(20, 20) };
@@ -1393,7 +1393,7 @@ window.showNewsDetail = async function(news) {
     const activeLink = document.querySelector(`.news-link[data-article-id="${window.currentArticleId}"]`);
     if (activeLink) {
         activeLink.innerHTML = '기사닫기 ✕';
-        activeLink.style.color = '#1e56a0';
+        activeLink.style.color = '#508bf5';
         activeLink.style.fontWeight = 'bold';
     }
     if (window.currentArticleId) {
@@ -1511,12 +1511,12 @@ window.showNewsDetail = async function(news) {
             if (news.related_articles && Array.isArray(news.related_articles) && news.related_articles.length > 0) {
                 let relatedHtml = '<div style="margin-top:40px; margin-bottom:30px; padding:25px; border:2px solid #b3d4ff; border-radius:12px; background:#f4f8ff;">';
                 relatedHtml += '<div style="font-size:18px; font-weight:800; color:#111; margin-bottom:15px; display:flex; align-items:center; gap:8px;">';
-                relatedHtml += '<span style="color:#1e56a0; font-size:16px;">▶</span> 관련기사</div>';
+                relatedHtml += '<span style="color:#508bf5; font-size:16px;">▶</span> 관련기사</div>';
                 relatedHtml += '<ul style="list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:12px;">';
                 news.related_articles.forEach(r => {
                     relatedHtml += '<li style="display:flex; gap:8px; font-size:15px; cursor:pointer;" onclick="window.location.href=\'index.html?article_id=' + r.id + '\'">'
                         + '<span style="color:#aaa;">ㄴ</span>'
-                        + '<span style="color:#333; font-weight:600; text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'; this.style.color=\'#1e56a0\';" onmouseout="this.style.textDecoration=\'none\'; this.style.color=\'#333\';">' + (r.title||'제목 없음') + '</span>'
+                        + '<span style="color:#333; font-weight:600; text-decoration:none;" onmouseover="this.style.textDecoration=\'underline\'; this.style.color=\'#508bf5\';" onmouseout="this.style.textDecoration=\'none\'; this.style.color=\'#333\';">' + (r.title||'제목 없음') + '</span>'
                         + '</li>';
                 });
                 relatedHtml += '</ul></div>';
@@ -1549,7 +1549,7 @@ window.showNewsDetail = async function(news) {
     rssContentHtml += `
         <p>본 기사는 공실뉴스의 공식 기사입니다. 전문을 확인하시려면 아래 공식 링크를 통해 확인하실 수 있습니다.</p>
         <p style="margin-top:20px;">
-            <a href="${news.link}" target="_blank" style="color:#1e56a0; font-weight:bold; text-decoration:underline;">[기사 전문 보기] ${news.link}</a>
+            <a href="${news.link}" target="_blank" style="color:#508bf5; font-weight:bold; text-decoration:underline;">[기사 전문 보기] ${news.link}</a>
         </p>
     `;
 
@@ -1671,7 +1671,7 @@ window.loadPopularNews = async function(category) {
     if (!listEl) return;
 
     if (titleEl) {
-        titleEl.innerHTML = category === '전체기사' ? `많이 본 뉴스` : `<span style="color:#1e56a0">${category}</span> 많이 본 뉴스`;
+        titleEl.innerHTML = category === '전체기사' ? `많이 본 뉴스` : `<span style="color:#508bf5">${category}</span> 많이 본 뉴스`;
     }
 
     // 캐시 확인 (5분)
@@ -1705,7 +1705,7 @@ window.loadPopularNews = async function(category) {
 
     listEl.innerHTML = topArticles.map((a, i) => `
         <li style="cursor:pointer; display:flex; align-items:flex-start; margin-bottom:12px; transition:all 0.2s;" onmouseover="this.querySelector('.portal-popular-text').style.color='#111'; this.querySelector('.portal-popular-text').style.textDecoration='underline';" onmouseout="this.querySelector('.portal-popular-text').style.color='#555'; this.querySelector('.portal-popular-text').style.textDecoration='none';" onclick="window.showNewsDetail({id: ${a.id}, article_id: ${a.id}, _source:'articles'})">
-            <span class="portal-popular-num" style="color:${i < 3 ? '#1e56a0' : '#999'}; font-weight:bold; font-size:14px; margin-right:8px; display:inline-block; text-align:center;">${i+1}</span>
+            <span class="portal-popular-num" style="color:${i < 3 ? '#508bf5' : '#999'}; font-weight:bold; font-size:14px; margin-right:8px; display:inline-block; text-align:center;">${i+1}</span>
             <span class="portal-popular-text" style="color:#555; font-size:14px; font-weight:600; line-height:1.4; word-break:keep-all; flex:1; transition: color 0.1s;">${a.title}</span>
         </li>
     `).join('');
@@ -2031,7 +2031,7 @@ window.loadPortalComments = async function(articleId) {
         }
 
         const marginLeft = isReply ? '40px' : '0px';
-        const replyTag = isReply ? '<span style="color:#1e56a0; font-weight:bold; margin-right:4px;">↳</span>' : '';
+        const replyTag = isReply ? '<span style="color:#508bf5; font-weight:bold; margin-right:4px;">↳</span>' : '';
 
         return `
             <div style="display:flex; gap:14px; margin-bottom:20px; border-bottom:1px solid #f2f4f7; padding-bottom:20px; margin-left:${marginLeft};">
@@ -2062,11 +2062,11 @@ window.loadPortalComments = async function(articleId) {
                         <textarea id="reply-input-${c.id}" style="width:100%; height:70px; padding:10px; border:1px solid #ddd; border-radius:6px; resize:none; font-family:inherit; font-size:14px; margin-bottom:10px;"></textarea>
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <label style="cursor:pointer; display:flex; align-items:center; gap:4px; font-size:13px; color:#555;">
-                                <input type="checkbox" id="reply-secret-${c.id}" style="accent-color:#1e56a0;"> 비밀답글
+                                <input type="checkbox" id="reply-secret-${c.id}" style="accent-color:#508bf5;"> 비밀답글
                             </label>
                             <div>
                                 <button onclick="document.getElementById('reply-container-${c.id}').style.display='none'" style="background:#eee; color:#555; border:none; padding:6px 12px; border-radius:4px; cursor:pointer; margin-right:5px;">취소</button>
-                                <button id="reply-submit-btn-${c.id}" style="background:#1e56a0; color:#fff; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer;">등록</button>
+                                <button id="reply-submit-btn-${c.id}" style="background:#508bf5; color:#fff; border:none; padding:6px 16px; border-radius:4px; font-weight:bold; cursor:pointer;">등록</button>
                             </div>
                         </div>
                     </div>
