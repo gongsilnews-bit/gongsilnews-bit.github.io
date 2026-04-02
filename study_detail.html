@@ -1148,36 +1148,36 @@
 
             <!-- 후기 영역 -->
             <section id="section-review" class="detail-section" style="padding-top:40px; min-height:80vh;">
-                <h3>수강생 리얼 후기 <span style="font-size:16px; font-weight:normal; color:#ff9f1c;">★4.9</span></h3>
+                <h3>수강생 리얼 후기 <span style="font-size:16px; font-weight:normal; color:#ff9f1c;" id="reviewAverageStar">★0</span></h3>
                 
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=100&h=100" alt="유저"></div>
-                        <div>
-                            <div class="reviewer-name">착한임대 (부동산회원)</div>
-                            <div class="review-date">2026.03.20</div>
-                        </div>
-                        <div class="score-info" style="margin-left:auto; font-size:13px;"><span class="star">★★★★★</span></div>
-                    </div>
-                    <div class="review-text">
-                        매일 수첩에 적고 엑셀에 적고 반복하던 일을 노션으로 합치니 업무 효율이 엄청나게 올랐습니다! 
-                        특히 강사님이 주신 부동산 전용 템플릿은 그대로 복사해서 쓰기만 해도 될 정도로 완성도가 높아서 놀랐어요. 무조건 추천합니다.
-                    </div>
+                <div id="reviewListContainer">
+                    <p style="color:#999; padding:20px 0;">후기를 불러오는 중입니다...</p>
                 </div>
 
-                <div class="review-item">
-                    <div class="review-header">
-                        <div class="reviewer-avatar"><img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=100&h=100" alt="유저"></div>
-                        <div>
-                            <div class="reviewer-name">공인중개사 A</div>
-                            <div class="review-date">2026.03.18</div>
+                <!-- 인라인 후기 작성 폼 -->
+                <div class="inline-review-wrap" style="margin-top: 40px; padding: 24px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h4 style="margin:0 0 16px 0; font-size:16px; color:#111;">이 강의, 어떠셨나요?</h4>
+                    <form id="inlineReviewForm" onsubmit="submitInlineReview(event)">
+                        <div class="star-rating-input inline-star-input" style="justify-content: flex-end; margin-bottom: 12px;">
+                            <!-- 5점 -->
+                            <input type="radio" id="istar5" name="irating" value="5" />
+                            <label for="istar5" title="5점">★</label>
+                            <!-- 4점 -->
+                            <input type="radio" id="istar4" name="irating" value="4" />
+                            <label for="istar4" title="4점">★</label>
+                            <!-- 3점 -->
+                            <input type="radio" id="istar3" name="irating" value="3" />
+                            <label for="istar3" title="3점">★</label>
+                            <!-- 2점 -->
+                            <input type="radio" id="istar2" name="irating" value="2" />
+                            <label for="istar2" title="2점">★</label>
+                            <!-- 1점 -->
+                            <input type="radio" id="istar1" name="irating" value="1" />
+                            <label for="istar1" title="1점">★</label>
                         </div>
-                        <div class="score-info" style="margin-left:auto; font-size:13px;"><span class="star">★★★★★</span></div>
-                    </div>
-                    <div class="review-text">
-                        초보자도 따라하기 너무 좋은 클래스! 
-                        영상 길이도 적당해서 일 끝나고 짬짬이 한두 강씩 보기 딱 좋았어요. 피드백도 엄청 빠르십니다 :)
-                    </div>
+                        <textarea class="review-textarea" id="inlineReviewText" placeholder="어떤 점이 좋았나요? 다음 수강생들을 위해 진솔한 후기를 남겨주시면 큰 힘이 됩니다." required style="height: 80px; margin-bottom:12px;"></textarea>
+                        <button type="submit" class="btn-submit-review" style="padding: 12px 0;">후기 등록하기</button>
+                    </form>
                 </div>
             </section>
         </main>
@@ -1339,32 +1339,119 @@
             }
         });
 
+        async function submitReviewCore(courseId, rating, content) {
+            const { data, error } = await window.gongsiClient.from('study_reviews').insert([
+                { course_id: courseId, rating: rating, content: content, author_name: '수강생' }
+            ]);
+            if(error) {
+                console.error("후기 등록 에러:", error);
+                throw error;
+            }
+            return data;
+        }
+
         async function submitReview(e) {
             e.preventDefault();
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
             const ratingInput = document.querySelector('input[name="rating"]:checked');
             const reviewText = document.querySelector('.review-textarea').value.trim();
             
-            if (!ratingInput) {
-                alert("별점을 선택해주세요!");
-                return;
-            }
-            if (!reviewText) {
-                alert("후기 내용을 작성해주세요!");
-                return;
-            }
-            // 여기서 향후 백엔드(Supabase)에 후기를 전송하는 로직을 추가합니다.
-            // (ex: sb.from('study_reviews').insert({ course_id: courseId, rating: ratingInput.value, content: reviewText }))
+            if (!ratingInput) return alert("별점을 선택해주세요!");
+            if (!reviewText) return alert("후기 내용을 작성해주세요!");
             
-            // 등록 완료 처리
-            setTimeout(() => {
+            try {
+                await submitReviewCore(courseId, parseInt(ratingInput.value), reviewText);
                 alert("소중한 후기가 성공적으로 등록되었습니다. 감사합니다!");
                 closeReviewModal();
                 
-                // 후기 등록 후 URL 파라미터에서 ask_review=1 제거하여 새로고침 시 다시 뜨지 방지
+                // url 파라미터 클리어
                 const newParams = new URLSearchParams(window.location.search);
                 newParams.delete('ask_review');
                 history.replaceState(null, '', window.location.pathname + '?' + newParams.toString());
-            }, 300);
+                
+                // 화면 리로드
+                loadReviews(courseId);
+            } catch(e) {
+                alert("후기 등록 중 오류가 발생했습니다. (데이터베이스 설정 확인 필요)");
+            }
+        }
+
+        async function submitInlineReview(e) {
+            e.preventDefault();
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            const ratingInput = document.querySelector('input[name="irating"]:checked');
+            const reviewText = document.getElementById('inlineReviewText').value.trim();
+            
+            if (!ratingInput) return alert("별점을 선택해주세요!");
+            if (!reviewText) return alert("후기 내용을 작성해주세요!");
+            
+            try {
+                await submitReviewCore(courseId, parseInt(ratingInput.value), reviewText);
+                alert("소중한 후기가 성공적으로 등록되었습니다. 감사합니다!");
+                e.target.reset();
+                loadReviews(courseId);
+            } catch(err) {
+                alert("후기 등록 중 오류가 발생했습니다. (데이터베이스 설정 확인 필요)");
+            }
+        }
+        
+        async function loadReviews(courseId) {
+            const container = document.getElementById('reviewListContainer');
+            const avgStar = document.getElementById('reviewAverageStar');
+            if(!window.gongsiClient) return;
+
+            const { data, error } = await window.gongsiClient
+                .from('study_reviews')
+                .select('*')
+                .eq('course_id', courseId)
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                console.error("후기 로딩 실패:", error);
+                if(error.code === 'PGRST205') {
+                    container.innerHTML = `<p style="color:red; padding:20px 0;">⚠️ Supabase에 'study_reviews' 테이블이 생성되지 않았습니다. 리뷰 등록 이용 전 데이터베이스를 세팅해주세요.</p>`;
+                } else {
+                    container.innerHTML = `<p style="color:red; padding:20px 0;">후기를 불러오는 데 실패했습니다.</p>`;
+                }
+                return;
+            }
+
+            if (!data || data.length === 0) {
+                if(avgStar) avgStar.innerText = `★0.0`;
+                container.innerHTML = `<p style="color:#666; padding:20px 0; border-bottom:1px solid #eee;">아직 등록된 후기가 없습니다. 첫 번째 후기를 남겨주세요!</p>`;
+                return;
+            }
+
+            let html = '';
+            let total = 0;
+            data.forEach(r => {
+                total += r.rating;
+                let stars = '★'.repeat(r.rating) + '☆'.repeat(5 - r.rating);
+                let d = new Date(r.created_at);
+                let dateStr = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`;
+                
+                html += `
+                <div class="review-item">
+                    <div class="review-header">
+                        <div class="reviewer-avatar" style="display:flex; justify-content:center; align-items:center; background:#e2e8f0; color:#64748b; font-size:18px; font-weight:bold;">
+                            ${r.author_name ? r.author_name.substring(0,1) : 'U'}
+                        </div>
+                        <div>
+                            <div class="reviewer-name">${r.author_name || '수강생'}</div>
+                            <div class="review-date">${dateStr}</div>
+                        </div>
+                        <div class="score-info" style="margin-left:auto; font-size:13px; color:#ffb400;">
+                            ${stars}
+                        </div>
+                    </div>
+                    <div class="review-text" style="white-space: pre-wrap;">${r.content}</div>
+                </div>`;
+            });
+            container.innerHTML = html;
+            let avg = (total / data.length).toFixed(1);
+            if(avgStar) avgStar.innerText = `★${avg} (${data.length}개)`;
         }
 
         // 클래스 소개 더보기 로직
@@ -1507,6 +1594,9 @@
                 }
 
                 if (curriContainer) curriContainer.innerHTML = curriHtml;
+
+                // 4. 리얼타임 수강후기 읽어오기 추가
+                loadReviews(courseId);
 
             } catch(e) {
                 console.error("데이터 통신 에러:", e);
