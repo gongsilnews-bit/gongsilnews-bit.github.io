@@ -1010,6 +1010,7 @@
                                             <div style="color: #666; font-size: 10.5px; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.property_type || '구분없음'} | ${sizeArea}</div>
                                             <div style="color: #666; font-size: 10.5px; margin-bottom: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">룸 ${p.room_count||0}개, 욕실 ${p.bathroom_count||0}개, ${p.options || ''}</div>
                                             <div style="display: flex; gap: 4px; align-items: center; font-size: 10px; flex-wrap: wrap;">
+                                                <span style="color: #e53935; border: 1px solid #ffcdd2; background: #ffebee; padding: 2px 3px; border-radius: 3px; font-weight: bold;">공동중개 ${p.brokerage_fee || '수수료협의'}</span>
                                                 <span style="color: #d32f2f; font-weight: 900; letter-spacing: 0px;">${p.author_phone || '연락처 방문요망'}</span>
                                             </div>
                                         </div>
