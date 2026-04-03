@@ -236,6 +236,19 @@
 
         /* 로딩 */
         .loading { text-align: center; padding: 60px 20px; color: #aaa; font-size: 16px; }
+
+        /* 툴팁 */
+        .tooltip-wrap { position: relative; display: inline-block; }
+        .tooltip-wrap:hover .custom-tooltip { display: block; }
+        .custom-tooltip {
+            display: none; position: absolute; top: calc(100% + 8px); right: 0;
+            background: #222; color: #fff; padding: 8px 12px; border-radius: 4px;
+            font-size: 12px; white-space: nowrap; z-index: 999; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .custom-tooltip::before {
+            content: ""; position: absolute; bottom: 100%; right: 24px;
+            border-width: 6px; border-style: solid; border-color: transparent transparent #222 transparent;
+        }
     </style>
 </head>
 <body>
@@ -620,9 +633,17 @@ async function submitPortalComment() {
 
 function buildApproveBtn(status) {
     if (status === 'published') {
-        return '<button class="btn-toolbar" style="padding:5px 16px; border-radius:4px; font-size:13px; background:#fef2f2; border:1px solid #fecaca; color:#ef4444; font-weight:bold; cursor:pointer;" onclick="changeStatus(\'hidden\')">🚫 반려중</button>';
+        return '<div class="tooltip-wrap">' +
+               '<button class="btn-toolbar" style="padding:5px 16px; border-radius:4px; font-size:13px; background:#f3f4f6; border:1px solid #d1d5db; color:#9ca3af; font-weight:bold; cursor:not-allowed;">✅ 승인</button>' +
+               '<div class="custom-tooltip">승인된 기사는 수정하실 수 없습니다.</div>' +
+               '</div>';
+    } else if (status === 'pending') {
+        return '<div class="tooltip-wrap">' +
+               '<button class="btn-toolbar" style="padding:5px 16px; border-radius:4px; font-size:13px; background:#f3f4f6; border:1px solid #d1d5db; color:#9ca3af; font-weight:bold; cursor:not-allowed;">✅ 승인신청</button>' +
+               '<div class="custom-tooltip">승인신청 기사는 수정하실 수 없습니다.</div>' +
+               '</div>';
     }
-    return '<button class="btn-toolbar" style="padding:5px 16px; border-radius:4px; font-size:13px; background:#16a34a; border:1px solid #16a34a; color:#fff; font-weight:bold; cursor:pointer;" onclick="changeStatus(\'published\')">✅ 승인</button>';
+    return '<button class="btn-toolbar" style="padding:5px 16px; border-radius:4px; font-size:13px; background:#16a34a; border:1px solid #16a34a; color:#fff; font-weight:bold; cursor:pointer;" onclick="changeStatus(\'pending\')">✅ 승인신청</button>';
 }
 
 function buildRecentLog(a) {
@@ -654,6 +675,10 @@ function goBack() {
 
 function goEdit() {
     if (!articleId) return;
+    if (articleData && (articleData.status === 'published' || articleData.status === 'pending')) {
+        alert(articleData.status === 'published' ? '승인된 기사는 수정하실 수 없습니다.' : '승인신청 기사는 수정하실 수 없습니다.');
+        return;
+    }
     if (window.parent && window.parent.loadPage) {
         window.parent.loadPage(null, '기사수정', 'news_write.html?editId=' + articleId);
     } else {
@@ -672,6 +697,10 @@ async function changeStatus(newStatus) {
 
 async function deleteArticle() {
     var title = articleData ? articleData.title : '이 기사';
+    if (articleData && (articleData.status === 'published' || articleData.status === 'pending')) {
+        alert(articleData.status === 'published' ? '승인된 기사는 삭제하실 수 없습니다.' : '승인신청 기사는 삭제하실 수 없습니다.');
+        return;
+    }
     if (!confirm('[❌ 삭제 확인]\n\n"' + title + '"\n\n기사를 영구적으로 삭제합니다.\n\n정말 삭제하시겠습니까?')) return;
     var res = await sb.from('articles').delete().eq('id', articleId);
     if (res.error) { alert('삭제 실패: ' + res.error.message); return; }
