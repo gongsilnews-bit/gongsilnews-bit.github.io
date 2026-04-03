@@ -2163,15 +2163,15 @@
                     $editor.summernote('editor.restoreRange', validRange);
                 }
                 
-                // 완벽한 커서 추적을 위한 고유 마커 앵커 삽입
-                var markerId = 'cursor_marker_' + Date.now() + '_' + Math.floor(Math.random()*1000);
-                var safeHtml = htmlString + '<p id="' + markerId + '" style="margin:0; padding:0;"><br></p>';
+                // 완벽한 커서 추적을 위한 고유 마커 앵커 삽입 (Summernote가 id를 지우는 것에 대비해 특이한 class 사용)
+                var markerClass = 'cursor-marker-cls' + Date.now();
+                var safeHtml = htmlString + '<p class="' + markerClass + '" style="margin:0; padding:0;"><br></p>';
                 
                 // pasteHTML이 가장 강력하고 오작동이 적음
                 $editor.summernote('pasteHTML', safeHtml);
                 
                 // 삽입이 완료된 후, 마커를 찾아 네이티브 커서를 집어넣음
-                var markerEl = document.getElementById(markerId);
+                var markerEl = $editor.next('.note-editor').find('.' + markerClass)[0];
                 if (markerEl) {
                     var range = document.createRange();
                     range.setStart(markerEl, 0);
@@ -2180,12 +2180,21 @@
                     sel.removeAllRanges();
                     sel.addRange(range);
                     
-                    // 썸머노트에 강제 동기화 후 고유 ID 제거 (클린 DOM 유지)
+                    // 썸머노트에 강제 동기화 후 고유 class 제거 (클린 DOM 유지)
                     savedRange = $editor.summernote('editor.createRange');
-                    markerEl.removeAttribute('id');
+                    markerEl.classList.remove(markerClass);
                 } else {
-                    $editor.summernote('editor.saveRange');
-                    savedRange = $editor.summernote('editor.getLastRange');
+                    // 최후의 수단: 에디터 맨 끝으로 커서 강제 이동
+                    var editable = $editor.next('.note-editor').find('.note-editable')[0];
+                    if (editable) {
+                        var rangeEnd = document.createRange();
+                        rangeEnd.selectNodeContents(editable);
+                        rangeEnd.collapse(false); // 맨 끝
+                        var selEnd = window.getSelection();
+                        selEnd.removeAllRanges();
+                        selEnd.addRange(rangeEnd);
+                        savedRange = $editor.summernote('editor.createRange');
+                    }
                 }
             } catch(e) {
                 console.error("에디터 노드 삽입 오류:", e);
