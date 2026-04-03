@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
@@ -905,19 +905,20 @@
                     <div><span style="color:#aaa;">🖺</span> 마우스로 이미지를 끌어오거나, 클릭해주세요.</div>
                     <div style="margin-top:4px;">(허용용량 10MB)</div>
                 </label>
-                <!-- 사진 카드 그리드 -->
-                <div id="libPhotoGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
-            </div>
-
-            <!-- ===== 영상 섹션 ===== -->
+                    <!-- ===== 파일 섹션 ===== -->
             <div class="lib-section" style="margin-top: 25px;">
                 <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <strong style="font-size:14px;">영상</strong>
+                    <strong style="font-size:14px;">파일</strong>
                     <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
                 </div>
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <div style="display:flex; border:1px solid #6b7280; border-radius:4px; overflow:hidden;">
-                        <input type="text" id="libYoutubeInput" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
+                <label class="dash-drop-box" style="cursor: pointer;" for="libFileInput">
+                    <input type="file" id="libFileInput" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" multiple style="display:none;" onchange="addLibraryFiles(this)">
+                    <div><span style="color:#aaa;">🖹</span> 마우스로 파일을 끌어오거나, 클릭해주세요.</div>
+                    <div style="margin-top:4px;">(허용용량 2MB)</div>
+                </label>
+                <!-- 파일 카드 그리드 -->
+                <div id="libFileGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+            </div>�" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
                         <button type="button" class="btn" onclick="addLibraryVideo()" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
                     </div>
                     <label style="font-size:12px; color:#555; cursor:pointer; display:flex; align-items:center; gap:4px; padding-left:4px;">
@@ -935,10 +936,12 @@
                     <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
                 </div>
                 <label class="dash-drop-box" style="cursor: pointer;">
-                    <input type="file" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" style="display:none;" onchange="alert('파일이 선택되었습니다: ' + (this.files[0]?this.files[0].name:''))">
+                    <input type="file" id="libFileInput" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" multiple style="display:none;" onchange="addLibraryFiles(this)">
                     <div><span style="color:#aaa;">🖺</span> 마우스로 파일을 끌어오거나, 클릭해주세요.</div>
                     <div style="margin-top:4px;">(허용용량 2MB)</div>
                 </label>
+                <!-- 파일 카드 그리드 -->
+                <div id="libFileGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
             </div>
         </aside>
 
@@ -1167,43 +1170,74 @@
         closeVideoModal();
     }
 
-    function confirmFileModal() {
+        function confirmFileModal() {
         const fileInput = document.getElementById('docInput');
         const titleInput = document.querySelector('#fileModal .input-text');
         if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-            alert("파일을 선택해주세요.");
+            alert('파일을 선택해주세요.');
             return;
         }
         const file = fileInput.files[0];
         const title = (titleInput && titleInput.value.trim()) ? titleInput.value.trim() : file.name;
 
-        // Base64 Data URL로 첨부파일 형태 (브라우저 메모리 로드)
         const reader = new FileReader();
         reader.onload = function(e) {
-            const dataUrl = e.target.result;
-            const pOpen = '<p><br></p>';
-            const pClose = '<p><br></p>';
-            const fileExt = file.name.split('.').pop().toUpperCase();
-            
-            const combinedHtml = pOpen + `<div style="padding:15px; border:1px solid #ddd; border-radius:6px; background:#fafafa; display:flex; align-items:center; gap:15px; max-width:400px; margin:10px 0;">
-                <div style="background:#5c7cfa; color:white; font-weight:bold; font-size:12px; padding:6px 10px; border-radius:4px; flex-shrink:0;">${fileExt}</div>
-                <div style="flex:1; overflow:hidden;">
-                    <div style="font-size:14px; font-weight:bold; color:#333; margin-bottom:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</div>
-                    <div style="font-size:12px; color:#888;">${(file.size / 1024).toFixed(1)} KB</div>
-                </div>
-                <a href="${dataUrl}" download="${file.name}" style="background:#f1f3f5; color:#333; border:1px solid #ddd; padding:6px 12px; border-radius:4px; font-size:12px; text-decoration:none; font-weight:bold; cursor:pointer; flex-shrink:0;">다운로드</a>
-            </div>` + pClose;
-
-            if (typeof $ !== 'undefined' && $('#summernote').length) {
-                try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) {}
-            }
-
+            insertFileCard(file, title, e.target.result);
             fileInput.value = '';
             if (titleInput) titleInput.value = '';
             document.getElementById('docName').textContent = '선택된 파일 없음';
             closeFileModal();
         };
         reader.readAsDataURL(file);
+    }
+
+    // 파일 카드를 에디터 본문 + 우측 라이브러리에 동시 삽입
+    function insertFileCard(file, title, dataUrl) {
+        const fileExt = file.name.split('.').pop().toUpperCase();
+        const fileSize = (file.size / 1024).toFixed(1);
+
+        // ① 에디터 본문: 예쁜 카드 형태
+        const editorHtml = `<div class="file-card-editor" style="display:flex; align-items:center; gap:12px; padding:12px 16px; border:1px solid #e2e8f0; border-radius:8px; background:#f8fafc; max-width:480px; margin:4px 0;">
+            <div style="width:42px; height:42px; background:#334155; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div style="flex:1; overflow:hidden;">
+                <div style="font-size:13px; font-weight:700; color:#1e293b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${title}</div>
+                <div style="font-size:11px; color:#94a3b8; margin-top:2px;">${fileExt} &middot; ${fileSize} KB</div>
+            </div>
+            <a href="${dataUrl}" download="${file.name}" style="flex-shrink:0; background:#0ea5e9; color:#fff; border:none; padding:6px 14px; border-radius:6px; font-size:12px; font-weight:700; text-decoration:none; cursor:pointer;">다운로드</a>
+        </div>`;
+
+        if (typeof insertNodeAtCursor === 'function') {
+            insertNodeAtCursor(editorHtml);
+        } else if (typeof $ !== 'undefined' && $('#summernote').length) {
+            try { $('#summernote').summernote('pasteHTML', editorHtml); } catch(e) {}
+        }
+
+        // ② 우측 라이브러리: 썸네일 카드
+        const grid = document.getElementById('libFileGrid');
+        if (grid) {
+            const card = document.createElement('div');
+            card.style.cssText = 'width:80px; display:flex; flex-direction:column; align-items:center; gap:4px; position:relative;';
+            card.innerHTML = `
+                <div style="width:72px; height:72px; background:#334155; border-radius:8px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                    <span style="font-size:9px; font-weight:800; color:#fff; letter-spacing:0.5px;">${fileExt}</span>
+                </div>
+                <div style="font-size:10px; color:#555; text-align:center; width:72px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${file.name}">${file.name}</div>
+                <button onclick="this.parentNode.remove()" style="position:absolute; top:2px; right:2px; background:rgba(239,68,68,0.85); border:none; border-radius:50%; width:18px; height:18px; color:#fff; font-size:10px; cursor:pointer; line-height:1;" title="제거">&times;</button>`;
+            grid.appendChild(card);
+        }
+    }
+
+    // 우측 파일 드롭박스에서 직접 올릴 때
+    function addLibraryFiles(inputEl) {
+        Array.from(inputEl.files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = e => insertFileCard(file, file.name, e.target.result);
+            reader.readAsDataURL(file);
+        });
+        inputEl.value = '';
     }
     </script>
 
@@ -3759,3 +3793,4 @@
 <script src="gongsil_chatbot.js?v=20250329"></script>
 </body>
 </html>
+
