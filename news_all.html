@@ -849,6 +849,15 @@
             card.onclick = () => window.location.href = detailUrl;
             
             let extractUrl = (news.article_media && news.article_media.url) ? news.article_media.url : news.image_url;
+            
+            if (extractUrl && extractUrl.includes('youtube.com/embed/')) {
+                const parts = extractUrl.split('youtube.com/embed/');
+                if (parts.length > 1) {
+                    const vId = parts[1].split('?')[0].split('"')[0];
+                    extractUrl = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
+                }
+            }
+
             if(!extractUrl && news.content) {
                 const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
                 if(imgMatch) extractUrl = imgMatch[1];
