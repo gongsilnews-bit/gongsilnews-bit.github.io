@@ -442,7 +442,7 @@ function render() {
                  '<button class="btn-toolbar" style="padding:5px 14px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="goEdit()">✎ 수정</button>'+
                  '<button class="btn-toolbar" style="padding:5px 14px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#ef4444; font-weight:600; cursor:pointer;" onclick="deleteArticle()">🗑 삭제</button>'+
                  '<button class="btn-toolbar" style="padding:5px 14px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="shareArticle()">🔗 주소복사</button>'+
-                 '<button class="btn-toolbar" style="padding:5px 14px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" data-msg="미리보기 화면입니다" onclick="alert(this.dataset.msg)">💻 미리보기</button>'+
+                 '<button class="btn-toolbar" style="padding:5px 14px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="window.open(\'news_read.html?article_id=\'+articleId, \'_blank\')">💻 미리보기</button>'+
                  buildApproveBtn(a.status) +
             '</div>'+
           '</div>'+
