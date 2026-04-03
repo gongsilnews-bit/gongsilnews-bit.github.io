@@ -595,7 +595,7 @@
                 <td>
                     <div class="cell-actions">
                         ${verifyBtn}
-                        <button class="btn-edit" onclick="openEditModal('${data.id}','${data.email}','${data.role}','${data.membership || 'free'}','${expiredStr || ''}')">수정</button>
+                        <button class="btn-edit" onclick="goDetail('${data.id}')">수정</button>
                         <button class="btn-history" onclick="alert('수정내역 준비중입니다.')">수정내역</button>
                         <button class="btn-delete" onclick="deleteUser('${data.id}','${data.email}')">삭제</button>
                     </div>
