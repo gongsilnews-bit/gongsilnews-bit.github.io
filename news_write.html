@@ -443,7 +443,68 @@
         .lib-overlay-rep:hover { background: rgba(59,130,246,0.8); border-color: #3b82f6; }
         /* 에디터 하단 항상 여백(커서 버그 방지) */
         .note-editable { padding-bottom: 250px !important; }
-        /* \uc5d0\ub514\ud130 \ub0b4\ubd80 \uc720\ud29c\ube0c \ubc18\uc751\ud615 */
+        
+        /* 에디터 내부 사진/주석 구조 명확한 시각화 및 전체 드래그 이동 핸들 */
+        .note-editable .news-figure {
+            position: relative;
+            background: #f8fafc;
+            border: 1px solid #cbd5e1;
+            padding: 8px;
+            margin: 10px auto 20px auto !important;
+            display: block;
+            border-radius: 4px;
+        }
+        /* 이미지 개별 선택/드래그 시 구조가 찢어지는 현상 방지 */
+        .note-editable .news-figure[data-type="lib-img"] img {
+            pointer-events: none;
+            border-radius: 2px;
+        }
+        /* 주석(캡션) 부분 명확한 회색 배경 분리 */
+        .note-editable .news-figure figcaption {
+            background: #e2e8f0;
+            padding: 10px;
+            margin-top: 8px;
+            border-radius: 4px;
+            color: #475569;
+            font-size: 14px;
+            outline: none;
+            min-height: 20px;
+        }
+        .note-editable .news-figure figcaption:empty:before {
+            content: "주석 쓰기";
+            color: #94a3b8;
+        }
+        /* 우측 상단 드래그 핸들 (마우스 오버 시 표시) */
+        .note-editable .news-figure::before {
+            content: '✥';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #2563eb;
+            color: #fff;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            cursor: grab;
+            opacity: 0;
+            transition: opacity 0.2s, background 0.2s;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            pointer-events: auto;
+        }
+        .note-editable .news-figure:hover::before {
+            opacity: 1;
+        }
+        .note-editable .news-figure:active::before {
+            cursor: grabbing;
+            background: #1d4ed8;
+        }
+
+        /* 에디터 내부 유튜브 반응형 */
         .note-editable .yt-block { width: 100% !important; display: block; }
         .note-editable .yt-ratio-box { width: 100% !important; }
         /* 정렬 버튼 그룹 */
