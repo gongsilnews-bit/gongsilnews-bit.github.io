@@ -502,30 +502,33 @@
                         }
                     }
 
-                    // DB에서 실시간 검증 상태 로드
-                    if (window.gongsiClient && ud.id) {
-                        window.gongsiClient.from('members').select('verification_status, admin_note').eq('id', ud.id).single()
-                        .then(({data, error}) => {
-                            if (!error && data) {
-                                const rejBadge = document.getElementById('headerRejectionBadge');
-                                if (data.verification_status === 'rejected') {
-                                    rejBadge.style.display = 'inline-flex';
-                                    rejBadge.style.color = '#be123c';
-                                    rejBadge.style.background = '#fee2e2';
-                                    rejBadge.style.border = '1px solid #ef4444';
-                                    rejBadge.innerHTML = '🚨 보완요청 확인요망';
-                                } else if (data.verification_status === 'manual_required') {
-                                    rejBadge.style.display = 'inline-flex';
-                                    rejBadge.style.color = '#b45309';
-                                    rejBadge.style.background = '#fffbeb';
-                                    rejBadge.style.border = '1px solid #fde68a';
-                                    rejBadge.innerHTML = '⏳ 심사 대기중';
-                                } else {
-                                    rejBadge.style.display = 'none';
+                    // DB에서 실시간 검증 상태 로드 (초기 1회)
+                    window.updateRejectionBadge = function() {
+                        if (window.gongsiClient && ud.id) {
+                            window.gongsiClient.from('members').select('verification_status').eq('id', ud.id).single()
+                            .then(({data, error}) => {
+                                if (!error && data) {
+                                    const rejBadge = document.getElementById('headerRejectionBadge');
+                                    if (data.verification_status === 'rejected') {
+                                        rejBadge.style.display = 'inline-flex';
+                                        rejBadge.style.color = '#be123c';
+                                        rejBadge.style.background = '#fee2e2';
+                                        rejBadge.style.border = '1px solid #ef4444';
+                                        rejBadge.innerHTML = '🚨 보완요청 확인요망';
+                                    } else if (data.verification_status === 'manual_required') {
+                                        rejBadge.style.display = 'inline-flex';
+                                        rejBadge.style.color = '#b45309';
+                                        rejBadge.style.background = '#fffbeb';
+                                        rejBadge.style.border = '1px solid #fde68a';
+                                        rejBadge.innerHTML = '⏳ 심사 대기중';
+                                    } else {
+                                        rejBadge.style.display = 'none';
+                                    }
                                 }
-                            }
-                        });
-                    }
+                            });
+                        }
+                    };
+                    window.updateRejectionBadge();
                 }
             }, 500);
         });
@@ -550,6 +553,9 @@
             // 캐시 방지를 위해 랜덤 쿼리 추가
             const finalUrl = url.includes('?') ? (url + '&v=' + Date.now()) : (url + '?v=' + Date.now());
             frame.src = finalUrl;
+
+            // 페이지 이동 시 상단 배지 상태도 다시 체크
+            if(typeof window.updateRejectionBadge === 'function') window.updateRejectionBadge();
         }
 
         // 서브메뉴 클릭 시 iframe 소스 변경하는 함수
