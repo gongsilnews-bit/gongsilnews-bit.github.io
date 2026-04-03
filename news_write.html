@@ -2161,7 +2161,8 @@
                 }
                 // pasteHTML이 가장 강력하고 오작동이 적음
                 $editor.summernote('pasteHTML', htmlString);
-                // 삽입이 완료된 후 바뀐 최종 커서(문서 맨 끝 등)를 다시 기억!
+                // 삽입이 완료된 후 바뀐 최종 실시간 커서(문서 맨 끝 등)를 강제로 갱신 후 저장!
+                $editor.summernote('editor.saveRange');
                 savedRange = $editor.summernote('editor.getLastRange');
             } catch(e) {
                 console.error("에디터 노드 삽입 오류:", e);
