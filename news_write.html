@@ -1613,7 +1613,7 @@
 
     function forceInsertPhoto(url, photoId) {
         var imgId = 'photo_' + photoId;
-        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure>&#8203;';
+        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure>';
         if (typeof $ !== 'undefined' && $('#summernote').length) {
             try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) { }
         }
@@ -2159,11 +2159,31 @@
                 if (savedRange) {
                     $editor.summernote('editor.restoreRange', savedRange);
                 }
+                
+                // 완벽한 커서 추적을 위한 고유 마커 앵커 삽입
+                var markerId = 'cursor_marker_' + Date.now() + '_' + Math.floor(Math.random()*1000);
+                var safeHtml = htmlString + '<p id="' + markerId + '" style="margin:0; padding:0;"><br></p>';
+                
                 // pasteHTML이 가장 강력하고 오작동이 적음
-                $editor.summernote('pasteHTML', htmlString);
-                // 삽입이 완료된 후 바뀐 최종 실시간 커서(문서 맨 끝 등)를 강제로 갱신 후 저장!
-                $editor.summernote('editor.saveRange');
-                savedRange = $editor.summernote('editor.getLastRange');
+                $editor.summernote('pasteHTML', safeHtml);
+                
+                // 삽입이 완료된 후, 마커를 찾아 네이티브 커서를 집어넣음
+                var markerEl = document.getElementById(markerId);
+                if (markerEl) {
+                    var range = document.createRange();
+                    range.setStart(markerEl, 0);
+                    range.collapse(true);
+                    var sel = window.getSelection();
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    
+                    // 썸머노트에 강제 동기화 후 고유 ID 제거 (클린 DOM 유지)
+                    savedRange = $editor.summernote('editor.createRange');
+                    markerEl.removeAttribute('id');
+                } else {
+                    $editor.summernote('editor.saveRange');
+                    savedRange = $editor.summernote('editor.getLastRange');
+                }
             } catch(e) {
                 console.error("에디터 노드 삽입 오류:", e);
                 // 강제 추가 폴백
@@ -2240,8 +2260,7 @@
             var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + alignStr + '; margin:0 auto;">'
                 + '<img src="' + url + '" style="max-width:100%; display:block; width:100%;">'
                 + '<figcaption contenteditable="true">' + captionStr + '</figcaption>'
-                + '</figure>'
-                + '&#8203;'; // 커서를 피겨 밖으로 빼기 위한 폭 없는 공백
+                + '</figure>';
             insertNodeAtCursor(combinedHtml);
         };
 
@@ -2273,7 +2292,6 @@
                                 + '<figcaption contenteditable="true"></figcaption>'
                                 + '</figure>';
                         });
-                        combinedHtml += '&#8203;'; // 사진 묶음 삽입 후 커서를 밖으로 뺌
                         renderPhotoGrid();
                         insertNodeAtCursor(combinedHtml); // 한 번만 삽입
                     }
