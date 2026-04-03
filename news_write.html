@@ -2292,13 +2292,7 @@
             }
             renderPhotoGrid();
 
-            if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
-                try { $('#summernote').summernote('insertImage', url); } catch(e) {
-                    window.insertNodeAtCursor('<img src="' + url + '" style="max-width:100%; display:block;">'); 
-                }
-            } else {
-                window.insertNodeAtCursor('<img src="' + url + '" style="max-width:100%; display:block;">');
-            }
+            window.insertNodeAtCursor('<img src="' + url + '" style="max-width:100%; display:block; margin: 8px auto;">');
         };
 
 
@@ -2323,9 +2317,7 @@
                         });
                         renderPhotoGrid();
                         results.forEach(function(dataUrl) {
-                            if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
-                                try { $('#summernote').summernote('insertImage', dataUrl); } catch(e) {}
-                            }
+                            window.insertNodeAtCursor('<img src="' + dataUrl + '" style="max-width:100%; display:block; margin: 8px auto;">');
                         });
                     }
                 };
