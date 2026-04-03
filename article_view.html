@@ -371,6 +371,19 @@ function render() {
         }).join('');
     }
 
+    var relatedHtml = '';
+    if (a.related_articles && Array.isArray(a.related_articles) && a.related_articles.length > 0) {
+        var relList = a.related_articles.map(function(r) {
+            return '<a href="news_read.html?article_id='+r.id+'" target="_blank" style="font-size:15px; color:#333; text-decoration:none; display:flex; align-items:flex-start; line-height:1.4;" onmouseover="this.style.color=\'#1a73e8\'; this.style.textDecoration=\'underline\'" onmouseout="this.style.color=\'#333\'; this.style.textDecoration=\'none\'">' +
+                   '<span style="color:#aaa; font-weight:bold; margin-right:8px; display:inline-block; padding-top:2px;">ㄴ</span>' +
+                   '<span style="flex:1; word-break:keep-all;">' + escHtml(r.title) + '</span></a>';
+        }).join('');
+        relatedHtml = '<div style="margin-top: 40px; padding: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">' +
+            '<div style="font-size:16px; font-weight:800; color:#111; margin-bottom:15px; display:flex; align-items:center; gap:8px;">' +
+            '<span style="display:inline-block; width:4px; height:16px; background:#508bf5; border-radius:2px;"></span>관련 기사</div>' +
+            '<div style="display:flex; flex-direction:column; gap:12px;">' + relList + '</div></div>';
+    }
+
     var footerHtml = '<div id="articleFooterArea" style="margin-top: 40px;">'+
         '<div id="footerKeywords" style="display:'+(kwHtml?'flex':'none')+'; flex-wrap:wrap; gap:8px; margin-bottom:40px;">'+kwHtml+'</div>'+
         '<div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ccc; border-bottom:1px solid #ccc; padding:15px 0; margin-bottom:50px; font-size:15px;">'+
@@ -451,6 +464,8 @@ function render() {
             subtitleHtml +
             bodyHtml +
           '</div>'+
+          relatedHtml +
+          footerHtml +
         '</div>'+
       '</div>'+
       
@@ -490,6 +505,9 @@ function render() {
             btn.classList.add('active');
         });
     });
+
+    // 댓글 목록 최초 로드 호출
+    loadPortalComments(articleId);
 }
 
 // ── 포털 댓글 로드 및 등록 함수 (article_view.html 전용) ──
