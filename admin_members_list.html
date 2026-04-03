@@ -108,7 +108,7 @@
             text-align: center; white-space: nowrap; font-size: 12px;
         }
         td {
-            padding: 9px 6px; border-bottom: 1px solid #f1f3f5;
+            padding: 13px 6px; border-bottom: 1px solid #f1f3f5;
             text-align: center; vertical-align: middle; color: #222;
             font-size: 13px;
         }
@@ -275,10 +275,10 @@
                 <col style="width:70px;">   <!-- 이름 -->
                 <col style="width:110px;">  <!-- 연락처 -->
                 <col style="width:90px;">   <!-- 회원구분 -->
+                <col style="width:90px;">   <!-- 부동산인증상태 -->
                 <col style="width:60px;">   <!-- 멤버십 -->
                 <col style="width:110px;">  <!-- 유료회원기간 -->
                 <col style="width:66px;">   <!-- 상태 -->
-                <col style="width:80px;">   <!-- 부동산인증상태 -->
                 <col>                       <!-- 관리 (나머지 공간 모두) -->
             </colgroup>
             <thead>
@@ -289,10 +289,10 @@
                     <th>이름</th>
                     <th>연락처</th>
                     <th>회원구분</th>
+                    <th>부동산 인증상태</th>
                     <th>멤버십</th>
                     <th>유료 회원 기간</th>
                     <th>상태</th>
-                    <th>부동산 인증상태</th>
                     <th>관리</th>
                 </tr>
             </thead>
@@ -567,15 +567,14 @@
                 <td><span class="member-no">${memberNoStr}</span></td>
                 <td style="text-align:left; padding-left:10px;">
                     <div class="user-email">${data.email || '-'}</div>
-                    <div class="user-name-sub">${data.name || ''}</div>
                 </td>
                 <td>${data.name || '-'}</td>
                 <td class="phone-text">${phoneStr}</td>
                 <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+                <td>${verifyHtml}</td>
                 <td>${membershipHtml}</td>
                 <td>${paidPeriodHtml}</td>
                 <td>${statusHtml}</td>
-                <td>${verifyHtml}</td>
                 <td>
                     <div class="cell-actions">
                         ${verifyBtn}
