@@ -260,7 +260,7 @@ async function loadPortalNews(category, isLoadMore = false) {
             }
 
             if (!imgUrl) {
-                imgUrl = `https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News`;
+                // imgUrl = `https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News`;
             }
 
             let desc = a.subtitle || '';
@@ -457,9 +457,17 @@ function generatePortalListHtml(newsList) {
     if (!newsList || newsList.length === 0) return '';
     return newsList.map(news => {
         const esc = JSON.stringify(news).replace(/"/g, '&quot;');
-        const img = news.image_url ? `<img src="${news.image_url}" class="portal-list-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News'; this.onload=null; }" onerror="this.src='https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News';">` : '<div style="width:100%;height:100%;background:#f0f0f0;"></div>';
-        let playOverlay = news.video_id ? '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.4); border-radius:50%; border: 2.5px solid white; display:flex; align-items:center; justify-content:center; z-index:5;"><svg viewBox="0 0 24 24" width="20" height="20" fill="white" style="margin-left:3px;"><path d="M8 5v14l11-7z"/></svg></div>' : '';
-        let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
+        let imgHtmlWrapper = '';
+        if (news.image_url) {
+            const img = `<img src="${news.image_url}" class="portal-list-img" onload="if(this.src.includes('youtube.com') && this.naturalWidth === 120) { this.src='https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News'; this.onload=null; }" onerror="this.src='https://via.placeholder.com/600x400/eeeeee/cccccc?text=Gongsil+News';">`;
+            let playOverlay = news.video_id ? '<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.4); border-radius:50%; border: 2.5px solid white; display:flex; align-items:center; justify-content:center; z-index:5;"><svg viewBox="0 0 24 24" width="20" height="20" fill="white" style="margin-left:3px;"><path d="M8 5v14l11-7z"/></svg></div>' : '';
+            let hoverEvent = news.video_id ? `onmouseenter="window.playYtPreview(this, '${news.video_id}')" onmouseleave="window.stopYtPreview(this)"` : '';
+            imgHtmlWrapper = `<div class="portal-list-img-wrap" style="position:relative; overflow:hidden;" ${hoverEvent}>
+                    ${img}
+                    ${playOverlay}
+                </div>`;
+        }
+
         const date = news.pub_date ? new Date(news.pub_date).toLocaleDateString('ko-KR') : '-';
         return `
             <a href="javascript:void(0)" class="portal-list-item" onclick="window.showNewsDetail(${esc})">
@@ -468,10 +476,7 @@ function generatePortalListHtml(newsList) {
                     <div class="portal-list-desc">${news.description ? news.description.substring(0, 100) + '...' : ''}</div>
                     <div class="portal-list-meta">${news.author || '공실뉴스'} · ${date}</div>
                 </div>
-                <div class="portal-list-img-wrap" style="position:relative; overflow:hidden;" ${hoverEvent}>
-                    ${img}
-                    ${playOverlay}
-                </div>
+                ${imgHtmlWrapper}
             </a>
         `;
     }).join('');
