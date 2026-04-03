@@ -1,21 +1,18 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-    <script src="admin_darkmode.js"></script>
-    <link rel="stylesheet" href="admin_dark.css">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>회원관리 - 공실뉴스 Admin</title>
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
     <style>
-        /* ── 매물관리와 동일한 디자인 토큰 ── */
         :root {
             --primary-color: #ff9f1c;
             --bg-body: #f4f5f7;
             --bg-card: #ffffff;
             --border-color: #e1e4e8;
-            --text-main: #333333;
-            --text-sub: #666666;
+            --text-main: #222222;
+            --text-sub: #555555;
             --blue-filter-bg: #f0f4fc;
             --dark-btn-bg: #4b5563;
         }
@@ -48,10 +45,10 @@
             margin-bottom: 24px;
         }
         .card-header-left { display: flex; align-items: baseline; gap: 12px; }
-        .card-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111; }
-        .card-header .sub-info { font-size: 13px; color: #888; }
-        .card-header .sub-info b { color: #333; }
-        .card-header .total-count { font-size: 13px; color: #888; }
+        .card-header h2 { margin: 0; font-size: 1.35rem; font-weight: 800; color: #111; }
+        .card-header .sub-info { font-size: 14px; color: #888; }
+        .card-header .sub-info b { color: #333; font-weight: 700; }
+        .card-header .total-count { font-size: 14px; color: #888; font-weight: 600; }
 
         /* ── 검색 필터 ── */
         .filter-container {
@@ -65,7 +62,7 @@
             align-items: center;
         }
         .filter-group { display: flex; align-items: center; gap: 6px; }
-        .filter-label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+        .filter-label { font-size: 13px; font-weight: 700; color: #444; white-space: nowrap; }
 
         .filter-input {
             padding: 7px 10px;
@@ -85,7 +82,7 @@
             background-color: var(--dark-btn-bg);
             color: white; border: none;
             padding: 7px 14px; border-radius: 4px;
-            font-size: 13px; font-weight: 600;
+            font-size: 13px; font-weight: 700;
             cursor: pointer; display: flex; align-items: center; gap: 4px;
             font-family: inherit; transition: background 0.15s;
         }
@@ -102,7 +99,7 @@
         .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .left-actions { display: flex; gap: 6px; }
         .btn {
-            padding: 6px 12px; font-size: 13px; font-weight: 500;
+            padding: 6px 12px; font-size: 13px; font-weight: 600;
             border-radius: 4px; border: 1px solid #d1d5db;
             background: #fff; cursor: pointer;
             display: inline-flex; align-items: center; gap: 4px;
@@ -120,29 +117,31 @@
 
         table {
             width: 100%; border-collapse: collapse;
-            font-size: 13px; min-width: 900px;
+            font-size: 14px; min-width: 900px;
         }
         th {
             background-color: #fafafa;
             border-bottom: 1px solid #e5e7eb;
-            padding: 12px 8px; font-weight: 700;
-            color: #333; text-align: center; white-space: nowrap;
+            padding: 13px 8px; font-weight: 700;
+            color: #111; text-align: center; white-space: nowrap;
+            font-size: 13px;
         }
         td {
-            padding: 14px 8px; border-bottom: 1px solid #f1f3f5;
-            text-align: center; vertical-align: middle; color: #444;
+            padding: 13px 8px; border-bottom: 1px solid #f1f3f5;
+            text-align: center; vertical-align: middle; color: #222;
+            font-size: 13px;
         }
         tr:hover td { background-color: #fafcff; }
 
         /* ── 회원번호 ── */
-        .member-no { font-size: 11px; color: #aaa; font-weight: 600; }
+        .member-no { font-size: 12px; color: #aaa; font-weight: 700; }
 
-        /* ── 공통 배지/버튼 기본 스타일 ── */
-        .badge, .status-badge, .role-badge, .membership-badge {
+        /* ── 공통 배지 ── */
+        .status-badge, .role-badge, .membership-badge {
             display: inline-flex; align-items: center; justify-content: center; gap: 3px;
             padding: 4px 10px;
             border-radius: 5px;
-            font-size: 12px; font-weight: 600;
+            font-size: 12px; font-weight: 700;
             border: 1px solid #d1d5db;
             background: #fff;
             color: #374151;
@@ -150,26 +149,38 @@
             font-family: inherit;
         }
 
-        /* ── 상태 배지 - 색상 구분만 최소화 ── */
+        /* 상태 */
         .status-normal  { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
         .status-expired { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
         .status-pending { background: #fffbeb; color: #b45309; border-color: #fde68a; }
 
-        /* ── 회원구분 배지 ── */
+        /* 회원구분 */
         .role-admin   { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
         .role-realtor { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
         .role-general { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
 
-        /* ── 멤버십 배지 ── */
+        /* 멤버십 */
         .membership-free { background: #f8fafc; color: #64748b; border-color: #cbd5e1; }
         .membership-paid { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+        /* ── 아이디/이름 셀 ── */
+        .user-email { font-size: 13px; color: #222; font-weight: 600; }
+        .user-name-sub { font-size: 11px; color: #999; margin-top: 2px; }
+
+        /* ── 유료기간 셀 ── */
+        .paid-period { font-size: 12px; color: #555; }
+        .paid-period.active  { color: #15803d; font-weight: 700; }
+        .paid-period.expired { color: #be123c; }
+
+        /* ── 날짜 ── */
+        .date-text { font-size: 12px; color: #888; }
 
         /* ── 관리 버튼 ── */
         .cell-actions { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
 
         .btn-edit, .btn-delete, .btn-history {
             padding: 5px 11px;
-            font-size: 12px; font-weight: 600;
+            font-size: 12px; font-weight: 700;
             border-radius: 5px;
             border: 1px solid #d1d5db;
             background: #fff;
@@ -180,23 +191,10 @@
             transition: background 0.13s, border-color 0.13s;
         }
         .btn-edit:hover    { background: #f8fafc; border-color: #9ca3af; }
-        .btn-delete        { color: #dc2626; border-color: #fca5a5; background: #fff; }
+        .btn-delete        { color: #dc2626; border-color: #fca5a5; }
         .btn-delete:hover  { background: #fff1f2; border-color: #f87171; }
-        .btn-history       { color: #2563eb; border-color: #bfdbfe; background: #fff; }
+        .btn-history       { color: #2563eb; border-color: #bfdbfe; }
         .btn-history:hover { background: #eff6ff; border-color: #93c5fd; }
-
-        /* ── 아이디/이름 셀 ── */
-        .cell-user { text-align: left; min-width: 180px; }
-        .user-email { font-size: 12px; color: #555; }
-        .user-name  { font-size: 13px; font-weight: 700; color: #111; }
-
-        /* ── 유료기간 셀 ── */
-        .paid-period { font-size: 12px; color: #555; }
-        .paid-period.active  { color: #15803d; font-weight: 700; }
-        .paid-period.expired { color: #be123c; }
-
-        /* ── 날짜 ── */
-        .date-text { font-size: 12px; color: #888; }
 
         /* ── 페이지네이션 ── */
         .pagination { display: flex; justify-content: center; margin-top: 32px; gap: 4px; }
@@ -301,17 +299,16 @@
         <table>
             <colgroup>
                 <col style="width:44px;">
-                <col style="width:80px;">  <!-- 회원번호 -->
-                <col style="width:80px;">  <!-- 상태 -->
-                <col>                      <!-- 아이디 -->
-                <col style="width:80px;">  <!-- 이름 -->
-                <col style="width:130px;"> <!-- 연락처 -->
+                <col style="width:76px;">  <!-- 회원번호 -->
+                <col style="width:72px;">  <!-- 상태 -->
+                <col style="width:220px;"> <!-- 아이디 -->
+                <col style="width:70px;">  <!-- 이름 -->
+                <col style="width:100px;"> <!-- 회원구분 -->
+                <col style="width:70px;">  <!-- 멤버십 -->
+                <col style="width:120px;"> <!-- 유료 회원 기간 -->
                 <col style="width:90px;">  <!-- 회원가입일 -->
-                <col style="width:90px;">  <!-- 회원종류 -->
-                <col style="width:140px;"> <!-- 유료 회원 기간 -->
-                <col style="width:90px;">  <!-- 가입일 -->
-                <col style="width:110px;"> <!-- 인증상태 -->
-                <col style="width:110px;"> <!-- 관리 -->
+                <col style="width:100px;"> <!-- 인증상태 -->
+                <col style="width:130px;"> <!-- 관리 -->
             </colgroup>
             <thead>
                 <tr>
@@ -329,7 +326,7 @@
                 </tr>
             </thead>
             <tbody id="userTableBody">
-                <tr><td colspan="10" style="padding:60px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>
+                <tr><td colspan="11" style="padding:60px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>
             </tbody>
         </table>
     </div>
@@ -423,12 +420,12 @@
     <div class="modal-content" style="width: 520px;">
         <div class="modal-header">📄 부동산 회원 서류 검토</div>
         <input type="hidden" id="verifyUid">
-        
+
         <div class="modal-group">
             <label>가입자 이메일</label>
             <input type="text" id="verifyEmail" disabled style="background:#f9fafb;">
         </div>
-        
+
         <div style="display:flex; gap:12px;">
             <div class="modal-group" style="flex:1;">
                 <label>상호명</label>
@@ -465,7 +462,7 @@
         </div>
 
         <div id="verifyModalMsg" style="margin-top:10px; font-size:13px; color:#d9534f; display:none;"></div>
-        
+
         <div class="modal-btns">
             <button class="modal-btn cancel" onclick="closeModal('verifyModal')">닫기</button>
             <button class="modal-btn" id="btnRejectVerify" style="background:#dc2626; color:white;">반려 (거절)</button>
@@ -481,32 +478,28 @@
 <script type="module">
     const supabase = window.gongsiClient;
 
-    // ── 전역 모달 닫기 ──
     window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
-    // ── 전체선택 ──
     document.getElementById('chkAll').addEventListener('change', function () {
         document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
     });
 
-    // ── 회원 목록 로드 ──
     let allUsers = [];
 
     async function loadUsers() {
         const tbody = document.getElementById('userTableBody');
-        tbody.innerHTML = '<tr><td colspan="10" style="padding:60px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="padding:60px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>';
 
         try {
             const { data: users, error, count } = await supabase
                 .from('members')
                 .select('*', { count: 'exact' })
-                .order('created_at', { ascending: true }); // 가입순 정렬로 member_no 부여
+                .order('created_at', { ascending: true });
 
             if (error) throw error;
 
             allUsers = users || [];
 
-            // 요약 카운트
             const adminCnt   = allUsers.filter(u => u.role === 'admin').length;
             const realtorCnt = allUsers.filter(u => u.role === 'realtor').length;
             const generalCnt = allUsers.filter(u => u.role === 'general').length;
@@ -520,7 +513,7 @@
 
         } catch (e) {
             console.error(e);
-            tbody.innerHTML = `<tr><td colspan="10" style="color:#dc2626; padding:40px;">데이터 로드 오류: ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="11" style="color:#dc2626; padding:40px;">데이터 로드 오류: ${e.message}</td></tr>`;
         }
     }
 
@@ -529,7 +522,7 @@
         tbody.innerHTML = '';
 
         if (!users || users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="padding:60px; color:#bbb;">조회된 회원이 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="padding:60px; color:#bbb;">조회된 회원이 없습니다.</td></tr>';
             return;
         }
 
@@ -537,7 +530,7 @@
         now.setHours(0,0,0,0);
 
         users.forEach((data, idx) => {
-            const memberNo = data.member_no || (idx + 1); 
+            const memberNo = data.member_no || (idx + 1);
             const memberNoStr = String(memberNo).padStart(6, '0');
 
             // 1. 역할 배지
@@ -546,15 +539,15 @@
             if (data.role === 'admin')   { roleClass = 'role-admin';   roleText = '최고관리자'; }
             if (data.role === 'realtor') { roleClass = 'role-realtor'; roleText = '부동산회원'; }
 
-            // 2. 멤버십 배지 & D-Day 계산
+            // 2. 멤버십 배지
             const isPaid = data.membership === 'paid';
-            const membershipHtml = isPaid 
+            const membershipHtml = isPaid
                 ? '<span class="membership-badge membership-paid">👑 유료</span>'
                 : '<span class="membership-badge membership-free">무료</span>';
 
             let statusHtml = '<span class="status-badge status-normal">정상</span>';
             let dDayHtml = '';
-            
+
             const createdStr = data.created_at ? data.created_at.split('T')[0] : '-';
             const expiredStr = data.expired_at ? data.expired_at.split('T')[0] : null;
 
@@ -563,12 +556,12 @@
                 expDate.setHours(0,0,0,0);
                 const diffTime = expDate - now;
                 const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                
+
                 if (diffDays < 0) {
                     statusHtml = '<span class="status-badge status-expired">기간만료</span>';
-                    dDayHtml = `<span style="color:#e03131; font-size:11px; font-weight:700;">(만료됨)</span>`;
+                    dDayHtml = `<span style="color:#be123c; font-size:11px; font-weight:700;">(만료됨)</span>`;
                 } else {
-                    const dDayCls = diffDays <= 7 ? 'color:#e03131; font-weight:bold;' : 'color:#166534;';
+                    const dDayCls = diffDays <= 7 ? 'color:#be123c; font-weight:bold;' : 'color:#15803d;';
                     dDayHtml = `<span style="${dDayCls} font-size:11px;">(D-${diffDays})</span>`;
                 }
             }
@@ -586,15 +579,20 @@
                 `;
             }
 
-            // 4. 인증 상태 배지 (부동산 회원 전용)
-            let verifyHtml = '-';
+            // 4. 인증 상태 배지
+            let verifyHtml = '<span style="color:#ccc;">-</span>';
             if (data.role === 'realtor') {
                 const vs = data.verification_status || 'pending';
-                if (vs === 'auto_verified') verifyHtml = '<span class="status-badge" style="background:#dcfce7;color:#166534;">자동검증완료</span>';
-                else if (vs === 'manual_required') verifyHtml = '<span class="status-badge" style="background:#fef3c7;color:#92400e;">심사대기요망</span>';
-                else if (vs === 'approved') verifyHtml = '<span class="status-badge" style="background:#dbeafe;color:#1e40af;">승인완료</span>';
-                else if (vs === 'rejected') verifyHtml = '<span class="status-badge" style="background:#fee2e2;color:#991b1b;">반려됨</span>';
-                else verifyHtml = '<span class="status-badge" style="background:#f3f4f6;color:#374151;">정보입력중</span>';
+                if (vs === 'auto_verified')
+                    verifyHtml = '<span class="status-badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">자동검증</span>';
+                else if (vs === 'manual_required')
+                    verifyHtml = '<span class="status-badge" style="background:#fffbeb;color:#b45309;border-color:#fde68a;">심사대기</span>';
+                else if (vs === 'approved')
+                    verifyHtml = '<span class="status-badge" style="background:#f0f9ff;color:#0369a1;border-color:#bae6fd;">승인완료</span>';
+                else if (vs === 'rejected')
+                    verifyHtml = '<span class="status-badge" style="background:#fff1f2;color:#be123c;border-color:#fecdd3;">반려됨</span>';
+                else
+                    verifyHtml = '<span class="status-badge" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">입력중</span>';
             }
 
             const tr = document.createElement('tr');
@@ -604,7 +602,7 @@
                 <td>${statusHtml}</td>
                 <td style="text-align:left; padding-left:12px;">
                     <div class="user-email">${data.email || '-'}</div>
-                    <div style="font-size:11px; color:#999;">${data.name || ''}</div>
+                    <div class="user-name-sub">${data.name || ''}</div>
                 </td>
                 <td>${data.name || '-'}</td>
                 <td><span class="role-badge ${roleClass}">${roleText}</span></td>
@@ -625,7 +623,6 @@
         });
     }
 
-    // ── 검색/초기화 ──
     document.getElementById('btnSearch').addEventListener('click', () => {
         const keyword = document.getElementById('filterKeyword').value.trim().toLowerCase();
         const role    = document.getElementById('filterRole').value;
@@ -650,16 +647,13 @@
         renderTable(allUsers);
     });
 
-    // ── 수정 모달 ──
     window.openEditModal = function(id, email, role, membership, expStr) {
         document.getElementById('editUid').value = id;
         document.getElementById('editEmail').value = email;
         document.getElementById('editRole').value = role;
         document.getElementById('editMembership').value = membership || 'free';
         document.getElementById('editExpiredAt').value = expStr || '';
-
         toggleDateGroup(membership || 'free');
-
         document.getElementById('modalMsg').style.display = 'none';
         document.getElementById('editModal').style.display = 'flex';
     };
@@ -672,18 +666,17 @@
         toggleDateGroup(e.target.value);
     });
 
-    // 실시간 잔여일수 계산 표시 (추가)
     document.getElementById('editExpiredAt').addEventListener('change', function() {
         const msgObj = document.getElementById('modalMsg');
         if (!this.value) { msgObj.style.display = 'none'; return; }
-        
+
         const expDate = new Date(this.value);
         const now = new Date();
         now.setHours(0,0,0,0);
         expDate.setHours(0,0,0,0);
-        
+
         const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
-        
+
         msgObj.style.display = 'block';
         if (diffDays < 0) {
             msgObj.style.color = '#dc2626';
@@ -697,19 +690,17 @@
     window.setQuickDate = function(days) {
         const input = document.getElementById('editExpiredAt');
         let baseDate = input.value ? new Date(input.value) : new Date();
-        // 만약 과거 날짜라면 오늘부터 계산
         if (baseDate < new Date()) baseDate = new Date();
-        
         baseDate.setDate(baseDate.getDate() + days);
         input.value = baseDate.toISOString().split('T')[0];
     };
 
     document.getElementById('btnSaveEdit').addEventListener('click', async () => {
-        const id          = document.getElementById('editUid').value;
-        const role        = document.getElementById('editRole').value;
-        const membership  = document.getElementById('editMembership').value;
-        const dateStr     = document.getElementById('editExpiredAt').value;
-        const msgObj      = document.getElementById('modalMsg');
+        const id         = document.getElementById('editUid').value;
+        const role       = document.getElementById('editRole').value;
+        const membership = document.getElementById('editMembership').value;
+        const dateStr    = document.getElementById('editExpiredAt').value;
+        const msgObj     = document.getElementById('modalMsg');
 
         msgObj.style.display = 'block';
         msgObj.style.color = '#2563eb';
@@ -734,7 +725,6 @@
         }
     });
 
-    // ── 삭제 ──
     window.deleteUser = async function(id, email) {
         if (!confirm(`경고: '${email}' 회원을 삭제하시겠습니까?`)) return;
         try {
@@ -747,7 +737,6 @@
         }
     };
 
-    // ── 사전 등록 모달 ──
     const regRoleSelect = document.getElementById('regRole');
     const regDateGroup  = document.getElementById('regDateGroup');
 
@@ -804,7 +793,6 @@
         }
     });
 
-    // ── 부동산 서류 검토 ──
     window.openVerifyModal = async function(id) {
         document.getElementById('verifyUid').value = id;
         document.getElementById('verifyModalMsg').style.display = 'none';
@@ -813,16 +801,16 @@
         try {
             const { data, error } = await supabase.from('members').select('*').eq('id', id).single();
             if (error) throw error;
-            
+
             document.getElementById('verifyEmail').value = data.email || '';
             document.getElementById('verifyCompName').value = data.company_name || '';
             document.getElementById('verifyCeo').value = data.ceo_name || '';
             document.getElementById('verifyBrokerNo').value = data.company_reg_no || '';
             document.getElementById('verifyBizNo').value = data.biz_reg_no || '';
-            
+
             const linkBiz = document.getElementById('linkBizDoc');
             const linkBroker = document.getElementById('linkBrokerDoc');
-            
+
             if (data.license_image) {
                 linkBiz.href = data.license_image;
                 linkBiz.style.pointerEvents = 'auto';
@@ -834,7 +822,7 @@
                 linkBiz.style.color = '#ccc';
                 linkBiz.textContent = '첨부 안됨';
             }
-            
+
             if (data.license_image_brokerage) {
                 linkBroker.href = data.license_image_brokerage;
                 linkBroker.style.pointerEvents = 'auto';
@@ -860,7 +848,7 @@
         const id = document.getElementById('verifyUid').value;
         const note = document.getElementById('verifyNote').value.trim();
         const msg = document.getElementById('verifyModalMsg');
-        
+
         if (status === 'rejected' && !note) {
             alert("거절 사유(검토 메모)를 입력해주세요.");
             return;
@@ -869,16 +857,16 @@
         msg.style.display = 'block';
         msg.style.color = '#2563eb';
         msg.textContent = '처리 중...';
-        
+
         try {
             const { error } = await supabase.from('members').update({
                 verification_status: status,
                 admin_note: note,
                 approved_at: status === 'approved' ? new Date().toISOString() : null
             }).eq('id', id);
-            
+
             if (error) throw error;
-            
+
             closeModal('verifyModal');
             loadUsers();
             alert(status === 'approved' ? '승인되었습니다.' : '반려 처리되었습니다.');
@@ -888,7 +876,6 @@
         }
     }
 
-    // ── 초기 실행 ──
     loadUsers();
 </script>
 </body>

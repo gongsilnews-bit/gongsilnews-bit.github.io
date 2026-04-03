@@ -54,21 +54,26 @@ html.dark-mode td {
 html.dark-mode tr:hover td { background-color: #2c2d31 !important; }
 html.dark-mode tbody tr:nth-child(even) { background-color: #222327 !important; }
 
-/* ── 입력 필드 ── */
+/* ── 입력 필드: 다크모드에서 밝게 유지 (정보가 잘 보이도록) ── */
 html.dark-mode input,
 html.dark-mode select,
 html.dark-mode textarea {
-    background-color: #2c2d31 !important;
-    border-color: #444 !important;
-    color: #e1e4e8 !important;
+    background-color: #f9fafb !important;
+    border-color: #555 !important;
+    color: #111 !important;
 }
 html.dark-mode input::placeholder,
-html.dark-mode textarea::placeholder { color: #6b7280 !important; }
+html.dark-mode textarea::placeholder { color: #9ca3af !important; }
 html.dark-mode input:focus,
 html.dark-mode select:focus,
 html.dark-mode textarea:focus {
     outline-color: #74b3ff !important;
     border-color: #74b3ff !important;
+}
+/* 체크박스는 그대로 */
+html.dark-mode input[type="checkbox"] {
+    background-color: transparent !important;
+    color: inherit !important;
 }
 
 /* ── 버튼 ── */
