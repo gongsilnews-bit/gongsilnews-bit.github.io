@@ -268,11 +268,12 @@
                     <th style="width: 140px;">1차섹션</th>
                     <th style="width: 160px;">2차섹션</th>
                     <th style="width: 150px;">승인일자</th>
+                    <th style="width: 140px;">작성자 / 연락처</th>
                     <th style="width: 90px;">관리</th>
                 </tr>
             </thead>
             <tbody id="articleTableBody">
-                <tr><td colspan="8" style="text-align:center; color:#aaa; padding:40px;">로딩 중...</td></tr>
+                <tr><td colspan="9" style="text-align:center; color:#aaa; padding:40px;">로딩 중...</td></tr>
             </tbody>
         </table>
     </div>
@@ -321,14 +322,14 @@
 
     async function loadArticles() {
         if (!sb) {
-            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#e11d48;padding:40px;">Supabase 클라이언트 초기화 실패. 세션을 확인하세요.</td></tr>';
+            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#e11d48;padding:40px;">Supabase 클라이언트 초기화 실패. 세션을 확인하세요.</td></tr>';
             return;
         }
-        document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:40px;">로딩 중...</td></tr>';
+        document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:40px;">로딩 중...</td></tr>';
 
         var from = (currentPage-1)*PAGE_SIZE, to = from+PAGE_SIZE-1;
         var q = sb.from('articles')
-            .select('id,status,article_type,title,section1,section2,reporter_name,created_at,view_count',{count:'exact'})
+            .select('id,status,article_type,title,section1,section2,reporter_name,author_id,created_at,view_count',{count:'exact'})
             .order('created_at',{ascending:false})
             .range(from,to);
         if (activeFilter.status  !== 'all') q = q.eq('status',  activeFilter.status);
@@ -337,23 +338,56 @@
 
         var res = await q;
         if (res.error) {
-            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:#e11d48;padding:40px;">로딩 오류: '+res.error.message+'</td></tr>';
+            document.getElementById('articleTableBody').innerHTML = '<tr><td colspan="9" style="text-align:center;color:#e11d48;padding:40px;">로딩 오류: '+res.error.message+'</td></tr>';
             return;
         }
         totalCount = res.count || 0;
-        renderTable(res.data || []);
+        var articles = res.data || [];
+
+        // 조회된 기사들의 작성자 ID 추출 후 members 테이블에서 정보(이름, 전화번호, 롤) 한 번에 불러오기
+        var authorIds = [...new Set(articles.map(a => a.author_id).filter(id => id))];
+        var memberMap = {};
+        if (authorIds.length > 0) {
+            var { data: membersObj } = await sb.from('members').select('id, role, name, phone, cell_num, company_name').in('id', authorIds);
+            if (membersObj) {
+                membersObj.forEach(m => memberMap[m.id] = m);
+            }
+        }
+
+        renderTable(articles, memberMap);
         renderPagination();
     }
 
-    function renderTable(rows) {
+    function renderTable(rows, memberMap) {
         var tbody = document.getElementById('articleTableBody');
         if (!rows.length) {
-            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#aaa;padding:40px;">등록된 기사가 없습니다.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;color:#aaa;padding:40px;">등록된 기사가 없습니다.</td></tr>';
             return;
         }
         tbody.innerHTML = rows.map(function(a){
             var si = statusInfo(a.status);
             var icon = (a.article_type !== 'normal') ? ' 🖼️' : '';
+            
+            // 작성자 정보 매핑
+            var m = memberMap[a.author_id] || {};
+            var mName = m.company_name || m.name || a.reporter_name || '알수없음';
+            var mPhone = m.cell_num || m.phone || '-';
+            var mRoleCls = 'btn-edit';
+            var mRoleTxt = '일반';
+            if(m.role === 'realtor') { mRoleTxt = '부동산'; mRoleCls = 'color:#3b82f6; background:#eff6ff; padding:2px 4px; border-radius:3px; font-weight:700;'; }
+            else if(m.role === 'admin') { mRoleTxt = '관리자'; mRoleCls = 'color:#e11d48; background:#fff1f2; padding:2px 4px; border-radius:3px; font-weight:700;'; }
+            else { mRoleCls = 'color:#4b5563; background:#f3f4f6; padding:2px 4px; border-radius:3px; font-weight:700;'; }
+
+            var authorHtml = `
+                <div style="display:flex; flex-direction:column; gap:4px; align-items:center;">
+                    <div style="display:flex; align-items:center; gap:4px;">
+                        <span style="font-size:10px; ${mRoleCls}">${mRoleTxt}</span>
+                        <span style="font-weight:700; font-size:12px;">${escHtml(mName)}</span>
+                    </div>
+                    <span style="font-size:11px; color:#888;">${escHtml(mPhone)}</span>
+                </div>
+            `;
+
             return '<tr>'
               +'<td><input type="checkbox" class="row-check" data-id="'+a.id+'"></td>'
               +'<td style="color:#888; font-weight:600;">'+a.id+'</td>'
@@ -362,6 +396,7 @@
               +'<td class="section-primary">'+(a.section1||'-')+'</td>'
               +'<td class="section-secondary">'+(a.section2||'-')+'</td>'
               +'<td class="date-text">'+formatDate(a.created_at)+'</td>'
+              +'<td>'+authorHtml+'</td>'
               +'<td style="white-space:nowrap;">'
               +  '<button class="btn-edit" onclick="goEdit('+a.id+')">수정</button>'
               +  '<button class="btn-delete" onclick="deleteArticle('+a.id+',\''+escHtml(a.title||'')+'\')">삭제</button>'
