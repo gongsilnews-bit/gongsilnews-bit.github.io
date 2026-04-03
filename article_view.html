@@ -771,15 +771,29 @@ async function rejectArticle() {
     }
     
     // 2. 관리자 반려 사유 댓글 등록 (작성자 확인 용)
-    var commentRes = await sb.from('article_comments').insert([{
+    const { data: { session } } = await sb.auth.getSession();
+    var userId = session ? session.user.id : null;
+    if (!userId) {
+        var udObj = {}; try { udObj = JSON.parse(localStorage.getItem('gongsil_user') || '{}'); } catch(e) {}
+        userId = udObj.id || null;
+    }
+
+    var commentRes = await sb.from('comments').insert([{
         article_id: articleId,
-        user_name: '시스템 (반려사유)',
+        user_id: userId,
+        user_name: '최고관리자 (반려사유)',
         content: '[기사 반려] ' + reason.trim(),
         likes: 0,
         dislikes: 0
     }]);
+
+    if (commentRes.error) {
+        console.error('반려사유 등록 실패:', commentRes.error);
+        alert('반려 처리는 되었으나 사유 등록에 실패했습니다: ' + commentRes.error.message);
+    } else {
+        alert('반려 처리가 완료되었으며, 사유가 기사 댓글에 등록되었습니다.');
+    }
     
-    alert('반려 처리가 완료되었으며, 사유가 기사 댓글에 등록되었습니다.');
     articleData.status = 'hidden';
     render();
     loadPortalComments(articleId); // 댓글 영역 새로고침
