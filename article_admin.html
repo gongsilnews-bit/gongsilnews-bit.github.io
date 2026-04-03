@@ -406,10 +406,20 @@
                       var d = new Date(a.updated_at || a.created_at);
                       dStr = padDate(d.getMonth()+1) + '.' + padDate(d.getDate());
                   }
-                  if (a.status === 'pending') return '<button onclick="adminApprove('+a.id+')" style="border:none; background:#0ea5e9; color:#fff; padding:6px 10px; border-radius:4px; font-size:11px; font-weight:bold; cursor:pointer; min-width:64px;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1">승인신청</button>';
-                  if (a.status === 'published') return '<button onclick="adminEndAd('+a.id+')" style="display:flex; flex-direction:column; align-items:center; justify-content:center; border:none; background:#2563eb; color:#fff; padding:4px 10px; border-radius:4px; cursor:pointer; min-width:64px;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"><span style="font-size:11px; font-weight:bold;">광고중</span><span style="font-size:10px; font-weight:normal; margin-top:2px; opacity:0.9;">'+dStr+'</span></button>';
-                  if (a.status === 'ended' || a.status === 'hidden') return '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; background:#9ca3af; color:#fff; padding:4px 10px; border-radius:4px; min-width:64px;"><span style="font-size:11px; font-weight:bold;">광고종료</span><span style="font-size:10px; font-weight:normal; margin-top:2px; opacity:0.9;">'+dStr+'</span></div>';
-                  return '<span class="badge-status '+si.cls+'" style="min-width:64px; text-align:center;">'+si.label+'</span>';
+                  var btnStyle = 'display:flex; flex-direction:column; align-items:center; justify-content:center; border:none; padding:5px 0; border-radius:4px; cursor:pointer; width:64px; box-sizing:border-box; margin:0 auto;';
+                  var titleStyle = 'font-size:11px; font-weight:700; line-height:1.2;';
+                  var dateStyle = 'font-size:10px; font-weight:400; line-height:1.2; margin-top:2px; opacity:0.9;';
+
+                  if (a.status === 'pending') {
+                      return '<button onclick="adminApprove('+a.id+')" style="'+btnStyle+' background:#0ea5e9; color:#fff;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"><span style="'+titleStyle+'">승인신청</span><span style="'+dateStyle+'">'+dStr+'</span></button>';
+                  }
+                  if (a.status === 'published') {
+                      return '<button onclick="adminEndAd('+a.id+')" style="'+btnStyle+' background:#2563eb; color:#fff;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1"><span style="'+titleStyle+'">광고중</span><span style="'+dateStyle+'">'+dStr+'</span></button>';
+                  }
+                  if (a.status === 'ended' || a.status === 'hidden') {
+                      return '<div style="'+btnStyle+' background:#9ca3af; color:#fff; cursor:default;"><span style="'+titleStyle+'">광고종료</span><span style="'+dateStyle+'">'+dStr+'</span></div>';
+                  }
+                  return '<div style="'+btnStyle+' background:#f3f4f6; color:#4b5563; border:1px solid #e5e7eb; cursor:default;"><span style="'+titleStyle+'">'+si.label+'</span><span style="'+dateStyle+'">'+dStr+'</span></div>';
               })() +'</td>'
               +'<td class="cell-title" onclick="goView('+a.id+')">'+escHtml(a.title||'(제목없음)')+icon+'</td>'
               +'<td class="section-primary">'+(a.section1||'-')+'</td>'
