@@ -569,8 +569,8 @@
                 ? '<span class="membership-badge membership-paid">👑 유료</span>'
                 : '<span class="membership-badge membership-free">무료</span>';
 
-            // 상태 배지
-            let statusHtml = '<span class="status-badge status-normal">정상</span>';
+            // 상태 표기 (정상은 심플한 텍스트로)
+            let statusHtml = '<span style="color:#15803d; font-weight:600; font-size:13px;">정상</span>';
             let dDayHtml   = '';
 
             const createdStr = data.created_at ? data.created_at.split('T')[0] : '-';
