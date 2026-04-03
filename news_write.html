@@ -13,9 +13,7 @@
     <script src="supabase_gongsi_config.js"></script>
     <!-- jQuery & Summernote Lite (WYSIWYG 에디터) 추가 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-ko-KR.min.js"></script>
+    <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     
@@ -240,6 +238,7 @@
         .search-box input {
             width: 100%; padding: 10px 30px 10px 10px; background: #f9fafb;
             border: 1px solid #e5e7eb; border-radius: 4px; font-size: 13px; outline:none;
+            box-sizing: border-box;
         }
         .search-box .icon { position: absolute; right: 10px; top: 10px; font-size: 12px; color: #aaa; }
 
@@ -750,7 +749,7 @@
 
             <!-- 에디터 영역 (일반 모드) -->
             <div id="editorWrap" class="editor-wrap" style="border:none; margin-top:20px;">
-                <textarea id="summernote" name="content"></textarea>
+                <textarea id="tinymce-editor" name="content"></textarea>
             </div>
 
             <!-- 〖카드뉴스〗 미리보기 패널 -->
@@ -882,61 +881,114 @@
         </main>
 
         <!-- 3. 우측 라이브러리 (스티키) -->
-        <aside class="col-library">
-            <div class="library-title">라이브러리</div>
-            <div class="search-box">
-                <input type="text" placeholder="포토DB 간편검색">
-                <span class="icon" style="cursor:pointer;" onclick="openPhotodbModal()">🔍</span>
-            </div>
-
-            <!-- ===== 사진 섹션 ===== -->
-            <div class="lib-section" id="libPhotoSection">
-                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <strong style="font-size:14px;">사진</strong>
-                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
-                </div>
-                <label class="dash-drop-box" style="cursor: pointer;" id="photoDropBox">
-                    <input type="file" accept="image/*" multiple style="display:none;" id="libPhotoInput" onchange="addLibraryPhotos(this)">
-                    <div><span style="color:#aaa;">🖺</span> 마우스로 이미지를 끌어오거나, 클릭해주세요.</div>
-                    <div style="margin-top:4px;">(허용용량 10MB)</div>
-                </label>
-                <!-- 사진 카드 그리드 -->
-                <div id="libPhotoGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
-            </div>
-
-            <!-- ===== 영상 섹션 ===== -->
-            <div class="lib-section" style="margin-top: 25px;">
-                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <strong style="font-size:14px;">영상</strong>
-                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
-                </div>
-                <div style="display:flex; flex-direction:column; gap:8px;">
-                    <div style="display:flex; border:1px solid #6b7280; border-radius:4px; overflow:hidden;">
-                        <input type="text" id="libYoutubeInput" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
-                        <button type="button" class="btn" onclick="addLibraryVideo()" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
-                    </div>
-                    <label style="font-size:12px; color:#555; cursor:pointer; display:flex; align-items:center; gap:4px; padding-left:4px;">
-                        <input type="checkbox" id="libYoutubeIsShorts"> 쇼츠(세로) 영상으로 크기 맞춤
-                    </label>
-                </div>
-                <!-- 영상 카드 그리드 -->
-                <div id="libVideoGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
-            </div>
-
-            <!-- ===== 파일 섹션 ===== -->
-            <div class="lib-section" style="margin-top: 25px;">
-                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <strong style="font-size:14px;">파일</strong>
-                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
-                </div>
-                <label class="dash-drop-box" style="cursor: pointer;">
-                    <input type="file" id="libFileInput" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" multiple style="display:none;" onchange="addLibraryFiles(this)">
-                    <div><span style="color:#aaa;">🖺</span> 마우스로 파일을 끌어오거나, 클릭해주세요.</div>
-                    <div style="margin-top:4px;">(허용용량 2MB)</div>
+        <aside class="col-library">
+
+            <div class="library-title">라이브러리</div>
+
+            <div class="search-box">
+
+                <input type="text" placeholder="포토DB 간편검색">
+
+                <span class="icon" style="cursor:pointer;" onclick="openPhotodbModal()">🔍</span>
+
+            </div>
+
+
+
+            <!-- ===== 사진 섹션 ===== -->
+
+            <div class="lib-section" id="libPhotoSection">
+
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                    <strong style="font-size:14px;">사진</strong>
+
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
+
+                </div>
+
+                <label class="dash-drop-box" style="cursor: pointer;" id="photoDropBox">
+
+                    <input type="file" accept="image/*" multiple style="display:none;" id="libPhotoInput" onchange="addLibraryPhotos(this)">
+
+                    <div><span style="color:#aaa;">🖺</span> 마우스로 이미지를 끌어오거나, 클릭해주세요.</div>
+
+                    <div style="margin-top:4px;">(허용용량 10MB)</div>
+
+                </label>
+
+                <!-- 사진 카드 그리드 -->
+
+                <div id="libPhotoGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+
+            </div>
+
+
+
+            <!-- ===== 영상 섹션 ===== -->
+
+            <div class="lib-section" style="margin-top: 25px;">
+
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                    <strong style="font-size:14px;">영상</strong>
+
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
+
+                </div>
+
+                <div style="display:flex; flex-direction:column; gap:8px;">
+
+                    <div style="display:flex; border:1px solid #6b7280; border-radius:4px; overflow:hidden;">
+
+                        <input type="text" id="libYoutubeInput" placeholder="YouTube영상링크입력" style="flex:1; padding:10px; border:none; outline:none; font-size:13px; color:#6b7280; background:#fff;">
+
+                        <button type="button" class="btn" onclick="addLibraryVideo()" style="background:#6b7280; color:white; border:none; padding:0 15px; border-radius:0; cursor:pointer; font-size:13px;">입력하기</button>
+
+                    </div>
+
+                    <label style="font-size:12px; color:#555; cursor:pointer; display:flex; align-items:center; gap:4px; padding-left:4px;">
+
+                        <input type="checkbox" id="libYoutubeIsShorts"> 쇼츠(세로) 영상으로 크기 맞춤
+
+                    </label>
+
+                </div>
+
+                <!-- 영상 카드 그리드 -->
+
+                <div id="libVideoGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+
+            </div>
+
+
+
+            <!-- ===== 파일 섹션 ===== -->
+
+            <div class="lib-section" style="margin-top: 25px;">
+
+                <div class="lib-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+
+                    <strong style="font-size:14px;">파일</strong>
+
+                    <div class="lib-toggle" style="border:1px solid #ddd; padding:0 8px; border-radius:4px; color:#666; cursor:pointer;">－</div>
+
+                </div>
+
+                <label class="dash-drop-box" style="cursor: pointer;">
+
+                    <input type="file" id="libFileInput" accept=".zip,.alz,.xls,.doc,.ppt,.xlsx,.docx,.pptx,.hwp,.pdf,.txt" multiple style="display:none;" onchange="addLibraryFiles(this)">
+
+                    <div><span style="color:#aaa;">🖺</span> 마우스로 파일을 끌어오거나, 클릭해주세요.</div>
+
+                    <div style="margin-top:4px;">(허용용량 2MB)</div>
+
                 </label>
                 <!-- 파일 카드 그리드 -->
-                <div id="libFileGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
-            </div>
+                <div id="libFileGrid" style="display:flex; flex-wrap:wrap; gap:8px; margin-top:10px;"></div>
+
+            </div>
+
         </aside>
 
     </div>
@@ -1155,7 +1207,7 @@
 
         if (typeof insertNodeAtCursor === 'function') {
             window.insertNodeAtCursor(combinedHtml);
-        } else if (typeof $ !== 'undefined' && $('#summernote').length) {
+        } else if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
             try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) {}
         }
 
@@ -1204,7 +1256,7 @@
 
         if (typeof insertNodeAtCursor === 'function') {
             window.insertNodeAtCursor(editorHtml);
-        } else if (typeof $ !== 'undefined' && $('#summernote').length) {
+        } else if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
             try { $('#summernote').summernote('pasteHTML', editorHtml); } catch(e) {}
         }
 
@@ -1614,7 +1666,7 @@
     }
 
     function forceInsertPhoto(url, photoId) {
-        if (typeof $ !== 'undefined' && $('#summernote').length) {
+        if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
             try { $('#summernote').summernote('insertImage', url); } catch(e) { }
         }
     }
@@ -2005,7 +2057,7 @@
 
             const rawContentHtml = document.getElementById('aiGeneratedContent').innerHTML;
             const styledContentHtml = `<div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', Dotum, '돋움', sans-serif; font-size: 17px; line-height: 1.6; color: #222; letter-spacing: -0.3px; word-break: keep-all;">${rawContentHtml}</div>`;
-            $('#summernote').summernote('code', styledContentHtml);
+            if(tinymce.activeEditor) tinymce.activeEditor.setContent(styledContentHtml);
             
             const keywordTarget = document.querySelector('input[placeholder="#입력 (최대 20개)"]');
             if(keywordTarget) {
@@ -2032,7 +2084,7 @@
 
             const rawContentHtmlNews = document.getElementById('aiGeneratedContentNews').innerHTML;
             const styledContentHtmlNews = `<div style="font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', Dotum, '돋움', sans-serif; font-size: 17px; line-height: 1.6; color: #222; letter-spacing: -0.3px; word-break: keep-all;">${rawContentHtmlNews}</div>`;
-            $('#summernote').summernote('code', styledContentHtmlNews);
+            if(tinymce.activeEditor) tinymce.activeEditor.setContent(styledContentHtmlNews);
             
             const keywordTarget = document.querySelector('input[placeholder="#입력 (최대 20개)"]');
             if(keywordTarget) {
@@ -2159,7 +2211,7 @@
                 savedNativeRange = sel.getRangeAt(0).cloneRange();
             }
             if (!editorEditableEl) {
-                editorEditableEl = $('#summernote').next('.note-editor').find('.note-editable')[0];
+                editorEditableEl = null /* tinymce iframe handling required if needed */;
             }
             
             // 만약 에디터 마지막 요소가 figure, iframe 등의 블록이라면, 안심하고 클릭할 수 있도록 반드시 맨 마지막에 <p><br></p> 강제 삽입
@@ -2175,110 +2227,8 @@
 
         // 커서 위치에 HTML을 삽입하는 함수 (pasteHTML 완전 폐기, DOM 직접 조작)
         window.insertNodeAtCursor = function(htmlString) {
-            var $editor = $('#summernote');
-            var editable = editorEditableEl || $editor.next('.note-editor').find('.note-editable')[0];
-
-            // ★ 삽입 전: 에디터 맨 앞의 빈 단락들 미리 제거 (초기 <p><br></p> 포함)
-            if (editable) {
-                Array.from(editable.childNodes).forEach(function(node) {
-                    if (node.nodeType === 1 &&
-                        node.textContent.trim() === '' &&
-                        !node.querySelector('img,figure,video,iframe')) {
-                        node.remove();
-                    }
-                });
-            }
-
-            // HTML 문자열을 실제 DOM 노드들로 변환
-            var temp = document.createElement('div');
-            temp.innerHTML = htmlString;
-            var nodesToInsert = Array.from(temp.childNodes);
-
-            var lastInsertedClone = null;
-
-            try {
-                if (savedNativeRange && editable && editable.contains(savedNativeRange.startContainer)) {
-                    // 커서가 있던 블록요소(editable의 직접 자식)를 찾음
-                    var anchorNode = savedNativeRange.startContainer;
-                    while (anchorNode.parentNode && anchorNode.parentNode !== editable) {
-                        anchorNode = anchorNode.parentNode;
-                    }
-
-                    // anchorNode 다음 위치에 노드들을 삽입
-                    var nextSib = anchorNode.nextSibling;
-
-                    // 앵커 노드가 완전히 비어있으면(초기 빈 p) 그 위치에 삽입
-                    var anchorIsEmpty = (anchorNode.textContent.trim() === '' &&
-                                        !anchorNode.querySelector('img, figure, video, iframe'));
-
-                    var insertBefore = anchorIsEmpty ? anchorNode : nextSib;
-
-                    nodesToInsert.forEach(function(node) {
-                        var clone = node.cloneNode(true);
-                        editable.insertBefore(clone, insertBefore || null);
-                        lastInsertedClone = clone;
-                    });
-
-                    // 앵커가 빈 노드였으면 제거 (중복 빈 줄 방지)
-                    if (anchorIsEmpty && anchorNode.parentNode === editable) {
-                        anchorNode.remove();
-                    }
-                } else {
-                    // 저장된 커서 없으면 맨 끝에 추가
-                    nodesToInsert.forEach(function(node) {
-                        var clone = node.cloneNode(true);
-                        editable.appendChild(clone);
-                        lastInsertedClone = clone;
-                    });
-                }
-
-                // 커서를 삽입된 노드 바로 다음으로 이동
-                var cursorP = document.createElement('p');
-                cursorP.innerHTML = '<br>';
-
-                // 마지막으로 삽입된 노드 다음에 커서 문단 추가
-                if (lastInsertedClone && lastInsertedClone.parentNode === editable) {
-                    if (lastInsertedClone.nextSibling) {
-                        editable.insertBefore(cursorP, lastInsertedClone.nextSibling);
-                    } else {
-                        editable.appendChild(cursorP);
-                    }
-                } else {
-                    editable.appendChild(cursorP);
-                }
-
-                // ★ 핵심: figure 앞에 남은 빈 단락 모두 제거 (공백 완전 차단)
-                editable.querySelectorAll('figure').forEach(function(fig) {
-                    var prev = fig.previousSibling;
-                    while (prev) {
-                        var prevPrev = prev.previousSibling;
-                        var isEmpty = (prev.nodeType === 1 && prev.textContent.trim() === '' &&
-                                       !prev.querySelector('img,figure,video,iframe'));
-                        var isBr = (prev.nodeType === 1 && prev.tagName === 'BR');
-                        if (isEmpty || isBr) {
-                            prev.remove();
-                        } else {
-                            break;
-                        }
-                        prev = prevPrev;
-                    }
-                });
-
-                // 브라우저 커서를 해당 문단 안으로 이동
-                var range = document.createRange();
-                range.setStart(cursorP, 0);
-                range.collapse(true);
-                var sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                savedNativeRange = range.cloneRange();
-
-            } catch(e) {
-                console.error('에디터 삽입 오류:', e);
-                // 폴백: 맨 끝에 추가
-                nodesToInsert.forEach(function(node) {
-                    editable.appendChild(node.cloneNode(true));
-                });
+            if (typeof tinymce !== 'undefined' && tinymce.activeEditor) {
+                tinymce.activeEditor.insertContent(htmlString);
             }
         }
 
@@ -2342,7 +2292,7 @@
             }
             renderPhotoGrid();
 
-            if (typeof $ !== 'undefined' && $('#summernote').length) {
+            if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
                 try { $('#summernote').summernote('insertImage', url); } catch(e) {
                     window.insertNodeAtCursor('<img src="' + url + '" style="max-width:100%; display:block;">'); 
                 }
@@ -2373,7 +2323,7 @@
                         });
                         renderPhotoGrid();
                         results.forEach(function(dataUrl) {
-                            if (typeof $ !== 'undefined' && $('#summernote').length) {
+                            if (typeof $ !== 'undefined' && (typeof tinymce !== 'undefined' && tinymce.activeEditor)) {
                                 try { $('#summernote').summernote('insertImage', dataUrl); } catch(e) {}
                             }
                         });
@@ -2420,7 +2370,7 @@
                             : libVideos.length ? libVideos[0].id : null;
             }
 
-            var editorEl = document.querySelector('.note-editable');
+            var editorEl = null;
             if (editorEl) {
                 var fig = editorEl.querySelector('figure[data-photo-id="' + id + '"]');
                 if (fig) fig.parentNode.removeChild(fig);
@@ -2438,7 +2388,7 @@
                     const idx = libPhotos.findIndex(function(p) { return p.id === id; });
                     if (idx > -1) libPhotos[idx].dataUrl = newDataUrl;
 
-                    var editorEl = document.querySelector('.note-editable');
+                    var editorEl = null;
                     if (editorEl) {
                         var fig = editorEl.querySelector('figure[data-photo-id="' + id + '"]');
                         if (fig) {
@@ -2455,7 +2405,7 @@
 
         function insertPhotoToEditor(id, align) {
             align = align || 'center';
-            var editorEl = document.querySelector('.note-editable');
+            var editorEl = null;
             if (editorEl) {
                 var fig = editorEl.querySelector('figure[data-photo-id="' + id + '"]');
                 if (fig) {
@@ -2540,7 +2490,7 @@
                             : libPhotos.length ? libPhotos[0].id : null;
             }
             // 에디터내 연동된 영상 삭제
-            var editorEl = document.querySelector('.note-editable');
+            var editorEl = null;
             if (editorEl) {
                 var vids = editorEl.querySelectorAll('.yt-block[data-video-id="' + id + '"]');
                 vids.forEach(function(vid) { vid.parentNode.removeChild(vid); });
@@ -2570,129 +2520,27 @@
         // 전문 작성 에디터 (Summernote) 초기화
         // -------------------------
         $(document).ready(function() {
-            $('#summernote').summernote({
-                height: 500,                 // 에디터 높이
-                minHeight: null,             // 최소 높이
-                maxHeight: null,             // 최대 높이
-                focus: false,                // 에디터 로딩후 포커스를 맞출지 여부
-                lang: "ko-KR",               // 한글 설정
-                placeholder: '',
-                toolbar: [
-                    // 글꼴 설정
-                    ['fontname', ['fontname']],
-                    // 글자 크기 설정
-                    ['fontsize', ['fontsize']],
-                    // 굵기, 기울임꼴, 밑줄, 취소선, 서식지우기
-                    ['style', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
-                    // 글자색
-                    ['color', ['forecolor', 'color']],
-                    // 문단정렬
-                    ['para', ['paragraph']],
-                    // 링크만들기
-                    ['insert', ['link']]
-                ],
-                popover: {
-                    image: [['resize', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']], ['float', ['floatLeft', 'floatRight', 'floatNone']], ['remove', ['removeMedia']]],
-                    link: [],
-                    air: []
-                },
-                // 추가적인 폰트 설정
-                fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New','맑은 고딕','궁서','굴림체','굴림','돋움체','바탕체'],
-                fontNamesIgnoreCheck: ['맑은 고딕'],
-                callbacks: {
-                    onMediaDelete: function(target) {
-                        var isFigure = target[0].tagName === 'FIGURE';
-                        var isImg = target[0].tagName === 'IMG';
-                        var isIframe = target[0].tagName === 'IFRAME';
-                        
-                        var src = target.attr('src');
-                        if (!src && isFigure) {
-                            var img = target.find('img, iframe');
-                            if (img.length) src = img.attr('src');
-                        }
-                        
-                        // 우측 사이드바 라이브러리 항목 연동 삭제
-                        setTimeout(function() {
-                            if (src) {
-                                var matched = false;
-                                // 먼저 사진에서 찾기
-                                var pIdx = libPhotos.findIndex(function(p) { return p.dataUrl === src; });
-                                if (pIdx > -1) {
-                                    if(typeof removePhoto === 'function') removePhoto(libPhotos[pIdx].id);
-                                    matched = true;
-                                }
-                                // 영상에서 찾기
-                                if (!matched) {
-                                    var vIdx = libVideos.findIndex(function(v) { return v.url === src; });
-                                    if (vIdx > -1) {
-                                        if(typeof removeVideo === 'function') removeVideo(libVideos[vIdx].id);
-                                        matched = true;
-                                    }
-                                }
-                                
-                                // 그래도 못 찾으면 figure의 id 속성으로 직접 삭제 (최후의 보루)
-                                if (!matched) {
-                                    var $fig = isFigure ? target : target.closest('figure');
-                                    var pid = $fig.attr('data-photo-id');
-                                    var vid = $fig.attr('data-video-id');
-                                    if (pid && typeof removePhoto === 'function') removePhoto(pid);
-                                    else if (vid && typeof removeVideo === 'function') removeVideo(vid);
-                                }
-                            } else {
-                                // src 없는 경우
-                                var $fig2 = isFigure ? target : target.closest('figure');
-                                var pid2 = $fig2.attr('data-photo-id');
-                                var vid2 = $fig2.attr('data-video-id');
-                                if (pid2 && typeof removePhoto === 'function') removePhoto(pid2);
-                                else if (vid2 && typeof removeVideo === 'function') removeVideo(vid2);
-                            }
-                        }, 50);
-
-                        setTimeout(function() {
-                            var editable = document.querySelector('.note-editable');
-                            if (editable) {
-                                editable.querySelectorAll('figure.news-figure').forEach(function(fig) {
-                                    if (!fig.querySelector('img') && !fig.querySelector('iframe')) {
-                                        fig.parentNode.removeChild(fig);
-                                    }
-                                });
-                            }
-                        }, 100);
-                    },
-                    onPaste: function (e) {
-                        var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
-                        var bufferHtml = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('text/html');
-                        
-                        e.preventDefault(); // 기본 붙여넣기 차단
-                        
-                        setTimeout(function () {
-                            if (bufferHtml) {
-                                var tempDiv = document.createElement("div");
-                                tempDiv.innerHTML = bufferHtml;
-                                
-                                // 위험하거나 불필요한 태그 제거
-                                var ignoreTags = tempDiv.querySelectorAll('script, style, iframe, meta, link, object, embed');
-                                ignoreTags.forEach(function(el) { el.remove(); });
-                                
-                                // 모든 요소의 스타일, 클래스, ID 제거 (순수 뼈대 태그만 유지)
-                                var allTags = tempDiv.querySelectorAll('*');
-                                allTags.forEach(function(el) {
-                                    el.removeAttribute('style');
-                                    el.removeAttribute('class');
-                                    el.removeAttribute('id');
-                                    el.removeAttribute('dir');
-                                });
-                                
-                                document.execCommand('insertHtml', false, tempDiv.innerHTML);
-                            } else {
-                                // 순수 텍스트인 경우 (줄바꿈 보존을 위해 pre-wrap 처리)
-                                document.execCommand('insertText', false, bufferText);
-                            }
-                        }, 10);
+            tinymce.init({
+            selector: '#tinymce-editor',
+            height: 500,
+            language: 'ko_KR',
+            plugins: 'image link media table lists autolink code setup',
+            toolbar: 'undo redo | blocks | bold italic underline | alignleft aligncenter alignright | link image media | code',
+            content_style: 'body { font-family: sans-serif; font-size: 16px; line-height: 1.6; } img { max-width: 100%; height: auto; display: block; margin: 8px auto; }',
+            promotion: false,
+            setup: function(editor) {
+                editor.on('change keyup', function() {
+                    if (typeof validateForm === 'function') validateForm();
+                    // trigger change for ai layout check
+                    if (window.checkEditorTextEmpty) {
+                       clearTimeout(window.checkEditorTextEmpty.timer);
+                       window.checkEditorTextEmpty.timer = setTimeout(window.checkEditorTextEmpty, 300);
                     }
-                }
-            });
-
+                });
+            }
+        });
+        
+        // tinymce drag and drop cleanup
             // 에디터 내부 드래그앤드드롭 설정
             $('#summernote').on('summernote.init', function() {
                 setupEditorDragDrop();
@@ -2702,7 +2550,7 @@
         });
 
         function setupEditorDragDrop() {
-            var editingArea = document.querySelector('.note-editable');
+            var editingArea = null;
             if (!editingArea || editingArea._dndReady) return;
             editingArea._dndReady = true;
             var draggedEl = null;
@@ -3033,7 +2881,7 @@
                 var content = '';
                 var cardTextAbove = '', cardTextBelow = '';
                 if (currentArticleType === 'normal') {
-                    content = $('#summernote').summernote('code') || '';
+                    content = (tinymce.activeEditor ? tinymce.activeEditor.getContent() : '');
                 } else if (currentArticleType === 'card') {
                     cardTextAbove = (document.getElementById('cardTextAbove') || {}).innerHTML || '';
                     cardTextBelow = (document.getElementById('cardTextBelow') || {}).innerHTML || '';
@@ -3265,7 +3113,7 @@
             // 본문
             if (a.article_type === 'normal') {
                 setTimeout(function() {
-                    $('#summernote').summernote('code', a.content || '');
+                    if(tinymce.activeEditor) tinymce.activeEditor.setContent(a.content || '');
                 }, 500);
             } else if (a.article_type === 'card') {
                 var above = document.getElementById('cardTextAbove');
@@ -3824,8 +3672,8 @@
         
         const styledContentHtml = `<div style="font-family: 'Apple SD Gothic Neo', sans-serif; font-size: 16px; line-height: 1.6; color:#222;"><p>최근 대치동 은마아파트에서 급매물이 등장하여 부동산 시장의 이목이 쏠리고 있습니다. 기존 호가 대비 파격적인 가격으로 조정된 이번 매물은 재건축을 앞두고 시장의 관망세를 대변하는 중대한 사례로 꼽힙니다.</p><p><br></p></div>`;
         
-        if (window.$ && $('#summernote').length > 0) {
-            $('#summernote').summernote('code', styledContentHtml);
+        if (window.$ && (typeof tinymce !== 'undefined' && tinymce.activeEditor) > 0) {
+            if(tinymce.activeEditor) tinymce.activeEditor.setContent(styledContentHtml);
         }
         
         const oldText = btn.innerHTML;
