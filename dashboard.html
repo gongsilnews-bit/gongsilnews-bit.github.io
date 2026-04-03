@@ -256,6 +256,16 @@
             <li class="loading">데이터 불러오는 중...</li>
         </ul>
     </div>
+    
+    <div class="card" id="recentArticlesCard" style="display: none; flex-direction: column;">
+        <div class="card-title">
+            📰 최근 등록 기사
+            <span class="badge" id="recentArtCount">-</span>
+        </div>
+        <ul class="member-list" id="recentArticlesList" style="flex:1;">
+            <li class="loading">데이터 불러오는 중...</li>
+        </ul>
+    </div>
 </div>
 
 <!-- 하단: 빠른링크 + 최근 댓글 -->
@@ -328,7 +338,12 @@
                 loadRecentProperties(sb, isAdmin),
                 loadRecentComments(sb)
             ];
-            if (isAdmin) promises.push(loadRecentMembers(sb));
+            
+            if (isAdmin) {
+                promises.push(loadRecentMembers(sb));
+            } else {
+                promises.push(loadRecentArticles(sb));
+            }
 
             await Promise.all(promises);
             const now = new Date();
@@ -345,8 +360,10 @@
         if (role !== 'admin' && role !== 'superadmin') {
             const kpiMem = document.getElementById('kpiMembersCard');
             const recentMem = document.getElementById('recentMembersCard');
+            const recentArt = document.getElementById('recentArticlesCard');
             if (kpiMem) kpiMem.style.display = 'none';
             if (recentMem) recentMem.style.display = 'none';
+            if (recentArt) recentArt.style.display = 'flex';
 
             // 남은 UI를 화면에 맞게 재배치
             const kpiGrid = document.querySelector('.kpi-grid');
@@ -356,7 +373,7 @@
             
             const midGrid = document.querySelector('.mid-grid');
             if (midGrid) {
-                midGrid.style.gridTemplateColumns = '1fr';
+                midGrid.style.gridTemplateColumns = '1.4fr 1fr';
             }
             
             // 빠른 링크에서도 고객 관리 메뉴 아이템 숨기기
@@ -450,6 +467,35 @@
                 </div>
                 <span class="member-role ${roleClass}">${roleLabel}</span>
                 <span style="font-size:11px; color:#9ca3af; margin-left:6px;">${timeAgo(m.created_at)}</span>
+            </li>`;
+        }).join('');
+    }
+
+    async function loadRecentArticles(sb) {
+        const { data, error } = await sb.from('articles')
+            .select('title, author_name, created_at, is_breaking')
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        const list = document.getElementById('recentArticlesList');
+        document.getElementById('recentArtCount').textContent = data?.length ?? 0;
+
+        if (error || !data || data.length === 0) {
+            list.innerHTML = '<li class="loading">게시된 기사가 없습니다</li>';
+            return;
+        }
+
+        list.innerHTML = data.map(a => {
+            const breakingBadge = a.is_breaking ? `<span style="font-size:10px; color:#fff; background:#ef4444; padding:2px 6px; border-radius:4px; margin-right:6px; font-weight:700;">단독</span>` : '';
+            return `<li style="flex-direction:row; align-items:center; justify-content:space-between;">
+                <div style="flex:1; margin-right:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                    ${breakingBadge}
+                    <span style="font-weight:600; color:#111; font-size:13px;">${a.title}</span>
+                </div>
+                <div style="flex-shrink:0; text-align:right;">
+                    <div style="font-size:10px; color:#6b7280;">${a.author_name || '관리자'}</div>
+                    <div style="font-size:11px; color:#9ca3af; margin-top:2px;">${timeAgo(a.created_at)}</div>
+                </div>
             </li>`;
         }).join('');
     }
