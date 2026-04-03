@@ -740,6 +740,14 @@
                     </div>
                 </div>
                 
+                <!-- 관련 기사 영역 -->
+                <div id="readRelatedArticles" style="display:none; margin-top: 40px; padding: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="font-size:16px; font-weight:800; color:#111; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:4px; height:16px; background:#508bf5; border-radius:2px;"></span>관련 기사
+                    </div>
+                    <div id="readRelatedList" style="display:flex; flex-direction:column; gap:12px;"></div>
+                </div>
+
                 <!-- 댓글 및 푸터 영역 -->
                 <div id="articleFooterArea" style="margin-top: 40px; display: none;">
                     <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ccc; border-bottom:1px solid #ccc; padding:15px 0; margin-bottom:50px; font-size:15px;">
@@ -889,6 +897,18 @@
              });
         }
         document.getElementById('detailBody').innerHTML = contentHtml;
+        
+        // 관련 기사 렌더링
+        if (news.related_articles && Array.isArray(news.related_articles) && news.related_articles.length > 0) {
+            document.getElementById('readRelatedArticles').style.display = 'block';
+            document.getElementById('readRelatedList').innerHTML = news.related_articles.map(r => `
+                <a href="news_read.html?article_id=${r.id}" style="font-size:15px; color:#333; text-decoration:none; display:flex; align-items:flex-start; line-height:1.4;" onmouseover="this.style.color='#1a73e8'; this.style.textDecoration='underline'" onmouseout="this.style.color='#333'; this.style.textDecoration='none'">
+                    <span style="color:#aaa; font-weight:bold; margin-right:8px; display:inline-block; padding-top:2px;">ㄴ</span>
+                    <span style="flex:1; word-break:keep-all;">${r.title}</span>
+                </a>
+            `).join('');
+        }
+        
         document.getElementById('articleFooterArea').style.display = 'block';
         window.currentArticleId = articleId;
         window.loadReadComments(articleId);
