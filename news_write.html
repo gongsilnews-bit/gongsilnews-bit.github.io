@@ -216,12 +216,12 @@
         
         /* 저장버튼 */
         .btn-save-large {
-            width: 100%; background: var(--cyan-color); color: #fff; font-size: 16px; font-weight: 700;
+            width: 100%; background: #3b82f6; color: #fff; font-size: 16px; font-weight: 700;
             padding: 16px; border: none; border-radius: 6px; cursor: pointer; margin-top: 40px;
             display: flex; justify-content: center; align-items: center; gap: 8px;
             transition: background 0.2s;
         }
-        .btn-save-large:hover { background: #0d9488; }
+        .btn-save-large:hover { background: #2563eb; }
 
         /* 3. 우측 라이브러리 (스티키) */
         .col-library {
@@ -661,27 +661,10 @@
                     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72Z"/><path d="m14 7 3 3"/></svg>
                     <span>사진편집</span>
                 </div>
-                <div class="tool-icon" style="font-weight:900; font-size:24px; font-family:serif; line-height:24px;">
-                    "
-                    <span style="font-weight:normal; font-size:11px; font-family:var(--font-family); margin-top:-2px;">템플릿</span>
-                </div>
-                <div class="tool-icon" style="font-weight:800; font-size:20px; font-family:sans-serif; line-height:24px;">
-                    @
-                    <span style="font-weight:normal; font-size:11px; font-family:var(--font-family); margin-top:1px;">특수문자</span>
-                </div>
-                <div class="tool-icon" style="color:#0ea5e9;">
-                    <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"/></svg>
-                    <span>구분선</span>
-                </div>
+                
             </div>
 
-            <div class="tools-bottom">
-                <span class="tools-bottom-title">본문크기</span>
-                <div class="tools-bottom-icons">
-                    <span style="color:#0ea5e9;">💻</span>
-                    <span>📱</span>
-                </div>
-            </div>
+            
         </aside>
 
         <!-- 2. 중앙 메인 수록폼 -->
@@ -746,20 +729,7 @@
                 </div>
             </div>
 
-            <!-- AI 기사작성 런처 -->
-            <div class="form-row" style="background: linear-gradient(135deg, #fffbeb, #ffedd5); border: 1px solid #fdba74; border-radius: 8px; padding: 20px; margin: 20px 0;">
-                <div class="form-label" style="color: #ea580c; font-weight: 800; font-size: 16px; display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 24px;">🪄</span> AI 마법사
-                </div>
-                <div class="form-content" style="flex-direction: column; align-items: flex-start; gap: 10px; width: 100%;">
-                    <div id="aiLauncherDesc" style="font-size: 14px; color: #431407; font-weight: 600;">
-                        매물 정보만 한 번 입력하면 기사, 블로그, 쇼츠 대본까지 5가지 콘텐츠를 AI가 한 번에 완성해 줍니다!
-                    </div>
-                    <button type="button" id="aiLauncherBtn" class="btn" onclick="openAiwizardDynamic()" style="background: #f97316; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 15px; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(249, 115, 22, 0.4); display: flex; align-items: center; gap: 8px;">
-                        ✨ 부동산 AI 마법사 실행하기
-                    </button>
-                </div>
-            </div>
+            
 
             <div class="form-row">
                 <div class="form-label">기자명</div>
@@ -913,7 +883,7 @@
                 </div>
             </div>
 
-            <button class="btn-save-large" onclick="saveArticle()">💾 저장</button>
+            <button class="btn-save-large" onclick="saveArticle()">✓ 저장완료</button>
         </main>
 
         <!-- 3. 우측 라이브러리 (스티키) -->
