@@ -627,7 +627,19 @@
         .gal-counter { text-align: center; font-size: 13px; color: #888; margin-top: 8px; }
         .gal-empty { text-align:center; color:#666; padding:60px 0; font-size:14px; }
 
+
+    /* 사방 크기조절 핸들 */
+    .resizer { position: absolute; z-index: 9999; }
+    .resizer-n { top: -3px; left: 0; right: 0; height: 6px; cursor: n-resize; }
+    .resizer-s { bottom: -3px; left: 0; right: 0; height: 6px; cursor: s-resize; }
+    .resizer-e { top: 0; bottom: 0; right: -3px; width: 6px; cursor: e-resize; }
+    .resizer-w { top: 0; bottom: 0; left: -3px; width: 6px; cursor: w-resize; }
+    .resizer-ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; }
+    .resizer-nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; }
+    .resizer-se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; }
+    .resizer-sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
     </style>
+
 </head>
 <body>
 
@@ -3857,9 +3869,31 @@
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-4px); }
     }
+
+    /* 사방 크기조절 핸들 */
+    .resizer { position: absolute; z-index: 9999; }
+    .resizer-n { top: -3px; left: 0; right: 0; height: 6px; cursor: n-resize; }
+    .resizer-s { bottom: -3px; left: 0; right: 0; height: 6px; cursor: s-resize; }
+    .resizer-e { top: 0; bottom: 0; right: -3px; width: 6px; cursor: e-resize; }
+    .resizer-w { top: 0; bottom: 0; left: -3px; width: 6px; cursor: w-resize; }
+    .resizer-ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; }
+    .resizer-nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; }
+    .resizer-se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; }
+    .resizer-sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
     </style>
 
+
     <div id="aiChatWidget" class="ai-chat-widget">
+        <!-- Resize Handles -->
+        <div class="resizer resizer-n" data-resize="n"></div>
+        <div class="resizer resizer-s" data-resize="s"></div>
+        <div class="resizer resizer-e" data-resize="e"></div>
+        <div class="resizer resizer-w" data-resize="w"></div>
+        <div class="resizer resizer-ne" data-resize="ne"></div>
+        <div class="resizer resizer-nw" data-resize="nw"></div>
+        <div class="resizer resizer-se" data-resize="se"></div>
+        <div class="resizer resizer-sw" data-resize="sw"></div>
+        
         <div class="ai-chat-header">
             <div style="display:flex; align-items:center; gap:8px;">
                 <span>✨</span> 부동산 AI 마법사
@@ -3924,6 +3958,62 @@
                 chatHeader.style.cursor = 'move';
             }
         });
+        
+        // 아래부터 사방향 리사이즈 로직입니다.
+        const resizers = chatWidget.querySelectorAll('.resizer');
+        let r_isResizing = false;
+        let r_currentResizer = null;
+        let r_startX, r_startY, r_startW, r_startH, r_startL, r_startT;
+        
+        for (let resizer of resizers) {
+            resizer.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                // 드래그 충돌 방지
+                e.stopPropagation();
+                
+                r_isResizing = true;
+                r_currentResizer = resizer.getAttribute('data-resize');
+                
+                const rect = chatWidget.getBoundingClientRect();
+                r_startX = e.clientX;
+                r_startY = e.clientY;
+                r_startW = rect.width;
+                r_startH = rect.height;
+                chatWidget.style.bottom = 'auto';
+                chatWidget.style.right = 'auto';
+                r_startL = rect.left;
+                r_startT = rect.top;
+                chatWidget.style.left = r_startL + 'px';
+                chatWidget.style.top = r_startT + 'px';
+            });
+        }
+        
+        document.addEventListener('mousemove', (e) => {
+            if (!r_isResizing) return;
+            const dx = e.clientX - r_startX;
+            const dy = e.clientY - r_startY;
+            let newW = r_startW, newH = r_startH, newL = r_startL, newT = r_startT;
+            
+            if (r_currentResizer.includes('e')) newW = r_startW + dx;
+            if (r_currentResizer.includes('s')) newH = r_startH + dy;
+            if (r_currentResizer.includes('w')) { newW = r_startW - dx; newL = r_startL + dx; }
+            if (r_currentResizer.includes('n')) { newH = r_startH - dy; newT = r_startT + dy; }
+            
+            if (newW >= 350) { 
+                chatWidget.style.width = newW + 'px';
+                if (r_currentResizer.includes('w')) chatWidget.style.left = newL + 'px';
+            }
+            if (newH >= 400) {
+                chatWidget.style.height = newH + 'px';
+                if (r_currentResizer.includes('n')) chatWidget.style.top = newT + 'px';
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            r_isResizing = false;
+            r_currentResizer = null;
+        });
+        
     });
 
     function closeAiChatWidget() {
@@ -3939,7 +4029,7 @@
         // 유저 메시지 마크업
         const userHtml = `
             <div class="chat-msg user" style="animation: fadeIn 0.3s;">
-                <div class="bubble">\${text}</div>
+                <div class="bubble">${text}</div>
             </div>
         `;
         body.insertAdjacentHTML('beforeend', userHtml);
@@ -3949,7 +4039,7 @@
         // 임시 로딩(타이핑) 상태 추가
         const typingId = 'typing_' + Date.now();
         const typingHtml = `
-            <div class="chat-msg bot" id="\${typingId}">
+            <div class="chat-msg bot" id="${typingId}">
                 <div class="bubble">
                     <div class="typing-indicator"><span></span><span></span><span></span></div>
                 </div>
