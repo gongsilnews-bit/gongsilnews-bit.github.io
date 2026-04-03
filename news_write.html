@@ -120,7 +120,21 @@
         /* 뱃지, 라디오, 인풋 조각들 */
         .badge-status {
             background: #1f2937; color: white; padding: 5px 14px; border-radius: 40px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
+            font-size: 13px; font-weight: 600; cursor: pointer; display: inline-block;
+        }
+        .radio-pill-label {
+            display: inline-block; cursor: pointer; position: relative; margin-right: 4px;
+        }
+        .radio-pill-label input[type="radio"] {
+            display: none;
+        }
+        .radio-pill-label .badgelike-pill {
+            background: #f1f3f5; color: #495057; border: 1px solid #ced4da;
+            padding: 5px 14px; border-radius: 40px; font-size: 13px; font-weight: 600;
+            display: inline-block; transition: all 0.2s;
+        }
+        .radio-pill-label input[type="radio"]:checked + .badgelike-pill {
+            background: #1f2937; color: #fff; border-color: #1f2937;
         }
         .radio-label { font-size: 14px; color: #333; display: flex; align-items: center; gap: 6px; cursor: pointer;}
         
@@ -648,9 +662,18 @@
             <div class="form-row">
                 <div class="form-label">기사검토 ⓘ</div>
                 <div class="form-content">
-                    <span class="badge-status">작성중</span>
-                    <label class="radio-label"><input type="radio" name="status"> 승인신청</label>
-                    <label class="radio-label"><input type="radio" name="status"> 반려</label>
+                    <label class="radio-pill-label">
+                        <input type="radio" name="status" value="draft" checked>
+                        <span class="badgelike-pill">작성중</span>
+                    </label>
+                    <label class="radio-pill-label">
+                        <input type="radio" name="status" value="pending">
+                        <span class="badgelike-pill">승인신청</span>
+                    </label>
+                    <label class="radio-pill-label">
+                        <input type="radio" name="status" value="rejected">
+                        <span class="badgelike-pill">반려</span>
+                    </label>
                 </div>
             </div>
 
@@ -2867,7 +2890,7 @@
 
                 // ── 2. 폼 값 수집 ────────────────────────────────
                 var statusRadio = document.querySelector('input[name="status"]:checked');
-                var status = statusRadio ? (statusRadio.nextSibling.textContent.trim() === '승인신청' ? 'pending' : 'published') : 'draft';
+                var status = statusRadio ? statusRadio.value : 'draft';
 
                 var title    = (document.querySelector('input[placeholder="제목을 입력하세요"]') || {}).value || '';
                 var subtitle = (document.querySelector('textarea[placeholder*="부제목"]') || {}).value || '';
