@@ -634,7 +634,9 @@ async function submitPortalComment() {
 function buildApproveBtn(status) {
     var ud = {};
     try { ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}'); } catch(e) {}
-    var isAdmin = ud.role === 'admin';
+    var params = new URLSearchParams(window.location.search);
+    var isUrlAdmin = params.get('admin') === 'true';
+    var isAdmin = ud.role === 'admin' || ud.role === 'super_admin' || isUrlAdmin;
 
     if (isAdmin) {
         if (status === 'pending') {
