@@ -2163,13 +2163,23 @@
         var savedNativeRange = null;
         var editorEditableEl = null;
 
-        $('#summernote').on('summernote.keyup summernote.mouseup summernote.blur', function() {
+        $('#summernote').on('summernote.change summernote.keyup summernote.mouseup summernote.blur', function() {
             var sel = window.getSelection();
             if (sel && sel.rangeCount > 0) {
                 savedNativeRange = sel.getRangeAt(0).cloneRange();
             }
             if (!editorEditableEl) {
                 editorEditableEl = $('#summernote').next('.note-editor').find('.note-editable')[0];
+            }
+            
+            // 만약 에디터 마지막 요소가 figure, iframe 등의 블록이라면, 안심하고 클릭할 수 있도록 반드시 맨 마지막에 <p><br></p> 강제 삽입
+            if (editorEditableEl) {
+                var lastChild = editorEditableEl.lastElementChild;
+                if (lastChild && (lastChild.tagName === 'FIGURE' || lastChild.tagName === 'IMG' || lastChild.tagName === 'IFRAME' || lastChild.tagName === 'VIDEO' || lastChild.tagName === 'TABLE')) {
+                    var p = document.createElement('p');
+                    p.innerHTML = '<br>';
+                    editorEditableEl.appendChild(p);
+                }
             }
         });
 
@@ -2618,6 +2628,37 @@
                 fontNamesIgnoreCheck: ['맑은 고딕'],
                 // 붙여넣기 스타일 초기화 (Clean Paste)
                 callbacks: {
+                    onKeydown: function(e) {
+                        // 주석(figcaption) 내부에서 Enter(엔터)를 치면 안에서 줄바꿈되는 대신 밖으로 탈출하도록 지원
+                        if (e.keyCode === 13 && !e.shiftKey) { 
+                            var sel = window.getSelection();
+                            if (sel && sel.rangeCount > 0) {
+                                var curr = sel.getRangeAt(0).startContainer;
+                                var figcap = null;
+                                while(curr && (curr.nodeType === 1 || curr.nodeType === 3)) {
+                                    if(curr.nodeType === 1 && curr.tagName === 'FIGCAPTION') { figcap = curr; break; }
+                                    if(curr.classList && curr.classList.contains('note-editable')) break;
+                                    curr = curr.parentNode;
+                                }
+                                if (figcap) {
+                                    e.preventDefault();
+                                    var figure = figcap.parentNode;
+                                    var newP = document.createElement('p');
+                                    newP.innerHTML = '<br>';
+                                    if (figure.nextSibling) {
+                                        figure.parentNode.insertBefore(newP, figure.nextSibling);
+                                    } else {
+                                        figure.parentNode.appendChild(newP);
+                                    }
+                                    var newRange = document.createRange();
+                                    newRange.setStart(newP, 0);
+                                    newRange.collapse(true);
+                                    sel.removeAllRanges();
+                                    sel.addRange(newRange);
+                                }
+                            }
+                        }
+                    },
                     onPaste: function (e) {
                         var bufferText = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('Text');
                         var bufferHtml = ((e.originalEvent || e).clipboardData || window.clipboardData).getData('text/html');
