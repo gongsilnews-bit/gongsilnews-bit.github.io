@@ -441,6 +441,8 @@
             padding: 3px 8px; cursor: pointer; text-align: center;
         }
         .lib-overlay-rep:hover { background: rgba(59,130,246,0.8); border-color: #3b82f6; }
+        /* 에디터 하단 항상 여백(커서 버그 방지) */
+        .note-editable { padding-bottom: 250px !important; }
         /* \uc5d0\ub514\ud130 \ub0b4\ubd80 \uc720\ud29c\ube0c \ubc18\uc751\ud615 */
         .note-editable .yt-block { width: 100% !important; display: block; }
         .note-editable .yt-ratio-box { width: 100% !important; }
@@ -2192,6 +2194,8 @@
             temp.innerHTML = htmlString;
             var nodesToInsert = Array.from(temp.childNodes);
 
+            var lastInsertedClone = null;
+
             try {
                 if (savedNativeRange && editable && editable.contains(savedNativeRange.startContainer)) {
                     // 커서가 있던 블록요소(editable의 직접 자식)를 찾음
@@ -2210,7 +2214,9 @@
                     var insertBefore = anchorIsEmpty ? anchorNode : nextSib;
 
                     nodesToInsert.forEach(function(node) {
-                        editable.insertBefore(node.cloneNode(true), insertBefore || null);
+                        var clone = node.cloneNode(true);
+                        editable.insertBefore(clone, insertBefore || null);
+                        lastInsertedClone = clone;
                     });
 
                     // 앵커가 빈 노드였으면 제거 (중복 빈 줄 방지)
@@ -2220,7 +2226,9 @@
                 } else {
                     // 저장된 커서 없으면 맨 끝에 추가
                     nodesToInsert.forEach(function(node) {
-                        editable.appendChild(node.cloneNode(true));
+                        var clone = node.cloneNode(true);
+                        editable.appendChild(clone);
+                        lastInsertedClone = clone;
                     });
                 }
 
@@ -2229,9 +2237,12 @@
                 cursorP.innerHTML = '<br>';
 
                 // 마지막으로 삽입된 노드 다음에 커서 문단 추가
-                var lastFigure = editable.querySelector('figure:last-of-type') || editable.lastElementChild;
-                if (lastFigure && lastFigure.nextSibling) {
-                    editable.insertBefore(cursorP, lastFigure.nextSibling);
+                if (lastInsertedClone && lastInsertedClone.parentNode === editable) {
+                    if (lastInsertedClone.nextSibling) {
+                        editable.insertBefore(cursorP, lastInsertedClone.nextSibling);
+                    } else {
+                        editable.appendChild(cursorP);
+                    }
                 } else {
                     editable.appendChild(cursorP);
                 }
