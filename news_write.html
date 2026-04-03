@@ -454,21 +454,6 @@
             display: block;
             border-radius: 4px;
         }
-        /* 주석(캡션) 부분 명확한 회색 배경 분리 */
-        .note-editable .news-figure figcaption {
-            background: #e2e8f0;
-            padding: 10px;
-            margin-top: 8px;
-            border-radius: 4px;
-            color: #475569;
-            font-size: 14px;
-            outline: none;
-            min-height: 20px;
-        }
-        .note-editable .news-figure figcaption:empty:before {
-            content: "주석 쓰기";
-            color: #94a3b8;
-        }
 
         /* 에디터 내부 유튜브 반응형 */
         .note-editable .yt-block { width: 100% !important; display: block; }
@@ -484,14 +469,6 @@
             display: flex; align-items: center; justify-content: center;
         }
         .lib-align-bar button:hover { background: rgba(255,255,255,0.5); }
-        /* 캐션 입력창 */
-        .lib-caption {
-            width: 100%; box-sizing: border-box;
-            padding: 6px 8px; border: none; border-top: 1px solid #e5e7eb;
-            font-size: 12px; color: #555; resize: none; outline: none;
-            min-height: 34px; background: #fafafa; font-family: inherit;
-        }
-        .lib-caption::placeholder { color: #bbb; }
         /* 유튜브 드래그 핵들 */
         .yt-block { margin: 8px 0; border-radius: 8px; overflow: hidden; width: 100%; }
         .yt-drag-handle {
@@ -506,23 +483,11 @@
         .yt-drag-handle .drag-label { display: none; }
         .yt-ratio-box { position:relative; padding-bottom:56.25%; height:0; overflow:hidden; width:100%; }
         .yt-ratio-box iframe { position:absolute; top:0; left:0; width:100%; height:100%; border:none; }
-        /* 에디터 내부 이미지 주석 구조 */
         .news-figure {
             display: block; margin: 8px 0; padding: 0;
             background: #fff;
         }
         .news-figure img { display: block; width: 100%; }
-        .news-figure figcaption {
-            display: block; width: 100%; box-sizing: border-box;
-            padding: 6px 10px; min-height: 32px;
-            font-size: 13px; color: #555; border: none;
-            border-top: 2px solid #e74c3c;
-            outline: none; background: #fff;
-        }
-        .news-figure figcaption:empty:before {
-            content: '주석쓰기';
-            color: #bbb; pointer-events: none;
-        }
 
         /* ===== 카드뉴스 슬라이더 ===== */
         .preview-label { font-size:12px; color:#aaa; margin-bottom:10px; }
@@ -1649,7 +1614,7 @@
 
     function forceInsertPhoto(url, photoId) {
         var imgId = 'photo_' + photoId;
-        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure>';
+        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"></figure>';
         if (typeof $ !== 'undefined' && $('#summernote').length) {
             try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) { }
         }
@@ -2382,7 +2347,6 @@
 
             var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + alignStr + '; margin:0 auto;">'
                 + '<img src="' + url + '" style="max-width:100%; display:block; width:100%;">'
-                + '<figcaption contenteditable="true">' + captionStr + '</figcaption>'
                 + '</figure>';
             window.insertNodeAtCursor(combinedHtml);
         };
@@ -2411,7 +2375,6 @@
                             combinedHtml +=
                                 '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:center; margin:0 auto;">'
                                 + '<img src="' + dataUrl + '" style="max-width:100%; display:block; width:100%;">'
-                                + '<figcaption contenteditable="true"></figcaption>'
                                 + '</figure>';
                         });
                         renderPhotoGrid();
@@ -2448,16 +2411,6 @@
                       '</div>' +
                     '</div>';
 
-
-                const captionBox = document.createElement('textarea');
-                captionBox.className = 'lib-caption';
-                captionBox.placeholder = '캡션 설명 (선택사항)';
-                captionBox.value = photo.caption || '';
-                captionBox.oninput = function() {
-                    const idx = libPhotos.findIndex(function(p) { return p.id === photo.id; });
-                    if (idx > -1) libPhotos[idx].caption = this.value;
-                };
-                card.appendChild(captionBox);
                 grid.appendChild(card);
             });
         }
@@ -2648,39 +2601,7 @@
                 // 추가적인 폰트 설정
                 fontNames: ['Arial', 'Arial Black', 'Comic Sans MS', 'Courier New','맑은 고딕','궁서','굴림체','굴림','돋움체','바탕체'],
                 fontNamesIgnoreCheck: ['맑은 고딕'],
-                // 붙여넣기 스타일 초기화 (Clean Paste)
                 callbacks: {
-                    onKeydown: function(e) {
-                        // 주석(figcaption) 내부에서 Enter(엔터)를 치면 안에서 줄바꿈되는 대신 밖으로 탈출하도록 지원
-                        if (e.keyCode === 13 && !e.shiftKey) { 
-                            var sel = window.getSelection();
-                            if (sel && sel.rangeCount > 0) {
-                                var curr = sel.getRangeAt(0).startContainer;
-                                var figcap = null;
-                                while(curr && (curr.nodeType === 1 || curr.nodeType === 3)) {
-                                    if(curr.nodeType === 1 && curr.tagName === 'FIGCAPTION') { figcap = curr; break; }
-                                    if(curr.classList && curr.classList.contains('note-editable')) break;
-                                    curr = curr.parentNode;
-                                }
-                                if (figcap) {
-                                    e.preventDefault();
-                                    var figure = figcap.parentNode;
-                                    var newP = document.createElement('p');
-                                    newP.innerHTML = '<br>';
-                                    if (figure.nextSibling) {
-                                        figure.parentNode.insertBefore(newP, figure.nextSibling);
-                                    } else {
-                                        figure.parentNode.appendChild(newP);
-                                    }
-                                    var newRange = document.createRange();
-                                    newRange.setStart(newP, 0);
-                                    newRange.collapse(true);
-                                    sel.removeAllRanges();
-                                    sel.addRange(newRange);
-                                }
-                            }
-                        }
-                    },
                     onMediaDelete: function(target) {
                         var isFigure = target[0].tagName === 'FIGURE';
                         var isImg = target[0].tagName === 'IMG';
