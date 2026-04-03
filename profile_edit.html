@@ -498,6 +498,18 @@
         }
 
         try {
+            // member_logs 로그 기록
+            let myIp = 'unknown';
+            try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); myIp = d.ip; } catch(e){}
+            
+            let details = '회원 본인이 직접 정보 수정';
+            if (realtorSection.style.display === 'block') details = '회원 본인이 부동산/기업 정보 및 서류 수정';
+
+            await supabase.from('member_logs').insert({
+                target_uid: session.user.id, target_email: session.user.email, action_type: '회원정보수정',
+                details: details, actor_uid: session.user.id, actor_email: session.user.email, ip_address: myIp
+            });
+
             const { error } = await supabase
                 .from('members')
                 .update(updateData)

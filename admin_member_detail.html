@@ -505,6 +505,7 @@
                 name, phone, role, membership,
                 expired_at: (membership === 'paid' && expiredAt) ? expiredAt : null,
             };
+            await logAction('회원정보수정', `관리자가 기본정보 수정 (${role}/${membership})`);
             const { error } = await supabase.from('members').update(updateData).eq('id', uid);
             if (error) throw error;
 
@@ -555,6 +556,7 @@
                 updateData.license_image_brokerage = publicUrl;
             }
 
+            await logAction('부동산정보수정', '관리자가 부동산/기업 정보 및 서류 수정');
             const { error } = await supabase.from('members').update(updateData).eq('id', uid);
             if (error) throw error;
             showMsg('realtorMsg', '✅ 부동산 정보가 저장되었습니다.', 'success');
@@ -574,6 +576,7 @@
         }
         showMsg('realtorMsg', '처리 중...', 'info');
         try {
+            await logAction('인증상태변경', `관리자가 서류인증 [${status}] 처리`);
             const { error } = await supabase.from('members').update({
                 verification_status: status,
                 admin_note: note
@@ -590,6 +593,7 @@
     window.handleDelete = async function() {
         if (!confirm(`경고: '${memberData?.email}' 회원을 영구 삭제하시겠습니까?`)) return;
         try {
+            await logAction('회원삭제', '관리자가 회원 상세페이지에서 영구 삭제');
             const { error } = await supabase.from('members').delete().eq('id', uid);
             if (error) throw error;
             alert('삭제되었습니다.');
@@ -609,6 +613,24 @@
         document.getElementById('imageModal').style.display = 'none';
         document.getElementById('modalImage').src = '';
     };
+
+    async function getIp() {
+        try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } catch(e){ return 'unknown'; }
+    }
+
+    async function logAction(actionType, details) {
+        try {
+            const myIp = await getIp();
+            const { data: { session } } = await supabase.auth.getSession();
+            const actUid = session?.user?.id || null;
+            const actEmail = session?.user?.email || null;
+            const targetEmail = memberData?.email || '';
+            await supabase.from('member_logs').insert({
+                target_uid: uid, target_email: targetEmail, action_type: actionType,
+                details: details, actor_uid: actUid, actor_email: actEmail, ip_address: myIp
+            });
+        } catch(e) { console.error('logAction error:', e); }
+    }
 
     init();
 </script>
