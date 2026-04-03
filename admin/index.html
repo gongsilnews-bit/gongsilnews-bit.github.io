@@ -22,52 +22,55 @@
 
         /* =========== 좌측 사이드바 (좁고 아이콘형) =========== */
         .sidebar {
-            width: 90px;
-            background: #ffffff;
-            border-right: 1px solid #e8eaed;
+            width: 80px;
+            background: #111111; /* User requested black instead of navy */
+            border-right: none;
             display: flex; flex-direction: column;
             z-index: 10;
-            box-shadow: 2px 0 12px rgba(0,0,0,0.06);
-            overflow: hidden;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.12);
+            overflow: visible; /* To allow submenu to overlay */
         }
 
         /* 로고 */
         .sidebar-header {
-            height: 72px;
+            height: 64px;
             display: flex; align-items: center; justify-content: center;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
             cursor: pointer; flex-shrink: 0;
+            padding: 0;
         }
         .sidebar-header img { height: 38px; object-fit: contain; }
 
         /* 메뉴 스크롤 영역 */
         .menu-list {
             list-style: none; margin: 0;
-            padding: 10px 0; flex: 1; overflow-y: auto;
+            padding: 16px 0; flex: 1; overflow-y: auto;
             scrollbar-width: none;
         }
         .menu-list::-webkit-scrollbar { display: none; }
 
-        .menu-item { margin: 2px 8px; position: relative; }
+        .menu-item { margin: 0; position: relative; }
 
         /* 기본 메뉴 버튼 */
         .menu-link {
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            padding: 13px 6px 11px;
-            border-radius: 12px;
+            padding: 18px 0;
             text-decoration: none;
-            color: #8a8fa8;
+            color: rgba(255,255,255,0.65);
             font-size: 11px; font-weight: 600;
-            transition: all 0.18s ease;
-            cursor: pointer; gap: 6px;
+            transition: all 0.2s ease;
+            cursor: pointer;
             border: none; background: none; width: 100%;
+            border-left: 3px solid transparent;
+            border-radius: 0;
+            gap: 6px;
         }
 
         .menu-link svg {
-            width: 24px; height: 24px;
-            stroke: #8a8fa8;
-            transition: all 0.18s;
+            width: 22px; height: 22px;
+            stroke: rgba(255,255,255,0.65);
+            transition: all 0.2s;
             fill: none;
             stroke-width: 1.7;
             stroke-linecap: round; stroke-linejoin: round;
@@ -75,39 +78,41 @@
 
         /* 호버 */
         .menu-link:hover {
-            background: #f5f6fa;
-            color: #333;
+            color: #ffffff;
+            background-color: rgba(255,255,255,0.12);
         }
-        .menu-link:hover svg { stroke: #333; }
+        .menu-link:hover svg { stroke: #ffffff; transform: translateY(-2px); }
 
         /* 활성 */
         .menu-link.active {
-            background: #fff8e6;
-            color: #f5a623;
+            color: #ffffff;
+            background-color: rgba(255,255,255,0.18);
+            border-left-color: #ffffff;
             font-weight: 700;
         }
-        .menu-link.active svg { stroke: #f5a623; }
+        .menu-link.active svg { stroke: #ffffff; }
 
         /* 구분선 */
         .menu-divider {
-            height: 1px; background: #f0f0f0;
+            height: 1px; background: rgba(255,255,255,0.15);
             margin: 8px 14px;
         }
 
-        /* =========== 서브메뉴 (보디에 고정 첨부, overflow 영향 없음) =========== */
+        /* =========== 서브메뉴 =========== */
         #memberSubmenu {
             display: none;
-            position: fixed;
-            left: 0; top: 0; /* JS로 동적 설정 */
-            min-width: 164px;
+            position: absolute;
+            left: 80px; top: 0;
+            min-width: 160px;
             background: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.16);
-            z-index: 9999;
+            border-radius: 8px;
+            box-shadow: 4px 4px 20px rgba(0,0,0,0.18);
+            z-index: 100;
             padding: 6px 0;
-            border: 1px solid #e8eaed;
-            animation: fadeInSub 0.14s ease;
+            border: 1px solid #e5e7eb;
+            animation: fadeInSub 0.15s ease;
         }
+        .menu-item:hover #memberSubmenu { display: block; }
         #memberSubmenu.open { display: block; }
 
         @keyframes fadeInSub {
@@ -118,40 +123,41 @@
         .submenu-label {
             font-size: 10px; font-weight: 700;
             color: #9ca3af;
-            padding: 8px 16px 4px;
-            letter-spacing: 0.06em;
+            padding: 8px 18px 4px;
+            letter-spacing: 0.08em;
             border-bottom: 1px solid #f3f4f6;
             margin-bottom: 2px;
+            text-transform: uppercase;
         }
 
         .submenu-item {
             display: block;
-            padding: 10px 16px;
+            padding: 10px 18px;
             font-size: 13px; font-weight: 600;
             color: #374151;
             text-decoration: none;
             white-space: nowrap;
             cursor: pointer;
-            transition: background 0.13s, color 0.13s;
+            transition: background 0.15s, color 0.15s;
             border-left: 3px solid transparent;
             background: none; border-right: none;
             border-top: none; border-bottom: none;
             width: 100%; text-align: left;
         }
         .submenu-item:hover {
-            background: #fff8e6;
-            color: #f5a623;
-            border-left-color: #f5a623;
+            background: #f0f4ff;
+            color: #111111;
+            border-left-color: #111111;
         }
         .submenu-item.active-sub {
-            background: #fff3d6;
-            color: #f5a623;
-            border-left-color: #f5a623;
+            background: #e8eeff;
+            color: #111111;
+            border-left-color: #111111;
             font-weight: 700;
         }
 
         /* 다크모드 서브메뉴 */
-        body.dark-mode #memberSubmenu { background: #2c2d31 !important; border-color: #444 !important; }
+        body.dark-mode .sidebar { background: #000 !important; border-color: #333 !important; }
         body.dark-mode .submenu-label { color: #6b7280 !important; border-color: #3a3b3f !important; }
         body.dark-mode .submenu-item { color: #ccc !important; }
         body.dark-mode .submenu-item:hover { background: #38393e !important; color: #fbbf24 !important; border-left-color: #fbbf24 !important; }
@@ -304,6 +310,14 @@
                     <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     회원
                 </button>
+                <div id="memberSubmenu">
+                    <div class="submenu-label">회원관리</div>
+                    <button class="submenu-item active-sub" onclick="loadSubPage(event,'회원목록','../admin_members_list.html',this)">회원목록</button>
+                    <button class="submenu-item" onclick="loadSubPage(event,'휴면회원목록','../dormant_members.html',this)">휴면회원목록</button>
+                    <button class="submenu-item" onclick="loadSubPage(event,'기타등록관리','../etc_register_admin.html',this)">기타등록관리</button>
+                    <button class="submenu-item" onclick="loadSubPage(event,'필자표시관리','../author_display_admin.html',this)">필자표시관리</button>
+                    <button class="submenu-item" onclick="loadSubPage(event,'부서관리','../department_admin.html',this)">부서관리</button>
+                </div>
             </li>
 
             <!-- 공실 -->
@@ -480,41 +494,6 @@
         frame.src = url + '?v=' + Date.now();
     }
 
-    // 서브메뉴 JS 제어 (보디에 고정 첨부 방식 - overflow:hidden 영향 없음)
-    (function() {
-        // 서브메뉴 HTML을 body에 직접 쳜점으로 명시적 삽입
-        const submenuEl = document.createElement('div');
-        submenuEl.id = 'memberSubmenu';
-        submenuEl.innerHTML = `
-            <div class="submenu-label">회원관리</div>
-            <button class="submenu-item active-sub" onclick="loadSubPage(event,'회원목록','../admin_members_list.html',this)">회원목록</button>
-            <button class="submenu-item" onclick="loadSubPage(event,'휴면회원목록','../dormant_members.html',this)">휴면회원목록</button>
-            <button class="submenu-item" onclick="loadSubPage(event,'기타등록관리','../etc_register_admin.html',this)">기타등록관리</button>
-            <button class="submenu-item" onclick="loadSubPage(event,'필자표시관리','../author_display_admin.html',this)">필자표시관리</button>
-            <button class="submenu-item" onclick="loadSubPage(event,'부서관리','../department_admin.html',this)">부서관리</button>
-        `;
-        document.body.appendChild(submenuEl);
-
-        const trigger = document.getElementById('memberMenuItem');
-        let hideTimer = null;
-
-        function showMenu() {
-            clearTimeout(hideTimer);
-            const rect = trigger.getBoundingClientRect();
-            submenuEl.style.left = (rect.right + 6) + 'px';
-            submenuEl.style.top  = rect.top + 'px';
-            submenuEl.classList.add('open');
-        }
-
-        function hideMenu() {
-            hideTimer = setTimeout(() => submenuEl.classList.remove('open'), 120);
-        }
-
-        trigger.addEventListener('mouseenter', showMenu);
-        trigger.addEventListener('mouseleave', hideMenu);
-        submenuEl.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-        submenuEl.addEventListener('mouseleave', hideMenu);
-    })();
 
     // 다크모드 토글
     function toggleDarkMode() {
