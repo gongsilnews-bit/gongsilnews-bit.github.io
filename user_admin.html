@@ -109,6 +109,72 @@
             stroke: #ffffff;
         }
 
+        /* ------------------ 서브메뉴 드롭다운 ------------------ */
+        .menu-item {
+            position: relative;
+        }
+
+        .submenu {
+            display: none;
+            position: absolute;
+            left: 80px;
+            top: 0;
+            min-width: 160px;
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 4px 4px 20px rgba(0,0,0,0.18);
+            z-index: 100;
+            padding: 6px 0;
+            border: 1px solid #e5e7eb;
+            animation: fadeInSubmenu 0.15s ease;
+        }
+
+        @keyframes fadeInSubmenu {
+            from { opacity: 0; transform: translateX(-6px); }
+            to   { opacity: 1; transform: translateX(0); }
+        }
+
+        .menu-item:hover .submenu {
+            display: block;
+        }
+
+        .submenu-item {
+            display: block;
+            padding: 10px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #374151;
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            border-left: 3px solid transparent;
+        }
+
+        .submenu-item:hover {
+            background: #f0f4ff;
+            color: #1a3a6b;
+            border-left-color: #1a3a6b;
+        }
+
+        .submenu-item.active-sub {
+            background: #e8eeff;
+            color: #1a3a6b;
+            border-left-color: #1a3a6b;
+            font-weight: 700;
+        }
+
+        .submenu-label {
+            font-size: 10px;
+            font-weight: 700;
+            color: #9ca3af;
+            padding: 8px 18px 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border-bottom: 1px solid #f3f4f6;
+            margin-bottom: 2px;
+        }
+
         /* ------------------ 우측 메인 콘텐츠 ------------------ */
         .main-content {
             flex: 1;
@@ -239,6 +305,21 @@
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
                         <span>스터디관리</span>
                     </a>
+                </li>
+                <li class="menu-item" id="memberMenuItem">
+                    <a class="menu-link" id="memberMenuLink" onclick="loadPage(event, '회원목록', 'admin_members_list.html')">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        <span>회원</span>
+                    </a>
+                    <!-- 호버 서브메뉴 -->
+                    <div class="submenu" id="memberSubmenu">
+                        <div class="submenu-label">회원관리</div>
+                        <a class="submenu-item active-sub" onclick="loadSubPage(event, '회원목록', 'admin_members_list.html', this)">회원목록</a>
+                        <a class="submenu-item" onclick="loadSubPage(event, '휴면회원목록', 'dormant_members.html', this)">휴면회원목록</a>
+                        <a class="submenu-item" onclick="loadSubPage(event, '기타등록관리', 'etc_register_admin.html', this)">기타등록관리</a>
+                        <a class="submenu-item" onclick="loadSubPage(event, '필자표시관리', 'author_display_admin.html', this)">필자표시관리</a>
+                        <a class="submenu-item" onclick="loadSubPage(event, '부서관리', 'department_admin.html', this)">부서관리</a>
+                    </div>
                 </li>
                 <li class="menu-item">
                     <a class="menu-link" onclick="loadPage(event, '고객관리', 'customer_admin.html')">
@@ -409,6 +490,30 @@
 
             const frame = document.getElementById('mainFrame');
             // 캐시 방지를 위해 랜덤 쿼리 추가
+            const finalUrl = url.includes('?') ? (url + '&v=' + Date.now()) : (url + '?v=' + Date.now());
+            frame.src = finalUrl;
+        }
+
+        // 서브메뉴 클릭 시 iframe 소스 변경하는 함수
+        function loadSubPage(event, title, url, el) {
+            if (event && event.preventDefault) event.preventDefault();
+            if (event && event.stopPropagation) event.stopPropagation();
+
+            // 서브메뉴 active 처리
+            const subItems = document.querySelectorAll('.submenu-item');
+            subItems.forEach(item => item.classList.remove('active-sub'));
+            if (el) el.classList.add('active-sub');
+
+            // 부모 메뉴 링크 active 처리
+            const links = document.querySelectorAll('.menu-link');
+            links.forEach(link => link.classList.remove('active'));
+            const memberLink = document.getElementById('memberMenuLink');
+            if (memberLink) memberLink.classList.add('active');
+
+            // 타이틀 변경
+            if (title) document.title = title + ' - 공실뉴스';
+
+            const frame = document.getElementById('mainFrame');
             const finalUrl = url.includes('?') ? (url + '&v=' + Date.now()) : (url + '?v=' + Date.now());
             frame.src = finalUrl;
         }
