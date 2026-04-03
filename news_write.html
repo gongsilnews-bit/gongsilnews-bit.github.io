@@ -2155,9 +2155,12 @@
         function insertNodeAtCursor(htmlString) {
             var $editor = $('#summernote');
             try {
+                // 핵심! focus() 시점에 이벤트 리스너가 발동해 savedRange를 덮어씌우는 것을 방지
+                var validRange = savedRange; 
+                
                 $editor.summernote('focus');
-                if (savedRange) {
-                    $editor.summernote('editor.restoreRange', savedRange);
+                if (validRange) {
+                    $editor.summernote('editor.restoreRange', validRange);
                 }
                 
                 // 완벽한 커서 추적을 위한 고유 마커 앵커 삽입
