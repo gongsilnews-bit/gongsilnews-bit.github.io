@@ -431,6 +431,11 @@
             const isDark = document.body.classList.toggle('dark-mode');
             localStorage.setItem('admin_dark_mode', isDark ? '1' : '0');
             document.getElementById('darkModeBtn').textContent = isDark ? '☀️' : '🌙';
+            // iframe 안쪽에도 전달
+            const frame = document.getElementById('mainFrame');
+            if (frame && frame.contentWindow) {
+                frame.contentWindow.postMessage(isDark ? 'darkmode:on' : 'darkmode:off', '*');
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
