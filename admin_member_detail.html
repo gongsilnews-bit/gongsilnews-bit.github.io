@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원 상세정보 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: #f4f5f7; padding: 24px; margin: 0; color: #222;
+        }
+
+        .page-header {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 24px;
+        }
+        .btn-back {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 14px; border: 1px solid #d1d5db;
+            background: #fff; border-radius: 6px; cursor: pointer;
+            font-size: 13px; font-weight: 600; color: #374151;
+            font-family: inherit; transition: all 0.15s;
+        }
+        .btn-back:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .page-title { font-size: 1.2rem; font-weight: 800; color: #111; margin: 0; }
+        .member-badge {
+            display: inline-flex; align-items: center;
+            padding: 3px 10px; border-radius: 5px;
+            font-size: 12px; font-weight: 700;
+            border: 1px solid; white-space: nowrap;
+        }
+
+        .card {
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.09);
+            padding: 28px; margin-bottom: 16px;
+        }
+        .card-title {
+            font-size: 15px; font-weight: 800; color: #111;
+            margin: 0 0 20px 0; padding-bottom: 12px;
+            border-bottom: 2px solid #f3f4f6;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .card-title .icon { font-size: 18px; }
+
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 20px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group.full { grid-column: 1 / -1; }
+        .form-group label {
+            display: block; font-size: 12px; font-weight: 700;
+            color: #666; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.03em;
+        }
+        .form-group label .required { color: #dc2626; margin-left: 2px; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 9px 12px;
+            border: 1px solid #e5e7eb; border-radius: 6px;
+            font-size: 14px; font-family: inherit; color: #111;
+            background: #fff; outline: none; transition: border 0.15s;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            border-color: #4285f4; box-shadow: 0 0 0 3px rgba(66,133,244,0.12);
+        }
+        .form-group input:disabled, .form-group select:disabled {
+            background: #f9fafb; color: #888; cursor: not-allowed;
+        }
+        .form-group textarea { resize: vertical; min-height: 80px; }
+
+        /* 멤버십 섹션 */
+        .membership-row { display: flex; gap: 12px; align-items: flex-end; }
+        .membership-row .form-group { flex: 1; margin-bottom: 0; }
+        .quick-btns { display: flex; gap: 6px; }
+        .quick-btn {
+            padding: 9px 12px; font-size: 12px; font-weight: 700;
+            border: 1px solid #d1d5db; border-radius: 6px;
+            background: #fff; cursor: pointer; font-family: inherit;
+            color: #374151; white-space: nowrap; transition: all 0.12s;
+        }
+        .quick-btn:hover { background: #f3f4f6; border-color: #9ca3af; }
+
+        /* 상태 박스 */
+        .status-info-box {
+            background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 14px 18px; margin-bottom: 16px;
+            display: flex; gap: 24px; flex-wrap: wrap;
+        }
+        .info-item { display: flex; flex-direction: column; gap: 4px; }
+        .info-item .label { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; }
+        .info-item .value { font-size: 13px; font-weight: 700; color: #111; }
+
+        /* 서류 링크 */
+        .doc-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 8px 14px; border: 1px solid #d1d5db; border-radius: 6px;
+            text-decoration: none; font-size: 13px; font-weight: 600; color: #374151;
+            background: #fff; transition: all 0.12s;
+        }
+        .doc-link:hover { background: #f3f4f6; border-color: #9ca3af; }
+        .doc-link.disabled { color: #ccc; border-color: #e5e7eb; pointer-events: none; }
+
+        /* 액션 바 */
+        .action-bar {
+            display: flex; gap: 10px; justify-content: flex-end;
+            padding-top: 16px; border-top: 1px solid #f3f4f6;
+        }
+        .btn-save {
+            padding: 10px 24px; background: #4285f4; color: white;
+            border: none; border-radius: 6px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; transition: background 0.15s;
+        }
+        .btn-save:hover { background: #3367d6; }
+        .btn-danger {
+            padding: 10px 20px; background: #fff; color: #dc2626;
+            border: 1px solid #fca5a5; border-radius: 6px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+        }
+        .btn-danger:hover { background: #fff1f2; }
+        .btn-verify-approve {
+            padding: 10px 20px; background: #fff; color: #15803d;
+            border: 1px solid #bbf7d0; border-radius: 6px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+        }
+        .btn-verify-approve:hover { background: #f0fdf4; }
+        .btn-verify-reject {
+            padding: 10px 20px; background: #fff; color: #be123c;
+            border: 1px solid #fecdd3; border-radius: 6px; font-size: 14px; font-weight: 700;
+            cursor: pointer; font-family: inherit; transition: all 0.15s;
+        }
+        .btn-verify-reject:hover { background: #fff1f2; }
+
+        /* 알림 메시지 */
+        .alert-msg {
+            padding: 10px 14px; border-radius: 6px; font-size: 13px;
+            font-weight: 600; margin-top: 10px; display: none;
+        }
+        .alert-msg.info { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; }
+        .alert-msg.success { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+        .alert-msg.error { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+        /* 로딩 스켈레톤 */
+        .loading-wrap { text-align: center; padding: 80px 20px; color: #bbb; font-size: 15px; }
+        .realtor-only { display: none; }
+
+        /* 섹션 구분 배지 */
+        .section-tag {
+            display: inline-block; padding: 2px 8px;
+            background: #eff6ff; color: #2563eb; border-radius: 4px;
+            font-size: 11px; font-weight: 700; margin-right: 4px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="loadingWrap" class="loading-wrap">회원 정보를 불러오는 중입니다...</div>
+
+<div id="mainContent" style="display:none;">
+
+    <!-- 페이지 헤더 -->
+    <div class="page-header">
+        <button class="btn-back" onclick="goBack()">← 회원목록</button>
+        <h2 class="page-title" id="pageTitle">회원 상세정보</h2>
+        <span class="member-badge" id="roleBadge"></span>
+        <span class="member-badge" id="membershipBadge" style="margin-left:4px;"></span>
+    </div>
+
+    <!-- 현재 상태 요약 -->
+    <div class="status-info-box">
+        <div class="info-item"><span class="label">회원번호</span><span class="value" id="infoMemberNo">-</span></div>
+        <div class="info-item"><span class="label">이메일</span><span class="value" id="infoEmail">-</span></div>
+        <div class="info-item"><span class="label">가입일</span><span class="value" id="infoCreatedAt">-</span></div>
+        <div class="info-item"><span class="label">상태</span><span class="value" id="infoStatus">-</span></div>
+        <div class="info-item realtor-only" id="infoVerifyWrap"><span class="label">인증상태</span><span class="value" id="infoVerify">-</span></div>
+    </div>
+
+    <!-- ① 기본 정보 카드 -->
+    <div class="card">
+        <h3 class="card-title"><span class="icon">👤</span> 기본 정보</h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>이메일 (아이디)</label>
+                <input type="text" id="fEmail" disabled>
+            </div>
+            <div class="form-group">
+                <label>이름 <span class="required">*</span></label>
+                <input type="text" id="fName" placeholder="이름 입력">
+            </div>
+            <div class="form-group">
+                <label>휴대폰 번호</label>
+                <input type="text" id="fPhone" placeholder="010-0000-0000">
+            </div>
+            <div class="form-group">
+                <label>회원 등급</label>
+                <select id="fRole">
+                    <option value="general">일반회원</option>
+                    <option value="realtor">부동산회원</option>
+                    <option value="admin">최고관리자</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 멤버십 설정 -->
+        <div class="form-group" style="margin-top:4px;">
+            <label>멤버십</label>
+            <div class="membership-row">
+                <div class="form-group" style="margin-bottom:0; flex:0 0 120px;">
+                    <select id="fMembership">
+                        <option value="free">무료(Free)</option>
+                        <option value="paid">유료(Paid)</option>
+                    </select>
+                </div>
+                <div class="form-group" id="expiredGroup" style="margin-bottom:0; flex:1; display:none;">
+                    <input type="date" id="fExpiredAt">
+                </div>
+                <div class="quick-btns" id="expiredBtns" style="display:none;">
+                    <button class="quick-btn" onclick="addDays(30)">+1개월</button>
+                    <button class="quick-btn" onclick="addDays(90)">+3개월</button>
+                    <button class="quick-btn" onclick="addDays(365)">+1년</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="action-bar" style="border:none; padding-top:8px;">
+            <button class="btn-danger" onclick="handleDelete()">회원 삭제</button>
+            <button class="btn-save" onclick="handleSave()">저장하기</button>
+        </div>
+        <div class="alert-msg" id="saveMsg"></div>
+    </div>
+
+    <!-- ② 부동산 / 기업 정보 카드 (부동산 회원만) -->
+    <div class="card realtor-only" id="realtorCard">
+        <h3 class="card-title"><span class="icon">🏢</span> 부동산 / 기업 정보 <span class="section-tag">부동산회원 전용</span></h3>
+        <div class="form-grid">
+            <div class="form-group">
+                <label>상호명</label>
+                <input type="text" id="fCompName" placeholder="회사명">
+            </div>
+            <div class="form-group">
+                <label>대표자명</label>
+                <input type="text" id="fCeo" placeholder="대표자">
+            </div>
+            <div class="form-group">
+                <label>중개등록번호</label>
+                <input type="text" id="fBrokerNo" placeholder="0000-0000">
+            </div>
+            <div class="form-group">
+                <label>사업자등록번호</label>
+                <input type="text" id="fBizNo" placeholder="000-00-00000">
+            </div>
+            <div class="form-group">
+                <label>대표 전화</label>
+                <input type="text" id="fOfficeTel" placeholder="02-000-0000">
+            </div>
+            <div class="form-group">
+                <label>부동산 주소</label>
+                <input type="text" id="fAddress" placeholder="주소">
+            </div>
+        </div>
+
+        <!-- 첨부 서류 -->
+        <div class="form-group" style="margin-top:8px;">
+            <label>첨부 서류</label>
+            <div style="display:flex; gap:10px; margin-top:6px;">
+                <a id="linkBizDoc" href="#" target="_blank" class="doc-link disabled">📄 사업자등록증</a>
+                <a id="linkBrokerDoc" href="#" target="_blank" class="doc-link disabled">📋 중개등록증</a>
+            </div>
+        </div>
+
+        <!-- 인증 처리 -->
+        <div class="form-group" style="margin-top:8px;">
+            <label>관리자 검토 메모</label>
+            <input type="text" id="fAdminNote" placeholder="거절 사유, 특이사항 등">
+        </div>
+
+        <div class="action-bar" style="border:none; padding-top:8px;">
+            <button class="btn-verify-reject" id="btnReject" onclick="handleVerify('rejected')">반려 (거절)</button>
+            <button class="btn-verify-approve" id="btnApprove" onclick="handleVerify('approved')">✓ 승인</button>
+            <button class="btn-save" onclick="handleSaveRealtor()">부동산 정보 저장</button>
+        </div>
+        <div class="alert-msg" id="realtorMsg"></div>
+    </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+<script type="module">
+    const supabase = window.gongsiClient;
+
+    // URL에서 uid 파라미터 읽기
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get('uid');
+
+    let memberData = null;
+
+    // 뒤로가기 (목록으로)
+    window.goBack = function() {
+        window.location.href = 'admin_members_list.html';
+    };
+
+    // 날짜 빠른 추가
+    window.addDays = function(days) {
+        const input = document.getElementById('fExpiredAt');
+        let base = input.value ? new Date(input.value) : new Date();
+        if (base < new Date()) base = new Date();
+        base.setDate(base.getDate() + days);
+        input.value = base.toISOString().split('T')[0];
+    };
+
+    // 멤버십 선택 시 만료일 표시 토글
+    document.getElementById('fMembership').addEventListener('change', function() {
+        const isPaid = this.value === 'paid';
+        document.getElementById('expiredGroup').style.display = isPaid ? 'block' : 'none';
+        document.getElementById('expiredBtns').style.display = isPaid ? 'flex' : 'none';
+    });
+
+    // 역할 변경 시 부동산 카드 표시 토글
+    document.getElementById('fRole').addEventListener('change', function() {
+        const isRealtor = this.value === 'realtor';
+        document.querySelectorAll('.realtor-only').forEach(el => {
+            el.style.display = isRealtor ? (el.tagName === 'DIV' ? 'block' : 'flex') : 'none';
+        });
+    });
+
+    // 알림 메시지
+    function showMsg(id, text, type = 'info') {
+        const el = document.getElementById(id);
+        el.textContent = text;
+        el.className = `alert-msg ${type}`;
+        el.style.display = 'block';
+        if (type === 'success') setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    // 배지 렌더
+    function renderBadges(data) {
+        const roleBadges = {
+            admin:   { text: '최고관리자', bg: '#fff1f2', color: '#be123c', border: '#fecdd3' },
+            realtor: { text: '부동산회원', bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' },
+            general: { text: '일반회원',   bg: '#f8fafc', color: '#475569', border: '#cbd5e1' },
+        };
+        const rb = roleBadges[data.role] || roleBadges.general;
+        const roleEl = document.getElementById('roleBadge');
+        roleEl.textContent = rb.text;
+        roleEl.style.cssText = `background:${rb.bg}; color:${rb.color}; border-color:${rb.border};`;
+
+        const msEl = document.getElementById('membershipBadge');
+        if (data.membership === 'paid') {
+            msEl.textContent = '👑 유료멤버십';
+            msEl.style.cssText = 'background:#fffbeb; color:#b45309; border-color:#fde68a;';
+        } else {
+            msEl.textContent = '무료';
+            msEl.style.cssText = 'background:#f8fafc; color:#64748b; border-color:#cbd5e1;';
+        }
+    }
+
+    // 페이지 초기화
+    async function init() {
+        if (!uid) {
+            document.getElementById('loadingWrap').textContent = '❌ 회원 ID가 지정되지 않았습니다.';
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.from('members').select('*').eq('id', uid).single();
+            if (error) throw error;
+            memberData = data;
+
+            // 기본 정보 채우기
+            const createdStr = data.created_at ? data.created_at.split('T')[0] : '-';
+            const expiredStr = data.expired_at  ? data.expired_at.split('T')[0]  : null;
+            const memberNoStr = String(data.member_no || '').padStart(6, '0');
+
+            document.getElementById('pageTitle').textContent = `회원 상세정보 — ${data.name || data.email}`;
+            document.getElementById('infoMemberNo').textContent = memberNoStr || '-';
+            document.getElementById('infoEmail').textContent = data.email || '-';
+            document.getElementById('infoCreatedAt').textContent = createdStr;
+
+            // 상태
+            const now = new Date(); now.setHours(0,0,0,0);
+            let statusText = '정상';
+            if (data.membership === 'paid' && expiredStr) {
+                const exp = new Date(expiredStr); exp.setHours(0,0,0,0);
+                if (exp < now) statusText = '기간만료';
+            }
+            document.getElementById('infoStatus').textContent = statusText;
+
+            // 폼 채우기
+            document.getElementById('fEmail').value      = data.email || '';
+            document.getElementById('fName').value       = data.name || '';
+            document.getElementById('fPhone').value      = data.phone || '';
+            document.getElementById('fRole').value       = data.role || 'general';
+            document.getElementById('fMembership').value = data.membership || 'free';
+
+            if (data.membership === 'paid') {
+                document.getElementById('expiredGroup').style.display = 'block';
+                document.getElementById('expiredBtns').style.display = 'flex';
+                document.getElementById('fExpiredAt').value = expiredStr || '';
+            }
+
+            // 배지
+            renderBadges(data);
+
+            // 부동산 회원 전용 섹션
+            if (data.role === 'realtor') {
+                document.querySelectorAll('.realtor-only').forEach(el => {
+                    el.style.display = el.tagName === 'DIV' ? 'block' : 'flex';
+                });
+
+                document.getElementById('fCompName').value  = data.company_name || '';
+                document.getElementById('fCeo').value        = data.ceo_name || '';
+                document.getElementById('fBrokerNo').value   = data.company_reg_no || '';
+                document.getElementById('fBizNo').value      = data.biz_reg_no || '';
+                document.getElementById('fOfficeTel').value  = data.office_tel || '';
+                document.getElementById('fAddress').value    = data.address || '';
+                document.getElementById('fAdminNote').value  = data.admin_note || '';
+
+                // 서류 링크
+                const vs = data.verification_status || 'pending';
+                const verifyTexts = {
+                    auto_verified:   '자동검증완료',
+                    manual_required: '심사대기',
+                    approved:        '✓ 승인완료',
+                    rejected:        '✕ 반려됨',
+                    pending:         '정보입력중',
+                };
+                document.getElementById('infoVerify').textContent = verifyTexts[vs] || vs;
+
+                const bizLink = document.getElementById('linkBizDoc');
+                const brokerLink = document.getElementById('linkBrokerDoc');
+                if (data.license_image) {
+                    bizLink.href = data.license_image;
+                    bizLink.classList.remove('disabled');
+                }
+                if (data.license_image_brokerage) {
+                    brokerLink.href = data.license_image_brokerage;
+                    brokerLink.classList.remove('disabled');
+                }
+            }
+
+            // 로딩 숨기고 메인 표시
+            document.getElementById('loadingWrap').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+
+        } catch(e) {
+            document.getElementById('loadingWrap').textContent = `❌ 데이터 로드 오류: ${e.message}`;
+        }
+    }
+
+    // 기본 정보 저장
+    window.handleSave = async function() {
+        const name       = document.getElementById('fName').value.trim();
+        const phone      = document.getElementById('fPhone').value.trim();
+        const role       = document.getElementById('fRole').value;
+        const membership = document.getElementById('fMembership').value;
+        const expiredAt  = document.getElementById('fExpiredAt').value;
+
+        showMsg('saveMsg', '저장 중...', 'info');
+
+        try {
+            const updateData = {
+                name, phone, role, membership,
+                expired_at: (membership === 'paid' && expiredAt) ? expiredAt : null,
+            };
+            const { error } = await supabase.from('members').update(updateData).eq('id', uid);
+            if (error) throw error;
+
+            memberData = { ...memberData, ...updateData };
+            renderBadges(memberData);
+            showMsg('saveMsg', '✅ 저장되었습니다.', 'success');
+        } catch(e) {
+            showMsg('saveMsg', '❌ 저장 오류: ' + e.message, 'error');
+        }
+    };
+
+    // 부동산 정보 저장
+    window.handleSaveRealtor = async function() {
+        showMsg('realtorMsg', '저장 중...', 'info');
+        try {
+            const updateData = {
+                company_name:  document.getElementById('fCompName').value.trim(),
+                ceo_name:      document.getElementById('fCeo').value.trim(),
+                company_reg_no: document.getElementById('fBrokerNo').value.trim(),
+                biz_reg_no:    document.getElementById('fBizNo').value.trim(),
+                office_tel:    document.getElementById('fOfficeTel').value.trim(),
+                address:       document.getElementById('fAddress').value.trim(),
+                admin_note:    document.getElementById('fAdminNote').value.trim(),
+            };
+            const { error } = await supabase.from('members').update(updateData).eq('id', uid);
+            if (error) throw error;
+            showMsg('realtorMsg', '✅ 부동산 정보가 저장되었습니다.', 'success');
+        } catch(e) {
+            showMsg('realtorMsg', '❌ 저장 오류: ' + e.message, 'error');
+        }
+    };
+
+    // 인증 처리
+    window.handleVerify = async function(status) {
+        const note = document.getElementById('fAdminNote').value.trim();
+        if (status === 'rejected' && !note) {
+            alert('거절 사유(검토 메모)를 입력해주세요.'); return;
+        }
+        showMsg('realtorMsg', '처리 중...', 'info');
+        try {
+            const { error } = await supabase.from('members').update({
+                verification_status: status,
+                admin_note: note,
+                approved_at: status === 'approved' ? new Date().toISOString() : null,
+            }).eq('id', uid);
+            if (error) throw error;
+            document.getElementById('infoVerify').textContent = status === 'approved' ? '✓ 승인완료' : '✕ 반려됨';
+            showMsg('realtorMsg', status === 'approved' ? '✅ 승인 처리되었습니다.' : '✅ 반려 처리되었습니다.', 'success');
+        } catch(e) {
+            showMsg('realtorMsg', '❌ 처리 오류: ' + e.message, 'error');
+        }
+    };
+
+    // 삭제
+    window.handleDelete = async function() {
+        if (!confirm(`경고: '${memberData?.email}' 회원을 영구 삭제하시겠습니까?`)) return;
+        try {
+            const { error } = await supabase.from('members').delete().eq('id', uid);
+            if (error) throw error;
+            alert('삭제되었습니다.');
+            window.location.href = 'admin_members_list.html';
+        } catch(e) {
+            alert('삭제 오류: ' + e.message);
+        }
+    };
+
+    init();
+</script>
+</body>
+</html>

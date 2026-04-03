@@ -117,6 +117,12 @@
         /* ── 셀 스타일 ── */
         .member-no { font-size: 11px; color: #aaa; font-weight: 700; }
         .user-email { font-size: 13px; color: #222; font-weight: 600; }
+        .user-email.clickable {
+            color: #2563eb; cursor: pointer; text-decoration: underline;
+            text-underline-offset: 3px; text-decoration-color: #bfdbfe;
+            transition: color 0.12s;
+        }
+        .user-email.clickable:hover { color: #1d4ed8; text-decoration-color: #93c5fd; }
         .user-name-sub { font-size: 11px; color: #999; margin-top: 1px; }
         .date-text { font-size: 11px; color: #888; }
         .phone-text { font-size: 12px; color: #555; }
@@ -443,6 +449,11 @@
 
     window.closeModal = (id) => document.getElementById(id).style.display = 'none';
 
+    // 아이디 클릭 → 상세페이지 이동 (iframe 내에서 같은 창으로)
+    window.goDetail = function(uid) {
+        window.location.href = `admin_member_detail.html?uid=${uid}`;
+    };
+
     document.getElementById('chkAll').addEventListener('change', function () {
         document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
     });
@@ -561,12 +572,18 @@
                 ? `<button class="btn-history" onclick="openVerifyModal('${data.id}')">서류검토</button>`
                 : '';
 
+            // 아이디 클릭 링크 (관리자는 링크 없음)
+            const isClickable = data.role !== 'admin';
+            const emailHtml = isClickable
+                ? `<div class="user-email clickable" onclick="goDetail('${data.id}')">${data.email || '-'}</div>`
+                : `<div class="user-email">${data.email || '-'}</div>`;
+
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><input type="checkbox"></td>
                 <td><span class="member-no">${memberNoStr}</span></td>
                 <td style="text-align:left; padding-left:10px;">
-                    <div class="user-email">${data.email || '-'}</div>
+                    ${emailHtml}
                 </td>
                 <td>${data.name || '-'}</td>
                 <td class="phone-text">${phoneStr}</td>
