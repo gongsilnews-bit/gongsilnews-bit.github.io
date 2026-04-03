@@ -2501,26 +2501,20 @@
                 maxHeight: null,             // 최대 높이
                 focus: false,                // 에디터 로딩후 포커스를 맞출지 여부
                 lang: "ko-KR",               // 한글 설정
-                placeholder: '기사 본문을 자유롭게 작성해 주세요. (이미지, 표, 글자색 변경 등 모두 지원)',
+                placeholder: '기사 본문을 자유롭게 작성해 주세요. (에디터 위 도구 모음을 이용해 텍스트를 꾸며보세요)',
                 toolbar: [
                     // 글꼴 설정
                     ['fontname', ['fontname']],
                     // 글자 크기 설정
                     ['fontsize', ['fontsize']],
-                    // 굵기, 기울임꼴, 밑줄,취소 선, 서식지우기
-                    ['style', ['bold', 'italic', 'underline','strikethrough', 'clear']],
+                    // 굵기, 기울임꼴, 밑줄, 취소선, 서식지우기
+                    ['style', ['bold', 'italic', 'underline', 'strikethrough', 'clear']],
                     // 글자색
-                    ['color', ['forecolor','color']],
-                    // 표만들기
-                    ['table', ['table']],
-                    // 글머리 기호, 번호매기기, 문단정렬
-                    ['para', ['ul', 'ol', 'paragraph']],
-                    // 줄간격
-                    ['height', ['height']],
-                    // 그림첨부, 링크만들기, 동영상첨부
-                    ['insert',['picture','link','video']],
-                    // 코드보기, 확대해서보기, 도움말
-                    ['view', ['codeview','fullscreen', 'help']]
+                    ['color', ['forecolor', 'color']],
+                    // 문단정렬
+                    ['para', ['paragraph']],
+                    // 링크만들기
+                    ['insert', ['link']]
                 ],
                 popover: {
                     image: [],
