@@ -253,8 +253,12 @@
                 <input type="text" id="fBizNo" placeholder="000-00-00000">
             </div>
             <div class="form-group">
-                <label>대표 전화</label>
+                <label>대표 전화 (일반번호)</label>
                 <input type="text" id="fOfficeTel" placeholder="02-000-0000">
+            </div>
+            <div class="form-group">
+                <label>부동산 휴대번호</label>
+                <input type="text" id="fCellNum" placeholder="010-0000-0000">
             </div>
             <div class="form-group">
                 <label>부동산 주소</label>
@@ -422,6 +426,7 @@
                 document.getElementById('fBrokerNo').value   = data.company_reg_no || '';
                 document.getElementById('fBizNo').value      = data.biz_reg_no || '';
                 document.getElementById('fOfficeTel').value  = data.tel_num || '';
+                document.getElementById('fCellNum').value    = data.cell_num || '';
                 document.getElementById('fAddress').value    = data.address || '';
                 document.getElementById('fAdminNote').value  = data.admin_note || '';
 
@@ -495,6 +500,7 @@
                 company_reg_no: document.getElementById('fBrokerNo').value.trim(),
                 biz_reg_no:    document.getElementById('fBizNo').value.trim(),
                 tel_num:       document.getElementById('fOfficeTel').value.trim(),
+                cell_num:      document.getElementById('fCellNum').value.trim(),
                 address:       document.getElementById('fAddress').value.trim(),
                 admin_note:    document.getElementById('fAdminNote').value.trim(),
             };
