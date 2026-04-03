@@ -1080,25 +1080,9 @@
             const dataUrl = e.target.result;
             const imgId = 'photo_' + Date.now();
             
-            const pOpen = '<p><br></p>';
-            const pClose = '<p><br></p>';
-            
-            const combinedHtml = pOpen + '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:' + alignStr + '; margin:8px auto;">'
-                + '<img src="' + dataUrl + '" style="max-width:100%; display:block; width:100%;">'
-                + '<figcaption contenteditable="true">' + caption + '</figcaption>'
-                + '</figure>' + pClose;
-                
-            if (typeof $ !== 'undefined' && $('#summernote').length) {
-                try {
-                    $('#summernote').summernote('pasteHTML', combinedHtml);
-                } catch(err) {
-                    console.error(err);
-                }
-            }
-            
-            // 기존 오른쪽 라이브러리 연동 (옵션)
+            // 사진 라이브러리 연동 및 본문 삽입 한 번에 처리
             if (typeof window.addPhotoFromDBToLibrary === 'function') {
-                window.addPhotoFromDBToLibrary(dataUrl);
+                window.addPhotoFromDBToLibrary(dataUrl, caption, alignStr);
             }
             
             // 모달 초기화
@@ -1627,10 +1611,9 @@
         cardEl?.remove();
     }
 
-    // ─── 예외 상황 대비 강제 주입 함수 ───
     function forceInsertPhoto(url, photoId) {
         var imgId = 'photo_' + photoId;
-        var combinedHtml = '<p></p><figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:8px auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure><p></p>';
+        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure>&#8203;';
         if (typeof $ !== 'undefined' && $('#summernote').length) {
             try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) { }
         }
@@ -2241,17 +2224,19 @@
         }
 
         // === 사진 (포토DB 연동 함수) ===
-        window.addPhotoFromDBToLibrary = function(url) {
+        window.addPhotoFromDBToLibrary = function(url, initialCaption, initialAlign) {
+            var captionStr = initialCaption || '';
+            var alignStr = initialAlign || 'center';
             var id = 'photo_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
-            libPhotos.push({ id: id, dataUrl: url, caption: '' });
+            libPhotos.push({ id: id, dataUrl: url, caption: captionStr });
             if (!globalRepId) {
                 globalRepId = id;
             }
             renderPhotoGrid();
 
-            var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:center; margin:0 auto;">'
+            var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + alignStr + '; margin:0 auto;">'
                 + '<img src="' + url + '" style="max-width:100%; display:block; width:100%;">'
-                + '<figcaption contenteditable="true"></figcaption>'
+                + '<figcaption contenteditable="true">' + captionStr + '</figcaption>'
                 + '</figure>'
                 + '&#8203;'; // 커서를 피겨 밖으로 빼기 위한 폭 없는 공백
             insertNodeAtCursor(combinedHtml);
