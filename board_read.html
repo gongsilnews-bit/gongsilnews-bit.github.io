@@ -2,254 +2,1336 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=1200">
     <title>게시글 보기 - 공실뉴스</title>
-    <!-- 폰트/공통 스타일 -->
-    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
-    <link rel="stylesheet" href="style.css">
-    
-    <!-- Supabase / JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase_gongsi_config.js"></script>
-    <script src="supabase_auth.js"></script>
-    
     <style>
-        .board-detail-container {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 40px 20px;
-            font-family: 'Pretendard Variable', sans-serif;
-            min-height: 70vh;
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        :root {
+            --brand-navy: #102c57;
+            --brand-blue: #508bf5;
+            --border-light: #e5e5e5;
+            --text-dark: #222222;
+            --text-gray: #777777;
+            --bg-body: #ffffff;
+            --bg-gray: #f8f9fa;
         }
 
-        .board-header { padding-bottom: 24px; border-bottom: 2px solid #111; margin-bottom: 30px; }
-        .b-category { font-size: 14px; font-weight: 700; color: #2563eb; margin-bottom: 12px; }
-        .b-title { font-size: 32px; font-weight: 800; color: #111; margin-bottom: 16px; line-height: 1.4; }
-        .b-meta { display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #666; }
-        .b-meta-left { display: flex; align-items: center; gap: 12px; }
-        .b-author { font-weight: 700; color: #333; }
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            min-width: 1200px;
+            overflow-x: auto;
+            overflow-y: scroll !important;
+        }
+        ul, li { list-style: none; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+        /* Container */
+        .container {
+            width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 1. Top Nav Bar */
+        .top-bar {
+            position: relative;
+            z-index: 10000000;
+            background-color: var(--brand-navy);
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            min-width: 1200px;
+        }
+        .top-bar-left { 
+            display: flex; 
+            align-items: center; 
+        }
+        .top-logo {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            margin-right: 20px;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+        .top-desc {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+            letter-spacing: -0.5px;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .top-bar-right svg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            stroke: #fff;
+            opacity: 0.9;
+            transition: opacity 0.2s, stroke 0.2s;
+        }
+        .top-bar-right svg:hover {
+            opacity: 1;
+        }
         
-        .b-content-area { font-size: 17px; line-height: 1.7; color: #333; margin-bottom: 50px; }
-        .b-content-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; }
+        /* Expanding Search Bar */
+        .top-search-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .top-search-input {
+            width: 0;
+            opacity: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            border-radius: 4px;
+            height: 26px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s;
+        }
+        .top-search-wrap.active .top-search-input {
+            width: 180px;
+            opacity: 1;
+            padding: 0 10px;
+            margin-right: 10px;
+        }
+
+        /* 2. Main Header */
+        .header {
+            background: rgba(255, 255, 255, 1);
+            border-bottom: 2px solid #111111;
+            padding-top: 24px;
+            position: sticky;
+            top: -1px;
+            z-index: 9999999;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky {
+            padding-top: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-bottom: 2px solid #111111;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-top {
+            margin-bottom: 12px;
+        }
+        .header img.ht-logo {
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky img.ht-logo {
+            height: 32px;
+        }
+        .ht-left, .ht-right { flex: 1; }
+        .ht-right { display: flex; justify-content: flex-end; }
+        .ht-center { flex: 0 0 auto; }
         
-        /* 비디오 영역 */
-        .b-video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 30px; }
-        .b-video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .free-banner {
+            color: #508bf5;
+            font-weight: 800;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .header-bottom {
+            padding-bottom: 16px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-bottom {
+            padding-bottom: 10px;
+        }
+        .gnb-new {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 800;
+            color: #222;
+            align-items: center;
+        }
+        .gnb-new a { transition: color 0.2s; }
+        .gnb-new a:hover { color: var(--brand-blue); }
+        .gnb-new .divider {
+            width: 1px; height: 16px; background: #ddd; margin: 0 5px;
+        }
 
-        /* 다운로드 버튼 팩 */
-        .b-download-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
-        .b-dl-info .dl-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
-        .b-dl-info .dl-desc { font-size: 13px; color: #64748b; }
-        .btn-download { display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; font-size: 15px; font-weight: 700; border-radius: 6px; transition: background 0.2s; }
-        .btn-download:hover { background: #1d4ed8; }
+        /* Component: Section Title */
+        .sec-title-wrap {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .sec-title-wrap::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--brand-blue);
+            margin-right: 10px;
+        }
+        .sec-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            letter-spacing: -0.5px;
+        }
 
-        /* 이전목록 버튼 */
-        .b-nav { text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px; }
-        .btn-list { display: inline-block; padding: 10px 40px; font-size: 15px; font-weight: 600; color: #555; background: #fff; border: 1px solid #ccc; border-radius: 30px; text-decoration: none; transition: 0.2s; }
-        .btn-list:hover { background: #f9fafb; border-color: #aaa; color: #111; }
+        /* Grey Box Placeholder */
+        .box-placeholder {
+            background-color: #e2e2e2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Layout Spaces */
+        .mt-50 { margin-top: 50px; }
+        .mb-50 { margin-bottom: 50px; }
+        .py-60 { padding-top: 60px; padding-bottom: 60px; }
+        .px-20 { padding-left: 20px; padding-right: 20px; }
 
-        /* 댓글 영역 (news_read 재활용 CSS) */
-        .comments-section { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; background: #fff; margin-top: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
-        .cmt-item { border-top: 1px solid #f3f4f6; padding: 16px 0; }
-        .cmt-item:first-child { border-top: none; }
-        .cmt-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;}
-        .cmt-author { font-weight: 700; color: #374151; }
-        .cmt-date { color: #9ca3af; }
-        .cmt-body { font-size: 15px; color: #4b5563; line-height: 1.5; white-space: pre-wrap; }
+        /* 3. Hero Section */
+        .hero-section {
+            display: flex;
+            gap: 24px;
+            position: relative;
+        }
+        .hero-left {
+            flex: 2; /* takes more space */
+            position: relative;
+        }
+        .app-mock { 
+            width: 360px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+        .app-search {
+            display: flex; align-items: center; background: #f1f3f5; border-radius: 8px; padding: 12px; margin-bottom: 5px; cursor: text;
+        }
+        .app-search input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: #333; margin-left: 8px; }
+        .app-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .app-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .app-img { width: 80px; height: 80px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .app-txt h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+        .app-txt p { font-size: 14px; color: #c00; font-weight: 800; }
+        .app-txt span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
+        
+        .map-btn {
+            position: absolute; top: 15px; left: calc(50% + 140px); transform: translateX(-50%); background: #1a4282; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 99999; 
+        }
+
+        .hero-right {
+            flex: 1; /* roughly 380px */
+            display: flex;
+            flex-direction: column;
+        }
+        .hn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1a4282; padding-bottom: 10px;}
+        .hn-header h2 { font-size: 18px; font-weight: 800; color: #1a4282; }
+        .hn-header a { font-size: 12px; color: #666; font-weight: 600; }
+        .hn-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+        .hn-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+        .hn-img { width: 90px; height: 65px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .hn-txt h4 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: #111; word-break: keep-all; }
+        .hn-txt span { font-size: 12px; color: #999; }
+        .hn-ad { flex: 1; background: #e2e2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 13px; font-weight: bold;}
+        
+        /* Floating Quick Menu */
+        .quick-menu {
+            position: fixed;
+            top: 250px;
+            left: 50%;
+            margin-left: 620px;
+            width: 70px;
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
+        .qm-item:last-child { border-bottom: none; }
+        .qm-item span { display: block; font-size: 18px; margin-bottom: 4px; color: var(--brand-blue); }
+
+        /* 4. Ticker Section */
+        .ticker {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .ticker-item {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            color: #333;
+        }
+        .ticker-val { color: #d32f2f; }
+        .ticker-val.down { color: #1976d2; }
+
+        /* 5. Hot Issue Section */
+        .hot-issue-wrap {
+            display: flex;
+            gap: 40px;
+        }
+        .hi-left { flex: 1; }
+        .hi-list { display: flex; flex-direction: column; gap: 20px; }
+        .hi-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .hi-item img { width: 140px; height: 100px; background: #ddd; object-fit: cover; border-radius: 4px; }
+        .hi-txt h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: #111; }
+        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        
+        .hi-right { flex: 1; height: 260px; }
+
+        /* 6. Video News Section */
+        .video-wrap { border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .vid-item { cursor: pointer; }
+        .vid-thumb { height: 220px; background: #222; position: relative; border-radius: 4px; margin-bottom: 15px; }
+        .vid-play { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); width: 44px; height: 44px; background: rgba(0,0,0,0.6); border-radius: 50%; border: 2px solid #fff;}
+        .vid-play::after { content:''; display:block; border-left:12px solid #fff; border-top:8px solid transparent; border-bottom:8px solid transparent; margin-left:18px; margin-top:12px; }
+        .vid-title { font-size: 16px; font-weight: 700; line-height: 1.4; color:#111; }
+
+        /* 7. Premium Section (Dark Blue) */
+        .premium-bg { background-color: var(--brand-navy); color: #fff; padding: 60px 0; }
+        .premium-bg .sec-title { color: #fff; }
+        .premium-bg .sec-title-wrap::before { background-color: #f97316; }
+        .prem-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .prem-card { cursor: pointer; }
+        .prem-img { height: 180px; background: #555; margin-bottom: 15px; border-radius: 4px; }
+        .prem-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .prem-desc { font-size: 13px; color: #aaa; line-height: 1.4; }
+
+        /* 8. Expert Section */
+        .expert-wrap { display: flex; gap: 40px; }
+        .expert-left { flex: 1; border-top: 2px solid #222; padding-top: 20px;}
+        .ex-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 20px 0; }
+        .ex-img { width: 100px; height: 100px; background: #ddd; border-radius: 50%; }
+        .ex-txt h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+        .ex-txt p { font-size: 14px; color: #666; line-height: 1.6; }
+        .expert-right { flex: 1; height: 300px; padding-top: 20px; }
+
+        /* 9. Study Section */
+        .study-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .study-card { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .st-img { height: 180px; background: #e2e2e2; position: relative; }
+        .st-badge { position: absolute; top:0; left:0; padding:6px 12px; color:#fff; font-size:12px; font-weight:bold; }
+        .st-badge.brand-blue { background: #ff9800; }
+        .st-badge.red { background: #f44336; }
+        .st-badge.black { background: #222; }
+        .st-txt { padding: 20px; }
+        .st-title { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; }
+        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;}
+        .st-price { font-size: 15px; font-weight: 700; color: #ff5722; }
+
+        /* 10. Knowhow & Notice Section */
+        .bottom-wrap { display: flex; gap: 40px; border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .bm-left { flex: 2; }
+        .kh-item { display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .kh-item img { width: 120px; height: 80px; background: #ddd; border-radius: 4px; }
+        .kh-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .kh-txt p { font-size: 14px; color: #666; }
+        .bm-right { flex: 1; height: 400px; }
+
+        /* 11. Chatbot Banner */
+        .chat-banner {
+            background-color: #fafafa;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            padding-top: 50px;
+        }
+        .chat-title { font-size: 20px; font-weight: 800; color: #f97316; margin-bottom: 5px; }
+        .chat-sub { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 40px; letter-spacing: -1px; }
+        .chat-mockup { width: 300px; height: 450px; background: #ddd; margin: 0 auto; border-radius: 30px 30px 0 0; position:relative; overflow:hidden;}
+        
+        /* 12. Footer */
+        .footer {
+            background: #fff;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-light);
+        }
+        .f-logos { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .f-logo { border: 1px solid #ddd; padding: 10px 20px; color: #555; font-size: 14px; font-weight: bold; border-radius: 4px; }
+        .f-info { text-align: center; font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 20px; }
+        .f-links { text-align: center; margin-bottom: 20px; }
+        .f-links a { font-size: 14px; font-weight: 700; color: #333; margin: 0 10px; }
+        .f-copyright { text-align: center; font-size: 12px; color: #999; }
+    </style>
+<style>
+        .icon-tooltip-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-tooltip-wrap::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background-color: #ffffff;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .icon-tooltip-wrap:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
-    
-    <!-- GNB (뉴스메인과 동일) -->
+
+    <!-- 1. Top Nav Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
+            <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
+        </div>
+        <div class="top-bar-right">
+            <!-- Search -->
+            <div class="top-search-wrap" id="topSearchWrap">
+                <input type="text" class="top-search-input" id="topSearchInput" placeholder="검색어를 입력하세요">
+                <div class="icon-tooltip-wrap" data-tooltip="검색">
+                <svg onclick="document.getElementById('topSearchWrap').classList.toggle('active'); document.getElementById('topSearchInput').focus();" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="검색"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            </div>
+            
+            <!-- Login/User -->
+            <!-- Login/User -->
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 24px;">
+                <div class="icon-tooltip-wrap" data-tooltip="회원가입">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="회원가입"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="icon-tooltip-wrap" data-tooltip="로그인">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')" id="headerLoginOnlyBtn" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="로그인"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                </div>
+            </div>
+            
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
+                <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
+                <span id="headerLogoutBtn" style="cursor:pointer; font-size:12px; color:#aaa;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">로그아웃</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Header -->
     <header class="header">
-        <div class="header-inner" style="max-width:1200px; margin:0 auto; padding:15px; display:flex; gap:30px; align-items:center;">
-            <a href="index.html" style="font-size:24px; font-weight:900; color:#508bf5; text-decoration:none;">공실뉴스</a>
-            <div style="display:flex; gap:20px; font-weight:700;">
-                <a href="board.html?id=bbs_drone" style="text-decoration:none; color:#333;">드론영상</a>
-                <a href="board.html?id=bbs_form" style="text-decoration:none; color:#333;">자료실</a>
-                <a href="board.html?id=bbs_free" style="text-decoration:none; color:#333;">자유게시판</a>
+        <div class="container px-20">
+            <div class="header-top">
+                <div class="ht-left"></div>
+                <div class="ht-center">
+                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
+                </div>
+                <div class="ht-right">
+                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
+                        <!-- The scrolling ticker -->
+                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
+                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- The dropdown on hover -->
+                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <nav class="gnb-new">
+                    <a href="news_all.html">전체뉴스</a>
+                    <a href="news.html">우리동네뉴스</a>
+                    <a href="news_finance.html">부동산·주식·재테크</a>
+                    <a href="news_politics.html">정치·경제·사회</a>
+                    <a href="news_law.html">세무·법률</a>
+                    <a href="news_life.html">여행·건강·생활</a>
+                    <a href="news_etc.html">기타</a>
+                    <span class="divider"></span>
+                    <a href="gongsil/index.html">공실열람</a>
+                    <div style="position: relative; display: inline-block;" onmouseover="this.querySelector('.gnb-dropdown').style.display='block'" onmouseout="this.querySelector('.gnb-dropdown').style.display='none'">
+                        <a href="board.html" style="padding: 10px 0; color: #508bf5; font-weight: 800;">자료실</a>
+                        <div class="gnb-dropdown" style="display: none; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 140px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: center;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=drone" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">드론영상</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=app" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">APP(앱)</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=design" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">디자인</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?cat=sound" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">음원</a></li>
+                                <li><a href="board.html?cat=form" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">계약서/양식</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/') { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
+                    <a href="#">중개업소무료가입</a>
+                </nav>
             </div>
         </div>
     </header>
 
-    <div class="board-detail-container">
-        <!-- 1. 헤더 (제목/작성자/날짜) -->
+    
+    <style>
+        .news-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+        /* Left: List */
+        .news-list-area {
+            flex: 1;
+        }
+        .list-header {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--brand-navy);
+            border-bottom: 2px solid #222;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .an-card {
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+            padding: 24px 10px;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+        .an-card:hover {
+            background: #f9f9f9;
+        }
+        .an-img {
+            width: 160px;
+            height: 100px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #f4f6fa;
+            flex-shrink: 0;
+        }
+        .an-body {
+            flex: 1;
+        }
+        .an-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .an-title:hover {
+            color: var(--brand-blue);
+            text-decoration: underline;
+        }
+        .an-desc {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .an-meta {
+            font-size: 13px;
+            color: #999;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+        .page-btn {
+            border: 1px solid #ddd;
+            background: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+        .page-btn:hover { background: #f9f9f9; }
+        .page-info { font-size: 14px; color: #333; font-weight: bold; margin: 0 10px;}
+        
+        /* Right: Sidebar */
+        .news-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .sb-banner {
+            width: 100%;
+            height: 200px;
+            background: #e2e2e2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .sb-widget {
+            margin-bottom: 40px;
+        }
+        .sb-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sb-title-more {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        /* Popular List */
+        .pop-list { list-style: none; margin: 0; padding: 0; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; cursor:pointer;}
+        .pop-item:hover .pop-title { text-decoration: underline; color: var(--brand-blue); }
+        .pop-ranking { font-size: 18px; font-weight: 900; color: #111; width: 14px; font-style: italic;}
+        .pop-title { font-size: 14px; color: #333; line-height: 1.4; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Prop List */
+        .prop-item { display: flex; gap: 15px; margin-bottom: 20px; cursor: pointer; padding-bottom: 15px; border-bottom: 1px solid #f2f2f2;}
+        .prop-item:hover .prop-title { text-decoration: underline; color: var(--brand-blue); }
+        .prop-info { flex: 1; }
+        .prop-title { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; line-height: 1.3;}
+        .prop-price { font-size: 14px; font-weight: 900; color: #1a73e8; margin-bottom: 4px;}
+        .prop-meta { font-size: 11px; color: #777; line-height: 1.4;}
+        .prop-img-wrapper { width: 80px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #eee;}
+        .prop-img { width: 100%; height: 100%; object-fit: cover; }
+        .prop-badge { font-size: 10px; color:#e74c3c; border:1px solid #e74c3c; border-radius:3px; padding:1px 4px; display:inline-block; margin-top:4px;}
+
+    </style>
+
+    
+    <main class="container px-20 relative">
+        <style>
+            .board-header { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #222; padding-bottom: 15px; }
+            .board-title { font-size: 24px; font-weight: 800; color: var(--brand-navy); }
+            .board-search-write { display: flex; gap: 15px; align-items: center; }
+            .b-search { display: flex; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; }
+            .b-search input { border: none; padding: 8px 12px; outline: none; width: 220px; font-size: 14px; }
+            .b-search button { background: #f8f9fa; border-left: 1px solid #ccc; padding: 0 15px; font-weight: bold; color: #555; }
+            .b-write-btn { background: var(--brand-blue); color: #fff; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+            .b-write-btn:hover { background: #16407b; }
+
+            .board-tabs { display: flex; gap: 10px; margin-top: 20px; }
+            .b-tab { border: 1px solid #ddd; background: #fff; padding: 8px 16px; border-radius: 20px; font-size: 14px; color: #666; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+            .b-tab:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+            .b-tab.active { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+
+            .news-layout { display: flex; gap: 40px; margin-top: 20px; margin-bottom: 60px; }
+            .news-list-area { flex: 1; }
+            
+            .an-card { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 24px 10px; align-items: center; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
+            .an-card:hover { background: #f9f9f9; }
+            .an-img { width: 140px; height: 90px; border-radius: 6px; object-fit: cover; background: #f4f6fa; flex-shrink: 0; }
+            .an-body { flex: 1; }
+            .an-title { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.4; }
+            .an-title:hover { color: var(--brand-blue); text-decoration: underline; }
+            .an-desc { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .an-meta { font-size: 12px; color: #999; display: flex; align-items: center; gap: 10px; }
+            .board-badge { background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #555; font-size: 11px; }
+
+            .news-sidebar { width: 320px; flex-shrink: 0; }
+            .sb-banner { width: 100%; height: 200px; background: #e2e2e2; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #888; margin-bottom: 40px; }
+            
+            /* Write Modal */
+            .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 9999999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+            .modal-content { background: #fff; width: 640px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+            .mod-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+            .mod-title { font-size: 20px; font-weight: bold; color: var(--brand-navy); }
+            .mod-close { font-size: 24px; cursor: pointer; color: #999; }
+            .mod-close:hover { color: #333; }
+            .mod-row { margin-bottom: 15px; }
+            .mod-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #333; }
+            
+            .header-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+            .h-tag { border: 1px solid #ddd; background: #fdfdfd; padding: 8px 14px; border-radius: 4px; font-size: 13px; color: #555; cursor: pointer; user-select: none; transition: all 0.2s;}
+            .h-tag:hover { background: #f0f0f0; }
+            .h-tag.selected { background: var(--brand-blue); color: #fff; border-color: var(--brand-blue); font-weight: bold; }
+            
+            .mod-input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; transition: border 0.2s;}
+            .mod-input:focus { border-color: var(--brand-blue); }
+            .mod-textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; height: 180px; resize: none; transition: border 0.2s;}
+            .mod-textarea:focus { border-color: var(--brand-blue); }
+            .mod-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+            .btn-cancel { padding: 10px 20px; border-radius: 4px; border: 1px solid #ccc; background: #fff; font-weight: bold; cursor: pointer; }
+            .btn-submit { padding: 10px 20px; border-radius: 4px; border: none; background: var(--brand-navy); color: #fff; font-weight: bold; cursor: pointer; }
+            
+            .h-tag-display { color: var(--brand-blue); font-weight: 800; margin-right: 4px;}
+        </style>
+
+        <style>
+            .board-search-write {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+        </style>
         <div class="board-header">
-            <div class="b-category" id="vCategory">분류</div>
-            <div class="b-title" id="vTitle">게시물 제목을 불러오는 중입니다...</div>
-            <div class="b-meta">
-                <div class="b-meta-left">
-                    <span class="b-author" id="vAuthor">작성자</span>
-                    <span id="vDate">날짜</span>
-                </div>
-                <div>조회수 <span id="vViews">0</span></div>
-            </div>
-        </div>
-        
-        <!-- 2. 확장 기능 (비디오 & 파일 다운로드) -->
-        <div id="vVideoArea" style="display:none;"></div>
-        
-        <div class="b-download-box" id="vDownloadArea" style="display:none;">
-            <div class="b-dl-info">
-                <div class="dl-title" id="vDlTitle">첨부파일 다운로드</div>
-                <div class="dl-desc">구글 드라이브 링크로 연결됩니다. (포인트 차감 시 이곳에서 처리)</div>
-            </div>
-            <a href="#" target="_blank" class="btn-download" id="vDriveBtn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                자료 다운로드 받기
-            </a>
-        </div>
-
-        <!-- 3. 본문 내용 -->
-        <div class="b-content-area" id="vContent">
-            내용을 불러오고 있습니다...
-        </div>
-
-        <!-- 4. 댓글 영역 (뉴스 댓글 시스템 이식) -->
-        <div class="comments-section">
-            <div style="font-size:20px; font-weight:800; margin-bottom:15px;" id="portalCommentCount">0개의 댓글</div>
-            
-            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:24px;">
-                <div style="font-weight:bold; margin-bottom:8px; color:#333; font-size:14px;" id="commentUserName">로그인이 필요합니다</div>
-                <textarea id="commentInput" placeholder="게시물에 대한 의견을 남겨보세요." style="width:100%; height:60px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
-                    <span style="font-size:12px; color:#9ca3af;"><span id="commentLength">0</span> / 400</span>
-                    <button style="background:#111; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:bold; cursor:pointer; font-size:14px;" onclick="submitBoardComment()">댓글 등록</button>
+            <div class="board-title">드론영상 <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(자료실)</span></div>
+            <div class="board-search-write">
+                <button class="b-write-btn" id="writePostBtn" onclick="location.href='board_write.html?board_id=' + currentBoardId">글쓰기</button>
+                <div class="b-search">
+                    <input type="text" placeholder="해당 카테고리 검색">
+                    <button>검색</button>
                 </div>
             </div>
-            
-            <div id="portalCommentList">
-                <div style="text-align:center; padding:20px; color:#999; font-size:14px;">등록된 댓글이 없습니다.</div>
-            </div>
         </div>
 
-        <!-- 하단 목록으로 -->
-        <div class="b-nav">
-            <a href="javascript:history.back()" class="btn-list">목록으로 돌아가기</a>
+        <div class="board-tabs">
+            <div class="b-tab active">전체</div>
+            <div class="b-tab">드론</div>
+            <div class="b-tab">아파트</div>
+            <div class="b-tab">빌딩</div>
+            <div class="b-tab">단독/다가구/빌라</div>
+            <div class="b-tab">도로</div>
         </div>
-    </div>
 
-    <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const postId = urlParams.get('post_id');
-        const fallbackBoardId = urlParams.get('board_id') || 'bbs_free';
-        let currentPost = null;
+        <div class="news-layout">
+            <!-- 좌측 게시판 리스트 -->
+            <div class="news-list-area">
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            if (!postId) {
-                // 파라미터가 없으면 가상 UI 데모 진행
-                loadMockData();
-                return;
-            }
-            await fetchPostData();
-            await loadBoardComments();
-        });
+        <style>
+            .b-read-wrapper { background: #fff; padding: 40px; border: 1px solid #e5e5e5; border-top: 2px solid #111; border-radius: 8px; margin-bottom: 20px;}
+            .b-read-head { padding-bottom: 20px; border-bottom: 1px solid #111; margin-bottom: 30px; }
+            .b-read-cat { font-size: 14px; font-weight: 700; color: var(--brand-blue); margin-bottom: 10px; }
+            .b-read-title { font-size: 26px; font-weight: 800; color: #111; line-height: 1.4; margin-bottom: 15px; }
+            .b-read-meta { display: flex; justify-content: space-between; font-size: 13px; color: #777; align-items: center; }
+            .b-read-author { color: #333; font-weight: 700; margin-right: 15px; }
+            .b-read-body { font-size: 16px; line-height: 1.7; color: #333; min-height: 300px; margin-bottom: 40px; overflow-wrap: break-word; }
 
-        async function fetchPostData() {
-            const sb = window.gongsiClient || window.supabaseClient;
-            if(!sb) return;
+            /* 비디오 영역 */
+            .b-video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 30px; }
+            .b-video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
 
-            const { data, error } = await sb.from('board_posts').select('*').eq('id', postId).single();
-            if (error || !data) {
-                alert('게시글을 불러올 수 없거나 삭제되었습니다.');
-                history.back();
-                return;
-            }
-            
-            currentPost = data;
+            /* 첨부파일 다운로드 */
+            .b-read-file { border: 1px solid #e2e8f0; background: #f8fafc; border-radius: 8px; padding: 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+            .b-read-file .f-tit { font-size: 15px; font-weight: 800; color: #1e293b; margin-bottom: 4px; }
+            .b-read-file .f-sub { font-size: 13px; color: #64748b; }
+            .btn-dl { background: var(--brand-blue); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; text-decoration: none;}
 
-            // 조회수 1 증가 (조회 꼼수 방지는 나중에 보완)
-            await sb.from('board_posts').update({ view_count: (data.view_count || 0) + 1 }).eq('id', postId);
+            /* 이전글 / 다음글 */
+            .b-prev-next { border-top: 2px solid #111; border-bottom: 1px solid #eee; margin-bottom: 30px; border-radius: 4px; overflow: hidden; background: #fff;}
+            .b-pn-item { display: flex; border-bottom: 1px solid #eee; }
+            .b-pn-item:last-child { border-bottom: none; }
+            .b-pn-label { width: 100px; background: #fcfcfc; color: #555; padding: 15px; font-size: 14px; font-weight: bold; text-align: center; border-right: 1px solid #eee; display: flex; align-items: center; justify-content: center; }
+            .b-pn-title { flex: 1; padding: 15px 20px; font-size: 14px; color: #333; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+            .b-pn-title:hover { font-weight: bold; color: var(--brand-blue); text-decoration: underline; }
 
-            renderPostDetails(data);
-        }
+            /* 하단 버튼들 */
+            .b-action-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;}
+            .b-btn-group { display: flex; gap: 10px; }
+            .btn-sub { border: 1px solid #ccc; background: #fff; padding: 10px 20px; border-radius: 4px; font-size: 14px; color: #555; font-weight: bold; cursor: pointer; }
+            .btn-sub:hover { background: #f9f9f9; color: #111; border-color: #bbb; }
+            .btn-danger { border: 1px solid #ffcdcd; background: #fffafb; padding: 10px 20px; border-radius: 4px; font-size: 14px; color: #c82333; font-weight: bold; cursor: pointer; }
+            .btn-danger:hover { background: #fbebed; border-color: #ffb8b8; }
+            .btn-primary { background: var(--brand-navy); color: #fff; border: none; padding: 10px 24px; border-radius: 4px; font-size: 14px; font-weight: bold; cursor: pointer; }
+            .btn-primary:hover { background: #16407b; }
 
-        // URL 파라미터 없을 시 보여줄 가짜 데이터
-        function loadMockData() {
-            renderPostDetails({
-                category: '아파트',
-                title: '[가상 데이터] 강남역 대로변 빌딩 조망권 영상',
-                author_name: '관리자',
-                created_at: new Date().toISOString(),
-                view_count: 55,
-                content: '<p>이 화면은 DB가 아직 연동되지 않았을 때 보여지는 가상 UI 뷰입니다.<br>아래 유튜브 영상과 다운로드 박스 렌더링을 확인해보세요.</p>',
-                youtube_url: 'https://youtube.com/embed/dQw4w9WgXcQ', 
-                drive_url: 'https://drive.google.com/...'
-            });
-        }
+            /* 댓글 영역 CSS */
+            .comments-section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 24px; background: #fff; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+            .cmt-item { border-top: 1px solid #f3f4f6; padding: 16px 0; }
+            .cmt-item:first-child { border-top: none; }
+            .cmt-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;}
+            .cmt-author { font-weight: 700; color: #374151; }
+            .cmt-date { color: #9ca3af; }
+            .cmt-body { font-size: 15px; color: #4b5563; line-height: 1.5; white-space: pre-wrap; }
+        </style>
 
-        function renderPostDetails(info) {
-            document.getElementById('vCategory').innerText = `[${info.category || '일반'}]`;
-            document.getElementById('vTitle').innerText = info.title;
-            document.getElementById('vAuthor').innerText = info.author_name || '익명';
-            document.getElementById('vViews').innerText = (info.view_count || 0).toLocaleString();
-            
-            const dateStr = new Date(info.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
-            document.getElementById('vDate').innerText = dateStr;
-
-            // 유튜브 URL 파싱
-            if (info.youtube_url) {
-                const vidArea = document.getElementById('vVideoArea');
-                let embedUrl = info.youtube_url;
-                // 링크 형식 변경
-                if(embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
-                if(embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/');
-                
-                vidArea.style.display = 'block';
-                vidArea.innerHTML = `<div class="b-video-box"><iframe src="${embedUrl}" allowfullscreen></iframe></div>`;
-            }
-
-            // 구글드라이브 URL 파싱
-            if (info.drive_url) {
-                document.getElementById('vDownloadArea').style.display = 'flex';
-                document.getElementById('vDriveBtn').href = info.drive_url;
-            }
-
-            document.getElementById('vContent').innerHTML = info.content || '';
-        }
-
-        /* --- 댓글 시스템 이식부 --- */
-        async function loadBoardComments() {
-            const sb = window.gongsiClient || window.supabaseClient;
-            if(!sb || !postId) return;
-
-            // 기존 댓글 테이블(comments) 활용. 나중에 target_type 이 추가된다는 가정하에 진행
-            // 임시로 article_id 자리에 post_id 를 넣어 호환 테스트 (UUID 타입 불일치 가능성 주의)
-            // 따라서 board_comments 처럼 테이블을 따로 하거나, target_id=문자열 구조로 변경 필요.
-            // (여기선 UI 데모를 위해 가상 리스트 호출)
-            document.getElementById('portalCommentCount').innerText = '0개의 댓글';
-        }
-
-        function submitBoardComment() {
-            const val = document.getElementById('commentInput').value;
-            if(!val) return alert('댓글 내용을 입력하세요.');
-            
-            // 데모 액션
-            document.getElementById('portalCommentList').innerHTML = `
-                <div class="cmt-item">
-                    <div class="cmt-header">
-                        <span class="cmt-author">나의 아이디</span>
-                        <span class="cmt-date">방금 전</span>
+                <div class="b-read-wrapper" id="vWrapper" style="display:none;">
+                    <div class="b-read-head">
+                        <div class="b-read-cat" id="vCategory">[분류]</div>
+                        <div class="b-read-title" id="vTitle">게시물을 불러오고 있습니다...</div>
+                        <div class="b-read-meta">
+                            <div>
+                                <span class="b-read-author" id="vAuthor">작성자</span>
+                                <span id="vDate">-</span>
+                            </div>
+                            <div>
+                                조회수 <strong style="color:#111" id="vViews">0</strong>
+                            </div>
+                        </div>
                     </div>
-                    <div class="cmt-body">${val}</div>
+                    
+                    <div id="vVideoArea" style="display:none; margin-bottom: 30px;"></div>
+                    
+                    <div class="b-read-file" id="vDownloadArea" style="display:none;">
+                        <div>
+                            <div class="f-tit">첨부파일 다운로드</div>
+                            <div class="f-sub">이 게시물에 첨부된 자료(원본영상 등)를 다운로드 받습니다.</div>
+                        </div>
+                        <a href="#" target="_blank" class="btn-dl" id="vDriveBtn">다운로드 받기</a>
+                    </div>
+                
+                    <div class="b-read-body" id="vContent"></div>
                 </div>
-            ` + document.getElementById('portalCommentList').innerHTML.replace(/등록된 댓글이 없습니다.*/, '');
+
+                <!-- 이전글 다음글 -->
+                <div class="b-prev-next">
+                    <div class="b-pn-item">
+                        <div class="b-pn-label">이전글 ∧</div>
+                        <div class="b-pn-title" id="vPrevTitle" onclick="">이전 게시글이 없습니다.</div>
+                    </div>
+                    <div class="b-pn-item">
+                        <div class="b-pn-label">다음글 ∨</div>
+                        <div class="b-pn-title" id="vNextTitle" onclick="">다음 게시글이 없습니다.</div>
+                    </div>
+                </div>
+                
+                <!-- 버튼 그룹 -->
+                <div class="b-action-row">
+                    <div class="b-btn-group">
+                        <button class="btn-danger" onclick="alert('신고가 접수되었습니다.')">신고</button>
+                        <button class="btn-danger" onclick="alert('해당 게시물이 차단되었습니다.')">차단</button>
+                    </div>
+                    <div class="b-btn-group">
+                        <button class="btn-sub" id="btnGoList" onclick="location.href='board.html?id=' + currentBoardId">목록</button>
+                        <button class="btn-primary" id="btnGoWrite" onclick="location.href='board_write.html?board_id=' + currentBoardId">글쓰기</button>
+                    </div>
+                </div>
+                
+                <div class="comments-section">
+                    <div style="font-size:20px; font-weight:800; margin-bottom:15px;" id="portalCommentCount">0개의 댓글</div>
+                    
+                    <div style="border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:24px;">
+                        <div style="font-weight:bold; margin-bottom:8px; color:#333; font-size:14px;" id="commentUserName">비로그인 상태입니다 (게스트)</div>
+                        <textarea id="commentInput" placeholder="게시물에 대한 의견을 남겨보세요. 바르고 고운 말을 사용해주세요." style="width:100%; height:80px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                            <span style="font-size:12px; color:#9ca3af;"><span id="commentLength">0</span> / 400</span>
+                            <button style="background:#111; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:bold; cursor:pointer; font-size:14px;" onclick="submitBoardComment()">댓글 등록</button>
+                        </div>
+                    </div>
+                    
+                    <div id="portalCommentList">
+                        <div style="text-align:center; padding:40px 20px; color:#999; font-size:14px;">등록된 댓글이 없습니다. 첫 댓글을 남겨주세요!</div>
+                    </div>
+                </div>
+
+            </div>
+            <!-- 우측 사이드바 -->
+            <div class="news-sidebar">
+                <div class="sb-banner">
+                    배너 1
+                </div>
+                
+                <div class="sb-widget">
+                    <div class="sb-title">인기 게시물</div>
+                    <ul class="pop-list">
+                        <li class="pop-item"><span class="pop-ranking">1</span><span class="pop-title">강남역 사거리 대로변 빌딩 조망권</span></li>
+                        <li class="pop-item"><span class="pop-ranking">2</span><span class="pop-title">서초구 일대 4K 드론 촬영 원본</span></li>
+                        <li class="pop-item"><span class="pop-ranking">3</span><span class="pop-title">송파구 재건축단지 항공뷰(드론)</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Write Modal -->
+        <div class="modal-overlay" id="writeModal">
+            <div class="modal-content">
+                <div class="mod-head">
+                    <div class="mod-title">자료실 게시글 작성</div>
+                    <div class="mod-close" onclick="closeWriteModal()">&times;</div>
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">머리글 선택 (필수)</label>
+                    <div class="header-tags" id="headerTags">
+                        <div class="h-tag" onclick="toggleTag(this)">드론</div>
+                        <div class="h-tag" onclick="toggleTag(this)">아파트</div>
+                        <div class="h-tag" onclick="toggleTag(this)">빌딩</div>
+                        <div class="h-tag" onclick="toggleTag(this)">단독/다가구/빌라</div>
+                        <div class="h-tag" onclick="toggleTag(this)">도로</div>
+                    </div>
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">제목</label>
+                    <input type="text" class="mod-input" id="postTitle" placeholder="제목을 입력하세요 자동으로 머리글이 추가될 수 있습니다.">
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">썸네일 이미지 파일 (옵션)</label>
+                    <input type="file" class="mod-input" style="padding: 9px; cursor: pointer;">
+                </div>
+
+                <div class="mod-row" style="margin-bottom:0;">
+                    <label class="mod-label">내용</label>
+                    <textarea class="mod-textarea" placeholder="내용 및 영상 다운로드 링크 등을 자유롭게 입력하세요."></textarea>
+                </div>
+                
+                <div class="mod-footer">
+                    <button class="btn-cancel" onclick="closeWriteModal()">취소</button>
+                    <button class="btn-submit" onclick="submitPost()">등록</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            function openWriteModal() {
+                document.getElementById('writeModal').style.display = 'flex';
+            }
+            function closeWriteModal() {
+                document.getElementById('writeModal').style.display = 'none';
+            }
             
-            document.getElementById('commentInput').value = '';
-            document.getElementById('portalCommentCount').innerText = '1개의 댓글';
-            alert('댓글이 성공적으로 등록되었습니다. (UI 데모)');
+            // 머리글 토글
+            function toggleTag(el) {
+                el.classList.toggle('selected');
+                updateTitleWithTags();
+            }
+
+            function updateTitleWithTags() {
+                const tags = document.querySelectorAll('.h-tag.selected');
+                let tagStr = '';
+                tags.forEach(t => {
+                    tagStr += `[${t.innerText}] `;
+                });
+                
+                const titleInput = document.getElementById('postTitle');
+                // 기존 태그 부분 제거
+                let curTitle = titleInput.value.replace(/^(?:\[[^\]]+\]\s*)+/, '');
+                titleInput.value = tagStr + curTitle;
+            }
+
+            function submitPost() {
+                alert('게시글 등록이 완료되었습니다. (디자인 목업)');
+                closeWriteModal();
+            }
+
+            // 상단 탭 클릭시 (필터 기능 목업)
+            document.querySelectorAll('.b-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.b-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        </script>
+    </main>
+
+
+    <!-- Supabase 등 공통 스크립트 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
+    
+    <script>
+    const ITEMS_PER_PAGE = 10;
+    let currentPage = 1;
+    let totalItems = 0;
+    let currentBoardId = 'bbs_drone'; // 기본 게시판
+    let currentSkin = 'video_album'; // 기본 스킨
+    let boardMeta = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 탑 네비게이션 활성화
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('id')) currentBoardId = urlParams.get('id');
+
+        await initBoardSystem();
+        await loadPopularSidebarNews();
+    });
+
+    async function initBoardSystem() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return showError('DB 연결이 셋팅되지 않았습니다.');
+        
+        // 1. 게시판 메타 정보 불러오기
+        const { data: boardData, error: boardErr } = await sb.from('boards').select('*').eq('board_id', currentBoardId).single();
+        
+        boardMeta = boardData;
+        if (boardErr || !boardData) {
+            const { data: firstBoardData } = await sb.from('boards').select('board_id').order('created_at', { ascending: true }).limit(1);
+            const firstBoard = firstBoardData && firstBoardData.length > 0 ? firstBoardData[0] : null;
+            
+            if (!urlParams.get('id')) {
+                // 주소창에 명시적 id가 없는데 (예: board.html 이동) 기본값이 DB에 없을 경우 -> 조용히 첫 게시판으로 점프
+                if(firstBoard) location.href = `board.html?id=${firstBoard.board_id}`;
+                return;
+            } else {
+                // 주소창에 id를 명시했는데 그게 없을 경우 -> 경고 후 첫 게시판 점프
+                alert('존재하지 않거나 삭제된 게시판입니다.');
+                if(firstBoard) location.href = `board.html?id=${firstBoard.board_id}`;
+                return;
+            }
         }
 
-        // 로그인 유저 표시
-        window.addEventListener('load', async () => {
-            const sb = window.gongsiClient || window.supabaseClient;
-            if(!sb) return;
-            const { data: { user } } = await sb.auth.getUser();
-            if(user) {
-                const { data: ud } = await sb.from('users_profile').select('name').eq('id', user.id).single();
-                document.getElementById('commentUserName').innerText = (ud?.name || user.email.split('@')[0]) + '님';
-            }
+        currentSkin = boardMeta.skin_type;
+        
+        // UI 타이틀 및 탭 변경
+        document.querySelector('.board-title').innerHTML = `${boardMeta.board_name} <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(${boardMeta.subtitle || ''})</span>`;
+        
+        if (boardMeta.categories) {
+            const tabsContainer = document.querySelector('.board-tabs');
+            tabsContainer.innerHTML = boardMeta.categories.split(',').map((cat, idx) => 
+                `<div class="b-tab ${idx===0?'active':''}">${cat.trim()}</div>`
+            ).join('');
+        }
+
+        // 2. 게시글 목록 불러오기
+        const urlP = new URLSearchParams(window.location.search); window.currentPostId = urlP.get('post_id'); await fetchPostData(); await loadBoardComments();
+    }
+    
+    async function loadBoardPosts() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        const container = document.querySelector('.news-list-area');
+        
+        // 기존 뼈대 초기화 (페이지네이션은 남김)
+        container.innerHTML = '<div style="padding:40px; text-align:center;">게시글을 불러오고 있습니다...</div>';
+
+        const { data: postsData, error: postsErr } = await sb.from('board_posts')
+            .select('*')
+            .eq('board_id', currentBoardId)
+            .order('created_at', { ascending: false });
+
+        let posts = postsData || [];
+        
+        if (postsErr) {
+            container.innerHTML = `<div style="padding:40px; text-align:center; color:red;">게시글을 불러오지 못했습니다. (${postsErr.message})</div>`;
+            return;
+        }
+
+        if (posts.length === 0) {
+            container.innerHTML = `
+            <div style="padding:100px 0; text-align:center; color:#9ca3af;">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; margin-left:auto; margin-right:auto;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <div style="font-size:16px;">등록된 게시글이 없습니다. 우측 상단의 글쓰기 버튼을 눌러 첫 글을 작성해보세요!</div>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = '';
+
+        // 스킨에 따른 렌더링 분기
+        if (boardMeta.skin_type === 'video_album') {
+            renderVideoAlbum(container, posts);
+        } else if (boardMeta.skin_type === 'file_album') {
+            renderFileAlbum(container, posts);
+        } else if (boardMeta.skin_type === 'faq_album') {
+            renderFaqList(container, posts);
+        } else if (boardMeta.skin_type === 'qna_1on1') {
+            render1on1List(container, posts);
+        } else {
+            renderDefaultBbs(container, posts);
+        }
+        
+        // 페이지네이션 덧붙이기
+        container.innerHTML += `
+            <div class="pagination">
+                <button class="page-btn" disabled>&lt; 이전</button>
+                <span class="page-info">1 / 1</span>
+                <button class="page-btn" disabled>다음 &gt;</button>
+            </div>
+        `;
+    }
+
+    /* 렌더러: 동영상 앨범형 스킨 */
+    function renderVideoAlbum(container, posts) {
+        // 관리자가 설정한 가로 갯수를 가져옵니다. 기본값은 3개.
+        let cols = boardMeta.gallery_columns || 3;
+        let html = `<div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:15px;">`;
+        posts.forEach(p => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <div class="vid-card" style="border:1px solid #eee; border-radius:8px; overflow:hidden; cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:140px; background:#222; position:relative; overflow:hidden;">
+                        <img src="${p.thumbnail_url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=320&q=80'}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.6); border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center;"><svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                    </div>
+                    <div style="padding:15px;">
+                        <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.title}</div>
+                        <div style="font-size:13px; color:#777; display:flex; justify-content:space-between;">
+                            <span>${p.author_name}</span>
+                            <span>조회 ${p.view_count || 0} · ${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
         });
+        html += '</div>';
+        container.innerHTML += html;
+    }
+
+    /* 렌더러: 자료실 썸네일형 스킨 */
+    function renderFileAlbum(container, posts) {
+        let cols = boardMeta.gallery_columns || 3;
+        let html = `<div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:15px;">`;
+        posts.forEach(p => {
+            html += `
+                <div class="file-card" style="cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:140px; background:#f0f4f8; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        ${p.thumbnail_url 
+                            ? `<img src="${p.thumbnail_url}" style="width:100%; height:100%; object-fit:cover;">` 
+                            : `<div style="font-size:40px;">📄</div>`
+                        }
+                    </div>
+                    <div style="font-size:14px; font-weight:700; color:#222; margin-bottom:4px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${p.title}</div>
+                    <div style="font-size:12px; color:#888;">${p.author_name} · 조회 ${p.view_count||0}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML += html;
+    }
+
+    /* 렌더러: 일반 리스트형 스킨 (자유게시판) */
+    function renderDefaultBbs(container, posts) {
+        let html = '<table style="width:100%; border-collapse:collapse; border-top:2px solid #111;">';
+        html += `
+            <tr style="border-bottom:1px solid #ccc; background:#f9fafb;">
+                <th style="padding:12px; font-size:14px; width:60px;">번호</th>
+                <th style="padding:12px; font-size:14px; text-align:left;">제목</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성자</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성일</th>
+                <th style="padding:12px; font-size:14px; width:60px;">조회</th>
+            </tr>
+        `;
+        posts.forEach((p, idx) => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <tr style="border-bottom:1px solid #eee; cursor:pointer;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='transparent'" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.id || (idx+1)}</td>
+                    <td style="padding:12px; font-size:15px; font-weight:600; color:#222;">${p.title}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.author_name}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${dateStr}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${p.view_count || 0}</td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+        container.innerHTML += html;
+    }
+
+    
+    async function fetchPostData() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+
+        if (!window.currentPostId) {
+            alert('잘못된 접근입니다.');
+            location.href = 'board.html?id=' + currentBoardId;
+            return;
+        }
+
+        const { data, error } = await sb.from('board_posts').select('*').eq('id', window.currentPostId).single();
+        if (error || !data) {
+            alert('게시글을 불러올 수 없거나 삭제되었습니다.');
+            location.href = 'board.html?id=' + currentBoardId;
+            return;
+        }
+        
+        let currentPost = data;
+
+        // 조회수 1 증가 (조회 꼼수 방지는 나중에 보완)
+        await sb.from('board_posts').update({ view_count: (data.view_count || 0) + 1 }).eq('id', window.currentPostId);
+
+        renderPostDetails(data);
+        await loadPrevNext(data);
+    }
+
+    async function loadPrevNext(post) {
+        const sb = window.gongsiClient || window.supabaseClient;
+        // 이전글: 나보다 created_at이 작은(과거) 글 중 가장 최신
+        const { data: prevData } = await sb.from('board_posts').select('id, title').eq('board_id', currentBoardId).lt('created_at', post.created_at).order('created_at', {ascending: false}).limit(1);
+        // 다음글: 나보다 created_at이 큰(미래) 글 중 가장 오래된
+        const { data: nextData } = await sb.from('board_posts').select('id, title').eq('board_id', currentBoardId).gt('created_at', post.created_at).order('created_at', {ascending: true}).limit(1);
+        
+        const vPrevTitle = document.getElementById('vPrevTitle');
+        const vNextTitle = document.getElementById('vNextTitle');
+
+        if(prevData && prevData.length > 0) {
+            vPrevTitle.innerText = prevData[0].title;
+            vPrevTitle.style.cursor = 'pointer';
+            vPrevTitle.onclick = () => location.href = `board_read.html?post_id=${prevData[0].id}&board_id=${currentBoardId}`;
+        }
+
+        if(nextData && nextData.length > 0) {
+            vNextTitle.innerText = nextData[0].title;
+            vNextTitle.style.cursor = 'pointer';
+            vNextTitle.onclick = () => location.href = `board_read.html?post_id=${nextData[0].id}&board_id=${currentBoardId}`;
+        }
+    }
+
+    function renderPostDetails(info) {
+        document.getElementById('vWrapper').style.display = 'block';
+        document.getElementById('vCategory').innerText = `[${info.category || '전체'}]`;
+        document.getElementById('vTitle').innerText = info.title;
+        document.getElementById('vAuthor').innerText = info.author_name || '익명';
+        document.getElementById('vViews').innerText = (info.view_count || 0).toLocaleString();
+        
+        const dateStr = new Date(info.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+        document.getElementById('vDate').innerText = dateStr;
+
+        // 유튜브 URL 파싱
+        if (info.youtube_url) {
+            const vidArea = document.getElementById('vVideoArea');
+            let embedUrl = info.youtube_url;
+            if(embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+            if(embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/');
+            if(embedUrl.includes('?si=')) embedUrl = embedUrl.split('?si=')[0]; // 클린 URL
+            
+            vidArea.style.display = 'block';
+            vidArea.innerHTML = `<div class="b-video-box"><iframe src="${embedUrl}" allowfullscreen></iframe></div>`;
+        }
+
+        // 구글드라이브 URL 파싱
+        if (info.drive_url) {
+            document.getElementById('vDownloadArea').style.display = 'flex';
+            document.getElementById('vDriveBtn').href = info.drive_url;
+        }
+
+        document.getElementById('vContent').innerHTML = info.content || '';
+    }
+
+    /* --- 댓글 시스템 이식부 --- */
+    async function loadBoardComments() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        const { data: { user } } = await sb.auth.getUser();
+        if(user) {
+            const { data: ud } = await sb.from('users_profile').select('name').eq('id', user.id).single();
+            document.getElementById('commentUserName').innerText = (ud?.name || user.email.split('@')[0]) + '님';
+        }
+    }
+
+    function submitBoardComment() {
+        const val = document.getElementById('commentInput').value;
+        if(!val) return alert('댓글 내용을 입력하세요.');
+        
+        const userName = document.getElementById('commentUserName').innerText;
+        const safeName = userName.includes('비로그인') ? '게스트' : userName;
+
+        document.getElementById('portalCommentList').innerHTML = `
+            <div class="cmt-item">
+                <div class="cmt-header">
+                    <span class="cmt-author">${safeName}</span>
+                    <span class="cmt-date">방금 전</span>
+                </div>
+                <div class="cmt-body">${val}</div>
+            </div>
+        ` + document.getElementById('portalCommentList').innerHTML.replace(/등록된 댓글이 없습니다.*/, '');
+        
+        document.getElementById('commentInput').value = '';
+        document.getElementById('portalCommentCount').innerText = '1개의 댓글';
+        alert('댓글이 성공적으로 등록되었습니다.');
+    }
+
+    function showError(msg) {
+        document.querySelector('.news-list-area').innerHTML = `<div style="padding:40px; text-align:center; color:#dc2626; font-weight:bold;">[시스템 오류] ${msg}</div>`;
+    }
+
+    // 텍스트 배너, 헤더 스크롤 등 기존 UI 기능 유지
+    document.addEventListener("scroll", () => {
+        const header = document.querySelector('.header');
+        if (header) {
+            header.classList.toggle('is-sticky', window.scrollY > 40);
+        }
+    });
+
+    // 사이드바 인기 게시물 (뉴스 정보 가져옴)
+    async function loadPopularSidebarNews() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        const { data } = await sb.from('articles').select('id, title, view_count').eq('status', 'published').order('view_count', { ascending: false }).limit(5);
+        const c = document.querySelector('.pop-list');
+        if(data && c) {
+            c.innerHTML = data.map((item, i) => `
+                <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
+                    <span class="pop-ranking">${i+1}</span>
+                    <span class="pop-title">${item.title}</span>
+                </li>
+            `).join('');
+        }
+    }
     </script>
 </body>
 </html>
