@@ -1045,38 +1045,61 @@
         if (posts.length === 0) {
             const emptyMsg = currentCategory
                 ? `[${currentCategory}] 카테고리에 등록된 게시글이 없습니다.`
-                : '등록된 게시글이 없습니다. 우측 상단의 글쓰기 버튼을 눌러 첫 글을 작성해보세요!';
+                : '등록된 게시글이 없습니다. 우측 하단의 글쓰기 버튼을 눌러 첫 글을 작성해보세요!';
             container.innerHTML = `
             <div style="padding:100px 0; text-align:center; color:#9ca3af;">
                 <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; margin-left:auto; margin-right:auto;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                 <div style="font-size:16px;">${emptyMsg}</div>
             </div>`;
-            return;
-        }
-
-        container.innerHTML = '';
-
-        // 스킨에 따른 렌더링 분기
-        if (boardMeta.skin_type === 'video_album') {
-            renderVideoAlbum(container, posts);
-        } else if (boardMeta.skin_type === 'file_album') {
-            renderFileAlbum(container, posts);
-        } else if (boardMeta.skin_type === 'faq_album') {
-            renderFaqList(container, posts);
-        } else if (boardMeta.skin_type === 'qna_1on1') {
-            render1on1List(container, posts);
         } else {
-            renderDefaultBbs(container, posts);
+            container.innerHTML = '';
+
+            // 스킨에 따른 렌더링 분기
+            if (boardMeta.skin_type === 'video_album') {
+                renderVideoAlbum(container, posts);
+            } else if (boardMeta.skin_type === 'file_album') {
+                renderFileAlbum(container, posts);
+            } else if (boardMeta.skin_type === 'faq_album') {
+                renderFaqList(container, posts);
+            } else if (boardMeta.skin_type === 'qna_1on1') {
+                render1on1List(container, posts);
+            } else {
+                renderDefaultBbs(container, posts);
+            }
         }
         
-        // 페이지네이션 덧붙이기
-        container.innerHTML += `
-            <div class="pagination">
-                <button class="page-btn" disabled>&lt; 이전</button>
-                <span class="page-info">1 / 1</span>
-                <button class="page-btn" disabled>다음 &gt;</button>
+        // 하단 영역(페이지네이션 + 글쓰기 버튼) 덧붙이기
+        let bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                <div style="flex:1;"></div>
+        `;
+
+        if (posts.length > 0) {
+            bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                <div style="flex: 1; display:flex; justify-content:flex-end; padding-right:10px;">
+                    <div class="pagination" style="margin-top:0;">
+                        <button class="page-btn" disabled>&lt; 이전</button>
+                        <span class="page-info">1 / 1</span>
+                        <button class="page-btn" disabled>다음 &gt;</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 20px; margin-bottom: 20px;">
+                <div style="flex: 1;"></div>
+            `;
+        }
+
+        bottomHTML += `
+                <div style="margin-left: auto;">
+                    <button class="b-write-btn" style="background:#102c57; color:#fff; padding:10px 24px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="location.href='board_write.html?board_id=' + currentBoardId">글쓰기</button>
+                </div>
             </div>
         `;
+
+        container.innerHTML += bottomHTML;
     }
 
     /* 렌더러: 동영상 앨범형 스킨 */

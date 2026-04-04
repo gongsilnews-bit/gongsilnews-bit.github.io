@@ -543,6 +543,7 @@
                 </div>
                 <div class="action-group">
                     <button class="btn-list" id="btnGoList">목록</button>
+                    <button class="btn-list" id="btnGoEdit" style="display:none; color:#2563eb; border-color:#2563eb;">수정</button>
                     <button class="btn-write" id="btnGoWrite">글쓰기</button>
                 </div>
             </div>
@@ -612,6 +613,7 @@
     // 버튼 기본 링크 세팅
     document.getElementById('btnGoList').onclick  = () => location.href = `board.html?id=${BOARD_ID}`;
     document.getElementById('btnGoWrite').onclick = () => location.href = `board_write.html?board_id=${BOARD_ID}`;
+    document.getElementById('btnGoEdit').onclick  = () => location.href = `board_write.html?board_id=${BOARD_ID}&edit_id=${POST_ID}`;
     document.getElementById('bcBoardLink').href   = `board.html?id=${BOARD_ID}`;
     document.getElementById('bphWriteBtn').onclick = () => location.href = `board_write.html?board_id=${BOARD_ID}`;
 
@@ -686,6 +688,7 @@
           .then(() => {})
           .catch(() => {});
 
+        window._postAuthorId = data.author_id; // 본인 확인용
         renderPost(data);
         await loadPrevNext(data);
     }
@@ -840,6 +843,11 @@
             if (user) {
                 const { data: ud } = await sb.from('users_profile').select('name').eq('id', user.id).single();
                 document.getElementById('commentUserName').innerText = (ud?.name || user.email.split('@')[0]) + '님';
+                
+                // 사용자가 글쓴이인 경우 수정 버튼 표시
+                if (user.id === window._postAuthorId) {
+                    document.getElementById('btnGoEdit').style.display = 'inline-block';
+                }
             }
         } catch(e) { console.warn('유저 로드 오류:', e); }
     }
