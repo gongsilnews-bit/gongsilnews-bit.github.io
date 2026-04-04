@@ -759,13 +759,10 @@
             }
         </style>
         <div class="board-header">
-            <div class="board-title">드론영상 <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(자료실)</span></div>
-            <div class="board-search-write">
-                <button class="b-write-btn" id="writePostBtn" onclick="location.href='board_write.html?board_id=' + currentBoardId">글쓰기</button>
-                <div class="b-search">
-                    <input type="text" placeholder="해당 카테고리 검색">
-                    <button>검색</button>
-                </div>
+            <div class="board-title" id="boardTitleEl">드론영상 <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(자료실)</span></div>
+            <div class="b-search" style="display:flex; border:1px solid #ccc; border-radius:4px; overflow:hidden;">
+                <input type="text" id="boardSearchInput" placeholder="제목 검색" style="border:none; padding:8px 12px; outline:none; width:220px; font-size:14px;" onkeydown="if(event.key==='Enter') doSearch()">
+                <button style="background:#f8f9fa; border:none; border-left:1px solid #ccc; padding:0 15px; font-weight:bold; color:#555; cursor:pointer;" onclick="doSearch()">검색</button>
             </div>
         </div>
 
@@ -941,6 +938,14 @@
     let currentSkin = 'video_album'; // 기본 스킨
     let boardMeta = null;
     let currentCategory = ''; // 현재 선택된 카테고리 탭 (빈 문자열 = 전체)
+    let currentSearchKeyword = ''; // 검색 키워드
+
+    function doSearch() {
+        const kw = (document.getElementById('boardSearchInput').value || '').trim();
+        currentSearchKeyword = kw;
+        currentPage = 1;
+        loadBoardPosts();
+    }
 
     document.addEventListener('DOMContentLoaded', async () => {
         const urlParams = new URLSearchParams(window.location.search);
@@ -1021,6 +1026,11 @@
         // 카테고리 탭 필터 적용 (전체일 때는 필터 없음)
         if (currentCategory) {
             query = query.eq('category', currentCategory);
+        }
+        
+        // 제목 키워드 검색 필터
+        if (currentSearchKeyword) {
+            query = query.ilike('title', `%${currentSearchKeyword}%`);
         }
         
         const { data: postsData, error: postsErr } = await query;
