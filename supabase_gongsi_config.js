@@ -35,3 +35,53 @@ if (window.supabase) {
         }
     }, 200);
 }
+
+// 글로벌 네비게이션(자료실 GNB) 동적 연동 스크립트
+// 사이트의 모든 HTML 파일(index.html, board.html, news.html 등)의 "자료실" 하위 메뉴를 DB 기반으로 실시간 교체합니다.
+document.addEventListener('DOMContentLoaded', () => {
+    // 조금 기달렸다가 실행 (gongsiClient 로드 보장용)
+    setTimeout(async () => {
+        const sb = window.gongsiClient;
+        if(!sb) return;
+        
+        try {
+            const { data: boards } = await sb.from('boards')
+                                            .select('board_id, board_name')
+                                            .eq('is_active', true)
+                                            .order('created_at', { ascending: true });
+                                            
+            if(boards && boards.length > 0) {
+                // 부모 경로 깊이 탐지하여 상대경로 보정 (예: admin/ 폴더 안에 있을 경우 대비, 하지만 일단 절대경로/상대경로 유연하게 처리)
+                const isSubFolder = window.location.pathname.includes('/admin/') || window.location.pathname.includes('/gongsil/');
+                const basePath = isSubFolder ? '../' : '';
+                
+                const gnbLinks = document.querySelectorAll('.gnb-new a');
+                let boardAnchor = null;
+                for(const a of Array.from(gnbLinks)) {
+                    if(a.innerText.trim() === '자료실') {
+                        boardAnchor = a;
+                        break;
+                    }
+                }
+                
+                if(boardAnchor) {
+                    const dropdown = boardAnchor.nextElementSibling;
+                    if(dropdown && dropdown.classList.contains('gnb-dropdown')) {
+                        const ul = dropdown.querySelector('ul');
+                        if(ul) {
+                            ul.innerHTML = boards.map(b => `
+                                <li style="border-bottom: 1px solid #eee;">
+                                    <a href="${basePath}board.html?id=${b.board_id}" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">
+                                        ${b.board_name}
+                                    </a>
+                                </li>
+                            `).join('');
+                        }
+                    }
+                }
+            }
+        } catch(e) {
+            console.warn("게시판 동적 메뉴 세팅 실패:", e);
+        }
+    }, 500);
+});
