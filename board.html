@@ -39,6 +39,8 @@
 
         /* 1. Top Nav Bar */
         .top-bar {
+            position: relative;
+            z-index: 10000000;
             background-color: var(--brand-navy);
             height: 60px;
             color: #ffffff;
@@ -69,7 +71,7 @@
         .top-bar-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 28px;
         }
         .top-bar-right svg {
             width: 18px;
@@ -457,7 +459,7 @@
             
             <!-- Login/User -->
             <!-- Login/User -->
-            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 16px;">
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 24px;">
                 <div class="icon-tooltip-wrap" data-tooltip="회원가입">
                     <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="회원가입"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 </div>
