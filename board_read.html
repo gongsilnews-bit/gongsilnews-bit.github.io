@@ -458,7 +458,6 @@
     <div class="board-page-header">
         <div class="board-page-title" id="bphBoardName">게시판 <span id="bphBoardSub">(자료실)</span></div>
         <div class="board-page-right">
-            <button class="bph-write-btn" id="bphWriteBtn">글쓰기</button>
             <div class="bph-search">
                 <input type="text" placeholder="해당 카테고리 검색" id="bphSearchInput">
                 <button onclick="alert('검색 기능 준비 중입니다.')">검색</button>
@@ -615,7 +614,6 @@
     document.getElementById('btnGoWrite').onclick = () => location.href = `board_write.html?board_id=${BOARD_ID}`;
     document.getElementById('btnGoEdit').onclick  = () => location.href = `board_write.html?board_id=${BOARD_ID}&edit_id=${POST_ID}`;
     document.getElementById('bcBoardLink').href   = `board.html?id=${BOARD_ID}`;
-    document.getElementById('bphWriteBtn').onclick = () => location.href = `board_write.html?board_id=${BOARD_ID}`;
 
     // 헤더 스크롤
     document.addEventListener('scroll', () => {
