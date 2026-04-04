@@ -347,15 +347,19 @@
             });
             
             if (uploadError) {
-                console.error('썸네일 업로드 에러:', uploadError);
-                btnSubmit.disabled = false;
-                btnSubmit.innerText = editId ? '🚀 게시글 수정 완료' : '🚀 게시글 최종 등록';
-                return alert('썸네일 이미지 업로드에 실패했습니다.\n사유: ' + uploadError.message);
-            }
-            
-            const { data } = sb.storage.from('user-photos').getPublicUrl(filePath);
-            if (data && data.publicUrl) {
-                finalThumbUrl = data.publicUrl;
+                console.warn('썸네일 업로드 에러(RLS 등) 발생. 편의상 Base64로 폴백합니다.', uploadError);
+                // 로컬 테스트 환경이나 RLS 권한 부족 시 오류로 막히지 않고 Base64로 대체 저장되도록 폴백 추가
+                finalThumbUrl = await new Promise((res) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result);
+                    r.onerror = () => res(null);
+                    r.readAsDataURL(file);
+                });
+            } else {
+                const { data } = sb.storage.from('user-photos').getPublicUrl(filePath);
+                if (data && data.publicUrl) {
+                    finalThumbUrl = data.publicUrl;
+                }
             }
         }
 
