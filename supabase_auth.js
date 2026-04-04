@@ -162,8 +162,12 @@ function _gongsiAuthInit(supabase) {
             }
             const redirectUrl = window.location.origin + redirectPath + window.location.search;
             
-            // 모달 노출 (실제 구글 로그인은 모달 내 버튼에서 처리)
-            showGongsilLoginModal(redirectUrl, action);
+            if (action === 'login') {
+                window.executeGoogleOAuth(redirectUrl);
+            } else {
+                // 모달 노출 (실제 구글 로그인은 모달 내 버튼에서 처리)
+                showGongsilLoginModal(redirectUrl, action);
+            }
 
         } catch(err) {
             console.error("로그인 모달 표시 에러:", err);
