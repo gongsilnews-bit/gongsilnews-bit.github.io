@@ -2479,10 +2479,21 @@
         };
 
         // === 사진 ===
-        function addLibraryPhotos(inputEl) {
-            const files = Array.from(inputEl.files);
+        async function addLibraryPhotos(inputEl) {
+            const rawFiles = Array.from(inputEl.files);
             inputEl.value = '';
-            if (files.length === 0) return;
+            if (rawFiles.length === 0) return;
+
+            // 1. 압축 진행 (WebP 변환 포함)
+            const files = [];
+            for (let i = 0; i < rawFiles.length; i++) {
+                if (typeof compressImage === 'function') {
+                    const compressedFile = await compressImage(rawFiles[i], 1600, 0.8);
+                    files.push(compressedFile);
+                } else {
+                    files.push(rawFiles[i]);
+                }
+            }
 
             var results = new Array(files.length).fill(null);
             var doneCount = 0;
