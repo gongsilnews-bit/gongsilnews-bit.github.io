@@ -501,16 +501,24 @@
                 <div class="post-body">
                     <!-- 동영상 -->
                     <div id="vVideoArea"></div>
-                    <!-- 파일 다운로드 -->
-                    <div id="vDownloadArea">
-                        <div class="dl-info">
-                            <div class="dl-title">첨부파일 다운로드</div>
-                            <div class="dl-sub">이 게시물에 첨부된 자료(원본영상 등)를 다운로드 받습니다.</div>
+                    <!-- 파일 다운로드 및 외부 링크 -->
+                    <div id="vDownloadArea" style="display:none; flex-direction:column; gap:10px;">
+                        <div class="dl-info" style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; padding:15px; border-radius:8px; border:1px solid #e2e8f0;" id="driveAreaWrap">
+                            <div>
+                                <div class="dl-title" style="font-weight:700; color:#1e293b; margin-bottom:4px;">참고자료 링크</div>
+                                <div class="dl-sub" style="font-size:13px; color:#64748b;">이 게시물에 관련된 자료나 링크를 제공합니다.</div>
+                            </div>
+                            <div style="display:flex; gap:10px;" id="linksContainer">
+                                <a href="#" target="_blank" class="btn-download-link" id="vDriveBtn" style="display:none;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                                    다운로드
+                                </a>
+                                <a href="#" target="_blank" class="btn-download-link" id="vExtLinkBtn" style="display:none; background:#16a34a; border-color:#16a34a;">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                                    링크 방문
+                                </a>
+                            </div>
                         </div>
-                        <a href="#" target="_blank" class="btn-download-link" id="vDriveBtn">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                            다운로드 받기
-                        </a>
                     </div>
                     <!-- 본문 내용 -->
                     <div id="vContent"></div>
@@ -764,12 +772,25 @@
             `;
         }
 
-        // ===== 구글 드라이브 다운로드 =====
+        // ===== 구글 드라이브 다운로드 / 외부 링크 =====
+        let hasLinks = false;
+        const dlArea = document.getElementById('vDownloadArea');
+        const dlBtn  = document.getElementById('vDriveBtn');
+        const extBtn = document.getElementById('vExtLinkBtn');
+        
         if (info.drive_url && info.drive_url.trim()) {
-            const dlArea = document.getElementById('vDownloadArea');
-            const dlBtn  = document.getElementById('vDriveBtn');
-            dlArea.style.display = 'flex';
+            dlBtn.style.display = 'inline-flex';
             dlBtn.href = info.drive_url.trim();
+            hasLinks = true;
+        }
+        if (info.ext_link && info.ext_link.trim()) {
+            extBtn.style.display = 'inline-flex';
+            extBtn.href = info.ext_link.trim();
+            hasLinks = true;
+        }
+
+        if (hasLinks) {
+            dlArea.style.display = 'flex';
         }
 
         // ===== 본문 내용 =====

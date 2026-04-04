@@ -116,22 +116,30 @@
         </p>
         
         <div class="form-row" style="gap: 20px;">
-            <!-- 유튜브 링크 (video_album 일 때만 노출) -->
+            <!-- 유튜브 링크 -->
             <div class="form-group" id="ytbField" style="display:none; flex:1;">
-                <label class="form-label" style="color:#dc2626;">YouTube 영상 링크</label>
+                <label class="form-label" style="color:#dc2626;">YouTube 영상 링크 (선택)</label>
                 <input type="text" class="form-control" id="ytbUrl" placeholder="예: https://youtu.be/...">
             </div>
-            
+        </div>
+        
+        <div class="form-row" style="gap: 20px;">
             <!-- 드라이브 링크 -->
             <div class="form-group" style="flex:1;">
-                <label class="form-label" style="color:#2563eb;">구글 드라이브 다운로드 링크</label>
+                <label class="form-label" style="color:#2563eb;">구글 드라이브 다운로드 링크 (선택)</label>
                 <input type="text" class="form-control" id="driveUrl" placeholder="예: https://drive.google.com/file/d/...">
+            </div>
+            <!-- 외부 외부 링크 -->
+            <div class="form-group" style="flex:1;">
+                <label class="form-label" style="color:#16a34a;">외부 참조 링크 (선택)</label>
+                <input type="text" class="form-control" id="extLinkUrl" placeholder="클릭 시 이동할 외부 URL을 입력하세요.">
+                <small style="color:#ef4444; font-size:11px; display:block; margin-top:4px;">* 주의: 이 기능을 쓰려면 관리자(Supabase) 설정에서 board_posts에 ext_link 컬럼을 추가해야 할 수도 있습니다.</small>
             </div>
         </div>
         
         <!-- 썸네일 업로드 -->
         <div class="form-group">
-            <label class="form-label">목록 노출용 대표 썸네일 (필수)</label>
+            <label class="form-label">목록 노출용 대표 썸네일 (선택)</label>
             <div class="thumb-upload" id="thumbBox" onclick="document.getElementById('thumbInput').click()">
                 <div style="font-size:24px; margin-bottom:8px;">📸</div>
                 이미지 클릭하여 첨부
@@ -214,6 +222,7 @@
                     if (postData.content) $('#summernote').summernote('code', postData.content);
                     if (postData.youtube_url && document.getElementById('ytbUrl')) document.getElementById('ytbUrl').value = postData.youtube_url;
                     if (postData.drive_url && document.getElementById('driveUrl')) document.getElementById('driveUrl').value = postData.drive_url;
+                    if (postData.ext_link && document.getElementById('extLinkUrl')) document.getElementById('extLinkUrl').value = postData.ext_link;
                     if (postData.thumbnail_url) {
                         autoYtbThumbUrl = postData.thumbnail_url;
                         const box = document.getElementById('thumbBox');
@@ -230,14 +239,10 @@
         const mediaSection = document.getElementById('mediaLinkSection');
         const ytbField = document.getElementById('ytbField');
         
-        if(skin === 'video_album') {
-            // 비디오 앨범은 유튜브 + 드라이브 모두 켬
+        if(skin === 'video_album' || skin === 'file_album') {
+            // 비디오 앨범 및 자료실 앨범 모두 유튜브 + 드라이브 노출
             mediaSection.classList.add('active');
             ytbField.style.display = 'block';
-        } else if (skin === 'file_album') {
-            // 파일 자료실은 유튜브 끄고 드라이브+썸네일만 켬
-            mediaSection.classList.add('active');
-            ytbField.style.display = 'none';
         } else {
             // 일반 게시판 및 기타는 끄고 에디터만 씀
             mediaSection.classList.remove('active');
@@ -286,17 +291,21 @@
 
     // 등록 액션 (Supabase 연동 완료)
     async function submitPost() {
+        const btnSubmit = document.getElementById('btnSubmit');
         const boardId = targetBoardId;
         const category = document.getElementById('categorySelect').value;
         const title = document.getElementById('postTitle').value;
         const content = $('#summernote').summernote('code');
         const ytbUrl = document.getElementById('ytbUrl')?.value || null;
         const driveUrl = document.getElementById('driveUrl')?.value || null;
+        const extLinkUrl = document.getElementById('extLinkUrl')?.value || null;
         
         if(!boardId) return alert('게시판 지정이 잘못되었습니다.');
         if(!title) return alert('제목을 입력해주세요.');
 
-        // 로그인된 유저 정보 가져오기 (현재는 Supabase auth 세션 기반, 없어도 admin으로 처리)
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = '처리 중...';
+
         const sb = window.gongsiClient || window.supabaseClient;
         if(!sb) return alert('DB 클라이언트가 초기화되지 않았습니다.');
 
@@ -312,6 +321,32 @@
             }
         }
 
+        // 썸네일 업로드 처리
+        let finalThumbUrl = autoYtbThumbUrl; // 기본적으로 자동 유튜브 썸네일
+        const thumbInput = document.getElementById('thumbInput');
+        
+        if (thumbInput && thumbInput.files && thumbInput.files.length > 0) {
+            const file = thumbInput.files[0];
+            const fileExt = file.name.split('.').pop();
+            const fileName = `thumb_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `board/${boardId}/${fileName}`;
+
+            // article-images 버킷에 업로드 시도 (버킷명은 공실뉴스 기존 구성)
+            const { error: uploadError } = await sb.storage.from('article-images').upload(filePath, file);
+            
+            if (uploadError) {
+                console.error('썸네일 업로드 에러:', uploadError);
+                btnSubmit.disabled = false;
+                btnSubmit.innerText = editId ? '🚀 게시글 수정 완료' : '🚀 게시글 최종 등록';
+                return alert('썸네일 이미지 업로드에 실패했습니다.\n사유: ' + uploadError.message);
+            }
+            
+            const { data } = sb.storage.from('article-images').getPublicUrl(filePath);
+            if (data && data.publicUrl) {
+                finalThumbUrl = data.publicUrl;
+            }
+        }
+
         const insertData = {
             board_id: boardId,
             author_id: currentUserId,
@@ -321,8 +356,8 @@
             content: content === '<p><br></p>' ? null : content,
             youtube_url: ytbUrl,
             drive_url: driveUrl,
-            // 유튜브 썸네일이 자동 추출되었으면 우선 저장. (실제 파일 업로드가 있다면 덮어쓰기 로직 필요)
-            thumbnail_url: autoYtbThumbUrl 
+            ext_link: extLinkUrl,
+            thumbnail_url: finalThumbUrl 
         };
 
         let result;
