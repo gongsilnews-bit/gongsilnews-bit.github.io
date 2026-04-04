@@ -653,11 +653,23 @@
         if (boardData && boardData.categories) {
             const cats = boardData.categories.split(',').map(c => c.trim()).filter(Boolean);
             tabsEl.innerHTML = ['전체', ...cats].map((cat, idx) =>
-                `<div class="b-tab${idx === 0 ? ' active' : ''}">${cat}</div>`
+                `<div class="b-tab${idx === 0 ? ' active' : ''}" data-cat="${idx === 0 ? '' : cat}" style="cursor:pointer;">${cat}</div>`
             ).join('');
         } else {
-            tabsEl.innerHTML = '<div class="b-tab active">전체</div>';
+            tabsEl.innerHTML = '<div class="b-tab active" data-cat="" style="cursor:pointer;">전체</div>';
         }
+
+        // ★ 탭 클릭 → board.html 카테고리 필터 이동 ★
+        tabsEl.querySelectorAll('.b-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const cat = this.dataset.cat || '';
+                if (cat) {
+                    location.href = `board.html?id=${BOARD_ID}&cat=${encodeURIComponent(cat)}`;
+                } else {
+                    location.href = `board.html?id=${BOARD_ID}`;
+                }
+            });
+        });
 
         // 게시글 불러오기
         const { data, error } = await sb.from('board_posts').select('*').eq('id', POST_ID).single();

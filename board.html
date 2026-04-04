@@ -943,9 +943,10 @@
     let currentCategory = ''; // 현재 선택된 카테고리 탭 (빈 문자열 = 전체)
 
     document.addEventListener('DOMContentLoaded', async () => {
-        // 탑 네비게이션 활성화
         const urlParams = new URLSearchParams(window.location.search);
         if(urlParams.get('id')) currentBoardId = urlParams.get('id');
+        // 상세페이지에서 탭 클릭 시 넘어오는 카테고리 파라미터
+        if(urlParams.get('cat')) currentCategory = urlParams.get('cat');
 
         await initBoardSystem();
         await loadPopularSidebarNews();
@@ -984,8 +985,8 @@
         if (boardMeta.categories) {
             const cats = boardMeta.categories.split(',').map(c => c.trim()).filter(c => c);
             tabsContainer.innerHTML = 
-                `<div class="b-tab active" data-cat="">전체</div>` +
-                cats.map(cat => `<div class="b-tab" data-cat="${cat}">${cat}</div>`).join('');
+                `<div class="b-tab ${!currentCategory ? 'active' : ''}" data-cat="">전체</div>` +
+                cats.map(cat => `<div class="b-tab ${currentCategory === cat ? 'active' : ''}" data-cat="${cat}">${cat}</div>`).join('');
         } else {
             tabsContainer.innerHTML = `<div class="b-tab active" data-cat="">전체</div>`;
         }
