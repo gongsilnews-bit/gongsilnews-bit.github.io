@@ -221,6 +221,33 @@
     }
 
     // 썸네일 미리보기
+    let autoYtbThumbUrl = null;
+
+    // 유튜브 주소 입력 시 자동 썸네일 추출
+    document.getElementById('ytbUrl').addEventListener('input', function(e) {
+        const url = e.target.value.trim();
+        if(!url) {
+            autoYtbThumbUrl = null;
+            return;
+        }
+        // 정규식을 통해 유튜브 ID 추출
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        
+        if (match && match[2].length === 11) {
+            const videoId = match[2];
+            autoYtbThumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            
+            // 사용자가 직접 첨부한 파일이 없을 경우에만 썸네일 박스 배경으로 보여주기
+            const thumbInput = document.getElementById('thumbInput');
+            if(!thumbInput.files || thumbInput.files.length === 0) {
+                const box = document.getElementById('thumbBox');
+                box.style.backgroundImage = `url(${autoYtbThumbUrl})`;
+                box.innerHTML = ''; 
+            }
+        }
+    });
+
     function previewThumb(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
@@ -270,9 +297,8 @@
             content: content === '<p><br></p>' ? null : content,
             youtube_url: ytbUrl,
             drive_url: driveUrl,
-            // 썸네일 업로드가 있다면 여기에 URL 할당을 하지만, 현재는 파일 업로드 로직 간소화 
-            // (실제 프로젝트에서는 스토리지 업로드 후 url을 반환받아 기입합니다)
-            thumbnail_url: null 
+            // 유튜브 썸네일이 자동 추출되었으면 우선 저장. (실제 파일 업로드가 있다면 덮어쓰기 로직 필요)
+            thumbnail_url: autoYtbThumbUrl 
         };
 
         const { error } = await sb.from('board_posts').insert([insertData]);
