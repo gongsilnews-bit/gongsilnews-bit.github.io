@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시판 관리</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <style>
+        :root {
+            --bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --hover: #f9fafb;
+            --primary: #374151;
+            --primary-hover: #1f2937;
+        }
+        body { 
+            font-family: 'Pretendard Variable', -apple-system, sans-serif; 
+            margin: 0; padding: 32px; 
+            background: #fff; color: var(--text-main); 
+        }
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border); 
+        }
+        h2 { margin: 0; font-size: 20px; font-weight: 700; color: #111; }
+        
+        .btn { 
+            padding: 8px 16px; font-size: 13px; font-weight: 600; border-radius: 4px; 
+            cursor: pointer; transition: all 0.2s; border: none; 
+        }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline { background: #fff; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: var(--hover); }
+        
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 12px 16px; font-size: 13px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid var(--border); }
+        td { padding: 16px; font-size: 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        tr:hover { background: var(--hover); }
+        
+        .badge { 
+            display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; 
+            background: #f3f4f6; color: #374151; border: 1px solid var(--border); 
+        }
+        
+        /* Modal UI */
+        .modal-overlay { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; 
+            backdrop-filter: blur(2px);
+        }
+        .modal { 
+            background: #fff; width: 540px; border-radius: 8px; padding: 28px; 
+            box-shadow: 0 4px 24px rgba(0,0,0,0.15); border: 1px solid var(--border);
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+        .modal-header h3 { margin: 0; font-size: 17px; font-weight: 700; color: #111; }
+        .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #9ca3af; line-height: 1;}
+        .close-btn:hover { color: #111; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #4b5563; margin-bottom: 6px; }
+        .form-group input, .form-group select { 
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 4px; 
+            font-size: 14px; box-sizing: border-box; background: #fff; font-family: inherit; color: #111;
+        }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(55, 65, 81, 0.1); }
+        
+        .modal-footer { display: flex; justify-content: flex-end; gap: 8px; margin-top: 28px; }
+        
+        .skin-icon { font-size: 16px; margin-right: 6px; vertical-align: middle; color: #6b7280; }
+        .description-text { font-size: 12px; color: #9ca3af; margin-top: 4px; display: block; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>게시판 리스트 및 설정</h2>
+        <button class="btn btn-primary" onclick="openModal()">+ 새 게시판 생성</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>고유 ID</th>
+                <th>게시판명</th>
+                <th>스킨 테마 설정</th>
+                <th>권한 설정 (목록/읽기/쓰기)</th>
+                <th style="width: 120px;">관리 액션</th>
+            </tr>
+        </thead>
+        <tbody id="boardTableBody">
+            <!-- 샘플 데이터: 동영상 자료실 -->
+            <tr>
+                <td style="font-family: monospace; color: var(--text-muted); font-size: 13px;">bbs_drone</td>
+                <td style="font-weight: 700;">드론 영상 <span style="font-size:12px; color:#9ca3af; font-weight:400; margin-left:6px;">(자료실)</span></td>
+                <td><span class="badge"><span class="skin-icon">▶</span> 동영상 앨범형</span></td>
+                <td style="font-size: 13px; color: var(--text-muted);">1 / 1 / 9</td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">설정</button>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; color:#dc2626; border-color: #fecaca; background: #fef2f2;">삭제</button>
+                </td>
+            </tr>
+            <!-- 샘플 데이터: 문서 자료실 -->
+            <tr>
+                <td style="font-family: monospace; color: var(--text-muted); font-size: 13px;">bbs_form</td>
+                <td style="font-weight: 700;">계약서/양식 <span style="font-size:12px; color:#9ca3af; font-weight:400; margin-left:6px;">(자료실)</span></td>
+                <td><span class="badge"><span class="skin-icon">📄</span> 자료실 썸네일형</span></td>
+                <td style="font-size: 13px; color: var(--text-muted);">1 / 1 / 9</td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">설정</button>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; color:#dc2626; border-color: #fecaca; background: #fef2f2;">삭제</button>
+                </td>
+            </tr>
+            <!-- 샘플 데이터: 자유게시판 -->
+            <tr>
+                <td style="font-family: monospace; color: var(--text-muted); font-size: 13px;">bbs_free</td>
+                <td style="font-weight: 700;">명함/블로그 디자인</td>
+                <td><span class="badge"><span class="skin-icon">🖼️</span> 일반 앨범형</span></td>
+                <td style="font-size: 13px; color: var(--text-muted);">1 / 5 / 9</td>
+                <td>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">설정</button>
+                    <button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px; color:#dc2626; border-color: #fecaca; background: #fef2f2;">삭제</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- 게시판 설정 모달 -->
+    <div class="modal-overlay" id="boardModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>게시판 생성 및 설정</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            
+            <div class="form-group">
+                <label>게시판 고유 ID <span style="color:#ef4444">*</span></label>
+                <input type="text" id="boardId" placeholder="예: bbs_notice (영문, 숫자 조합)">
+                <span class="description-text">URL 주소로 사용될 고유 이름입니다.</span>
+            </div>
+            
+            <div style="display:flex; gap:16px;">
+                <div class="form-group" style="flex:1;">
+                    <label>게시판 이름 <span style="color:#ef4444">*</span></label>
+                    <input type="text" id="boardName" placeholder="예: 공지사항">
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>보조 타이틀</label>
+                    <input type="text" id="boardSubtitle" placeholder="예: 자료실">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>스킨 / 테마 구조 선택 <span style="color:#ef4444">*</span></label>
+                <select id="boardSkin">
+                    <option value="default_bbs">📝 일반 리스트형 (자유게시판/공지사항)</option>
+                    <option value="video_album">▶ 동영상 앨범형 (유튜브 + 드라이브 다운로드 최적화)</option>
+                    <option value="file_album">📄 파일 자료실형 (디자인 썸네일 + 다운로드 버튼)</option>
+                </select>
+                <span class="description-text">스킨을 변경하면 글쓰기 화면 UI가 목적에 맞게 자동 변경됩니다.</span>
+            </div>
+
+            <div class="form-group">
+                <label>세부 카테고리 (분류)</label>
+                <input type="text" id="boardCategories" placeholder="쉼표(,)로 구분하여 입력하세요. 예: 드론, 아파트, 빌딩">
+            </div>
+
+            <div style="display:flex; gap:16px;">
+                <div class="form-group" style="flex:1;">
+                    <label>목록 열람 권한</label>
+                    <select id="authList">
+                        <option value="0">비회원 + 전체</option>
+                        <option value="1" selected>1레벨 (일반회원 이상)</option>
+                        <option value="5">5레벨 (기자/제휴 이상)</option>
+                        <option value="9">9레벨 (관리자 전용)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>내용 읽기/다운로드 권한</label>
+                    <select id="authRead">
+                        <option value="0">비회원 + 전체</option>
+                        <option value="1">1레벨 (일반회원 이상)</option>
+                        <option value="5" selected>5레벨 (기자/제휴 이상)</option>
+                        <option value="9">9레벨 (관리자 전용)</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:1;">
+                    <label>글쓰기 권한</label>
+                    <select id="authWrite">
+                        <option value="1">1레벨 (일반회원 이상)</option>
+                        <option value="5">5레벨 (기자/제휴 이상)</option>
+                        <option value="9" selected>9레벨 (관리자 전용)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal()">취소</button>
+                <button class="btn btn-primary" onclick="saveBoard()">설정 저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openModal() {
+            document.getElementById('boardModal').style.display = 'flex';
+        }
+        function closeModal() {
+            document.getElementById('boardModal').style.display = 'none';
+        }
+        function saveBoard() {
+            alert('게시판 설정이 성공적으로 저장되었습니다. (DB 연동 대기중)');
+            closeModal();
+        }
+        
+        // 다크모드 대응
+        window.addEventListener('message', function(e) {
+            if(e.data === 'darkmode:on') {
+                document.documentElement.style.setProperty('--bg', '#1f2937');
+                document.documentElement.style.setProperty('--text-main', '#f3f4f6');
+                document.documentElement.style.setProperty('--text-muted', '#9ca3af');
+                document.documentElement.style.setProperty('--border', '#374151');
+                document.documentElement.style.setProperty('--hover', '#374151');
+                document.documentElement.style.setProperty('--primary', '#4b5563');
+                document.documentElement.style.setProperty('--primary-hover', '#6b7280');
+                document.body.style.background = '#1a1b1e';
+                
+                document.querySelector('.modal').style.background = '#1f2937';
+                document.querySelector('.modal').style.borderColor = '#374151';
+                document.querySelectorAll('.form-group input, .form-group select').forEach(el => {
+                    el.style.background = '#374151';
+                    el.style.color = '#f3f4f6';
+                    el.style.borderColor = '#4b5563';
+                });
+            } else if(e.data === 'darkmode:off') {
+                document.documentElement.style.setProperty('--bg', '#ffffff');
+                document.documentElement.style.setProperty('--text-main', '#111827');
+                document.documentElement.style.setProperty('--text-muted', '#6b7280');
+                document.documentElement.style.setProperty('--border', '#e5e7eb');
+                document.documentElement.style.setProperty('--hover', '#f9fafb');
+                document.documentElement.style.setProperty('--primary', '#374151');
+                document.documentElement.style.setProperty('--primary-hover', '#1f2937');
+                document.body.style.background = '#ffffff';
+                
+                document.querySelector('.modal').style.background = '#ffffff';
+                document.querySelector('.modal').style.borderColor = '#e5e7eb';
+                document.querySelectorAll('.form-group input, .form-group select').forEach(el => {
+                    el.style.background = '#ffffff';
+                    el.style.color = '#111827';
+                    el.style.borderColor = '#e5e7eb';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

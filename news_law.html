@@ -475,7 +475,14 @@
             </div>
             
             <!-- Login/User -->
-            <svg id="headerLoginBtn" style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event)" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span style="font-size: 13px; font-weight: 700; color: #111; line-height: 1;">회원가입</span>
+                </div>
+                <span style="color: #ccc; font-size: 11px;">|</span>
+                <span id="headerLoginOnlyBtn" style="font-size: 13px; font-weight: 700; color: #111; cursor: pointer; line-height: 1;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')">로그인</span>
+            </div>
             
             <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
                 <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>

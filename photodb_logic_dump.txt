@@ -1,0 +1,404 @@
+<!-- 포토DB 모달 -->
+    <div class="modal-overlay" id="photodbModal" style="display:none;">
+        <div class="modal-window" style="width:860px; max-height:90vh; display:flex; flex-direction:column;">
+            <div class="modal-header center-title" style="flex-shrink:0;">
+                🖼️ 포토DB
+                <span class="modal-close" onclick="closePhotodbModal()">✕</span>
+            </div>
+
+            <!-- 검색 + 탭 -->
+            <div style="padding:12px 20px 0; flex-shrink:0; background:#fff; border-bottom:1px solid #e5e7eb;">
+                <div style="display:flex; gap:8px; margin-bottom:12px;">
+                    <input type="text" id="photodbSearchInput" placeholder="사진 설명으로 검색" style="flex:1; padding:8px 12px; border:1px solid #ddd; border-radius:6px; font-size:13px; outline:none;" onkeypress="if(event.key==='Enter') loadPhotoDB()">
+                    <button onclick="loadPhotoDB()" style="background:#334155; color:#fff; border:none; padding:8px 20px; border-radius:6px; cursor:pointer; font-weight:700; font-size:13px;">검색</button>
+                </div>
+                <div style="display:flex; border-bottom:2px solid #e5e7eb; gap:0; align-items:center;">
+                    <button class="pdb-tab" id="pdbTabAll" onclick="switchPhotoTab('all')" style="padding:8px 20px; border:none; background:none; font-weight:700; font-size:13px; cursor:pointer; border-bottom:2px solid #0ea5e9; margin-bottom:-2px; color:#0ea5e9;">전체사진</button>
+                    <button class="pdb-tab" id="pdbTabFav" onclick="switchPhotoTab('fav')" style="padding:8px 20px; border:none; background:none; font-weight:700; font-size:13px; cursor:pointer; color:#888;">⭐ 즐겨찾기</button>
+                </div>
+            </div>
+
+            <!-- 갤러리 그리드 -->
+            <div id="photodbGrid" style="flex:1; overflow-y:auto; padding:16px 20px; display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:min-content; align-content:start; gap:12px; min-height:280px;">
+                <div id="photodbEmpty" style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">
+                    사진을 불러오는 중...
+                </div>
+            </div>
+
+            <!-- 더보기 -->
+            <div style="text-align:center; padding:12px; flex-shrink:0; border-top:1px solid #f0f0f0;">
+                <button id="pdbLoadMoreBtn" onclick="loadPhotoDB(true)" style="background:#f1f5f9; border:1px solid #e2e8f0; color:#64748b; padding:8px 28px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; display:none;">+ 사진 더보기</button>
+            </div>
+        </div>
+    </div>
+
+    
+<script>
+window._pdbTab = 'all'; // 'all' | 'fav'
+    window._pdbPage = 0;
+    window._pdbPageSize = 12;
+    window._pdbCurrentUserId = null;
+
+    async function loadPhotodbFolders() {
+        const sb = window.gongsiClient;
+        if (!sb || !window._pdbCurrentUserId) return;
+        const { data } = await sb.from('user_photos').select('folder_name').eq('user_id', window._pdbCurrentUserId).order('created_at', { ascending: false }).limit(2000);
+        
+        let folders = new Set();
+        folders.add('기본 폴더');
+        if (data) data.forEach(r => { if(r.folder_name) folders.add(r.folder_name); });
+        
+        let savedFolders = [];
+        try { savedFolders = JSON.parse(localStorage.getItem('pdb_folders_' + window._pdbCurrentUserId) || '[]'); } catch(e){}
+        savedFolders.forEach(f => folders.add(f));
+
+        const filterEl = document.getElementById('photodbFilterFolder');
+        const uploadEl = document.getElementById('photodbUploadFolder');
+        if (!filterEl || !uploadEl) return;
+        
+        const currFilter = filterEl.value;
+        const currUpload = uploadEl.value;
+
+        let filterHtml = '<option value="all">📂 전체 폴더 보기</option>';
+        let uploadHtml = '';
+        Array.from(folders).sort().forEach(f => {
+            filterHtml += `<option value="${f}">${f}</option>`;
+            uploadHtml += `<option value="${f}">${f}</option>`;
+        });
+        uploadHtml += '<option value="new">+ 새 폴더 만들기</option>';
+        
+        filterEl.innerHTML = filterHtml;
+        uploadEl.innerHTML = uploadHtml;
+
+        filterEl.value = Array.from(folders).includes(currFilter) ? currFilter : 'all';
+        uploadEl.value = Array.from(folders).includes(currUpload) ? currUpload : '기본 폴더';
+        
+        localStorage.setItem('pdb_folders_' + window._pdbCurrentUserId, JSON.stringify(Array.from(folders)));
+    }
+
+    // 폴더 만들기 이벤트 연결
+    document.addEventListener('DOMContentLoaded', () => {
+        const uploadFolderEl = document.getElementById('photodbUploadFolder');
+        if (uploadFolderEl) {
+            uploadFolderEl.addEventListener('change', async function() {
+                if (this.value === 'new') {
+                    const folderName = prompt('새 폴더 이름을 입력하세요\n(예: 거실사진, 외부전경, 아파트매물 등)');
+                    if (folderName && folderName.trim()) {
+                        const fName = folderName.trim();
+                        let savedFolders = [];
+                        try { savedFolders = JSON.parse(localStorage.getItem('pdb_folders_' + window._pdbCurrentUserId) || '[]'); } catch(err){}
+                        if (!savedFolders.includes(fName)) savedFolders.push(fName);
+                        localStorage.setItem('pdb_folders_' + window._pdbCurrentUserId, JSON.stringify(savedFolders));
+                        await loadPhotodbFolders();
+                        this.value = fName;
+                    } else {
+                        this.value = '기본 폴더';
+                    }
+                }
+            });
+        }
+    });
+
+    async function openPhotodbModal(mode) {
+        window._pdbMode = mode || 'article';
+        document.getElementById('photodbModal').style.display = 'flex';
+        window._pdbPage = 0;
+        document.getElementById('photodbGrid').innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">사진을 불러오는 중...</div>';
+
+        const sb = window.gongsiClient;
+        if (!sb) return alert('로그인이 필요합니다.');
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session) return alert('로그인 후 사용 가능합니다.');
+        window._pdbCurrentUserId = session.user.id;
+
+        await loadPhotodbFolders();
+        await loadPhotoDB();
+    }
+
+    function closePhotodbModal() {
+        document.getElementById('photodbModal').style.display = 'none';
+    }
+
+    function switchPhotoTab(tab) {
+        window._pdbTab = tab;
+        window._pdbPage = 0;
+        document.querySelectorAll('.pdb-tab').forEach(b => {
+            b.style.color = '#888';
+            b.style.borderBottom = 'none';
+        });
+        const activeBtn = tab === 'all' ? document.getElementById('pdbTabAll') : document.getElementById('pdbTabFav');
+        activeBtn.style.color = '#f97316';
+        activeBtn.style.borderBottom = '2px solid #f97316';
+        loadPhotoDB();
+    }
+
+    async function loadPhotoDB(loadMore = false) {
+        const sb = window.gongsiClient;
+        if (!sb || !window._pdbCurrentUserId) return;
+
+        const grid = document.getElementById('photodbGrid');
+        if (!loadMore) {
+            window._pdbPage = 0;
+            grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">불러오는 중...</div>';
+        }
+
+        const search = document.getElementById('photodbSearchInput')?.value.trim() || '';
+        const folder = document.getElementById('photodbFilterFolder')?.value || 'all';
+        const from = window._pdbPage * window._pdbPageSize;
+        const to = from + window._pdbPageSize - 1;
+
+        let query = sb.from('user_photos')
+            .select('*')
+            .eq('user_id', window._pdbCurrentUserId)
+            .order('created_at', { ascending: false })
+            .range(from, to);
+
+        if (window._pdbTab === 'fav') query = query.eq('is_favorite', true);
+        if (folder !== 'all') query = query.eq('folder_name', folder);
+        if (search) query = query.ilike('description', `%${search}%`);
+
+        const { data: photos, error } = await query;
+
+        if (error) {
+            grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px; color:red; font-size:13px;">
+                ⚠️ 불러오기 실패: ${error.message}<br><br>
+                <small>Supabase 대시보드에서 <b>user_photos</b> 테이블과 <b>user-photos</b> Storage 버킷을 먼저 생성해 주세요.</small>
+            </div>`;
+            return;
+        }
+
+        if (!loadMore) {
+            if (!photos || photos.length === 0) {
+                grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:50px 0; color:#bbb; font-size:14px;">
+                    ${window._pdbTab === 'fav' ? '즐겨찾기한 사진이 없습니다.' : '저장된 사진이 없습니다.'}
+                </div>`;
+                document.getElementById('pdbLoadMoreBtn').style.display = 'none';
+                return;
+            }
+            grid.innerHTML = '';
+        }
+
+        photos.forEach(p => {
+            const card = document.createElement('div');
+            card.style.cssText = 'border:1px solid #e5e7eb; border-radius:10px; overflow:hidden; cursor:pointer; transition:all 0.15s; position:relative; background:#fff;';
+            card.title = '클릭하면 본문에 삽입됩니다';
+            card.onclick = () => usePhotoInArticle(p.url, p.id);
+            card.onmouseover = () => { card.style.boxShadow = '0 6px 20px rgba(0,0,0,0.15)'; card.style.transform = 'translateY(-2px)'; };
+            card.onmouseout  = () => { card.style.boxShadow = 'none'; card.style.transform = 'none'; };
+
+            const favColor = p.is_favorite ? '#fbbf24' : '#fff';
+            const favIcon  = p.is_favorite ? '⭐' : '☆';
+            const dateStr  = new Date(p.created_at).toLocaleDateString('ko-KR');
+            const label    = p.description || p.filename || '제목 없음';
+
+            card.innerHTML = `
+                <div style="position:relative; width:100%; aspect-ratio:4/3; background:#f1f5f9 url('${p.url}') center/cover no-repeat;">
+                    <div class="pdb-hover-bar" style="position:absolute; inset:0; background:rgba(0,0,0,0); display:flex; align-items:flex-start; justify-content:flex-end; padding:6px; gap:5px; opacity:0; transition:opacity 0.18s;">
+                        <button onclick="event.stopPropagation(); togglePdbFavorite('${p.id}', this)"
+                            style="background:rgba(0,0,0,0.55); border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:14px; color:${favColor}; line-height:1;" title="즐겨찾기">
+                            ${favIcon}
+                        </button>
+                        <button onclick="event.stopPropagation(); deletePdbPhoto('${p.id}', this.closest('[data-pdbid]'))"
+                            style="background:rgba(220,38,38,0.85); border:none; border-radius:50%; width:28px; height:28px; cursor:pointer; font-size:13px; color:#fff; line-height:1;" title="삭제">
+                            🗑
+                        </button>
+                    </div>
+                </div>
+                <div style="padding:5px 8px 6px; font-size:11px; color:#555; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${label}">
+                    ${label} <span style="color:#ccc;">· ${dateStr}</span>
+                </div>`;
+
+            card.dataset.pdbid = p.id;
+            card.addEventListener('mouseenter', () => { const b = card.querySelector('.pdb-hover-bar'); if(b) b.style.opacity='1'; });
+            card.addEventListener('mouseleave', () => { const b = card.querySelector('.pdb-hover-bar'); if(b) b.style.opacity='0'; });
+            grid.appendChild(card);
+        });
+
+        // 더보기 버튼 표시 여부
+        document.getElementById('pdbLoadMoreBtn').style.display = photos.length === window._pdbPageSize ? 'inline-block' : 'none';
+        if (photos.length === window._pdbPageSize) window._pdbPage++;
+    }
+
+    // ─── 이미지 압축 유틸리티 ───
+    async function compressImage(file, maxWidth = 1600, quality = 0.8) {
+        return new Promise((resolve) => {
+            if (!file.type.startsWith('image/')) return resolve(file);
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = () => {
+                let width = img.width;
+                let height = img.height;
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                URL.revokeObjectURL(img.src);
+                canvas.toBlob((blob) => {
+                    if (blob && blob.size < file.size) {
+                        resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", { type: 'image/webp' }));
+                    } else {
+                        resolve(file); // 원본이 더 작으면 원본 반환
+                    }
+                }, 'image/webp', quality);
+            };
+            img.onerror = () => {
+                URL.revokeObjectURL(img.src);
+                resolve(file);
+            };
+        });
+    }
+
+    // ─── 사진 업로드 ───
+    async function uploadPhotosToDb(files) {
+        const sb = window.gongsiClient;
+        if (!sb || !window._pdbCurrentUserId) return alert('로그인이 필요합니다.');
+        if (!files || files.length === 0) return;
+
+        const statusEl = document.getElementById('photodbUploadStatus');
+        statusEl.textContent = `0 / ${files.length} 압축 및 업로드 대기중...`;
+
+        let successCount = 0;
+        let originalTotalSize = 0;
+        let compressedTotalSize = 0;
+
+        for (const rawFile of files) {
+            originalTotalSize += rawFile.size;
+            statusEl.textContent = `처리중... (${successCount + 1}/${files.length})`;
+
+            // 1. 이미지 압축 (WebP, 가로 최대 1600px, 품질 80%)
+            const file = await compressImage(rawFile, 1600, 0.8);
+            compressedTotalSize += file.size;
+
+            const ext = file.name.split('.').pop();
+            const path = `${window._pdbCurrentUserId}/${Date.now()}_${Math.random().toString(36).substring(2,8)}.${ext}`;
+
+            // Storage 업로드
+            const { error: storageErr } = await sb.storage.from('user-photos').upload(path, file, { contentType: file.type });
+            if (storageErr) {
+                console.error('Storage upload error:', storageErr);
+                statusEl.textContent = `⚠️ 업로드 실패: ${storageErr.message}`;
+                continue;
+            }
+
+            // Public URL 생성 (Signed URL: 1년 만료)
+            const { data: urlData } = await sb.storage.from('user-photos').createSignedUrl(path, 60 * 60 * 24 * 365);
+            const url = urlData?.signedUrl || '';
+
+            const folder_name = document.getElementById('photodbUploadFolder')?.value || '기본 폴더';
+
+            // DB에 저장
+            await sb.from('user_photos').insert({
+                user_id: window._pdbCurrentUserId,
+                url,
+                filename: file.name,
+                file_size: file.size,
+                folder_name: folder_name,
+                description: file.name.replace(/\.[^/.]+$/, ''), // 확장자 제거
+            });
+
+            successCount++;
+            statusEl.textContent = `${successCount} / ${files.length} 완료`;
+        }
+
+        statusEl.textContent = `✅ ${successCount}개 업로드 완료!`;
+        document.getElementById('photodbUploadInput').value = '';
+        setTimeout(() => { statusEl.textContent = ''; }, 3000);
+
+        // 목록 새로고침
+        window._pdbPage = 0;
+        await loadPhotoDB();
+    }
+
+    // ─── 즐겨찾기 토글 ───
+    async function togglePdbFavorite(photoId, btn) {
+        const sb = window.gongsiClient;
+        if (!sb) return;
+        const isFav = btn.textContent.trim() === '⭐';
+        await sb.from('user_photos').update({ is_favorite: !isFav }).eq('id', photoId);
+        // 새 UI: 진한 별 (⭐) vs 빈 별 (☆)
+        btn.textContent = isFav ? '☆' : '⭐';
+        btn.style.color  = isFav ? '#fff' : '#fbbf24';
+        // 현재 즐겨찾기 탭이면 삭제
+        if (window._pdbTab === 'fav') { window._pdbPage = 0; await loadPhotoDB(); }
+    }
+
+    // ─── 삭제 ───
+    async function deletePdbPhoto(photoId, cardEl) {
+        if (!confirm('이 사진을 포토DB에서 삭제할까요?')) return;
+        const sb = window.gongsiClient;
+        await sb.from('user_photos').delete().eq('id', photoId);
+        cardEl?.remove();
+    }
+
+    function forceInsertPhoto(url, photoId) {
+        var imgId = 'photo_' + photoId;
+        var combinedHtml = '<p><br></p><figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure><p><br></p>';
+        if (typeof $ !== 'undefined' && $('#summernote').length) {
+            try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) { }
+        }
+    }
+
+    // ─── 사용하기 (기사 본문에 삽입 or 매물 이미지에 추가) ───
+    async function usePhotoInArticle(url, photoId) {
+        const sb = window.gongsiClient;
+        if (sb && photoId) {
+            // Supabase v2 rpc returns {data, error}, not a promise that rejects
+            sb.rpc('increment_photo_used', { pid: photoId }).then(res => {
+                if (res && res.error) {
+                    sb.from('user_photos').select('used_count').eq('id', photoId).single().then(({ data }) => {
+                        if (data) sb.from('user_photos').update({ used_count: (data.used_count || 0) + 1 }).eq('id', photoId);
+                    });
+                }
+            });
+        }
+
+        if (window._pdbMode === 'property') {
+            if (typeof window.addPdbImageToProperty === 'function') {
+                window.addPdbImageToProperty(url);
+                closePhotodbModal();
+            }
+        } else {
+            try {
+                if (typeof window.addPhotoFromDBToLibrary === 'function') {
+                    window.addPhotoFromDBToLibrary(url);
+                } else {
+                    forceInsertPhoto(url, photoId);
+                }
+                closePhotodbModal(); // 사진 삽입 후 모달 자동 닫기
+            } catch (err) {
+                console.error("본문 삽입 중 오류:", err);
+                forceInsertPhoto(url, photoId); // 2차 공격적인 강제 폴백
+            }
+            closePhotodbModal();
+        }
+    }
+
+    // ─── 폴더 이동 (정리) ───
+    async function movePdbPhotoFolder(photoId) {
+        const newFolder = prompt("이동할 폴더명을 써주세요 (새로 직접 입력하거나 기존 폴더명 입력):");
+        if (!newFolder || !newFolder.trim()) return;
+        const targetFolder = newFolder.trim();
+
+        const sb = window.gongsiClient;
+        if (!sb) return;
+
+        const { error } = await sb.from('user_photos').update({ folder_name: targetFolder }).eq('id', photoId);
+        if (error) return alert("이동 오류: " + error.message);
+        
+        // 폴더 목록 갱신
+        let savedFolders = JSON.parse(localStorage.getItem('pdb_folders_' + window._pdbCurrentUserId) || '[]');
+        if (!savedFolders.includes(targetFolder) && targetFolder !== '기본 폴더') {
+            savedFolders.push(targetFolder);
+            localStorage.setItem('pdb_folders_' + window._pdbCurrentUserId, JSON.stringify(savedFolders));
+        }
+        await loadPhotodbFolders();
+        loadPhotoDB();
+    }
+
+    
+</script>

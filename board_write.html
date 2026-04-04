@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 작성 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-ko-KR.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f5f7;
+            --container-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+        }
+        
+        body {
+            font-family: 'Pretendard Variable', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 40px;
+            color: var(--text-main);
+        }
+
+        .write-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 40px;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #111; }
+        
+        .form-row { margin-bottom: 24px; display: flex; gap: 20px; }
+        .form-group { flex: 1; }
+        .form-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #374151; }
+        
+        .form-control {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 15px; box-sizing: border-box; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .link-inputs {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px;
+            display: none; /* 스킨에 따라 On/Off */
+        }
+        .link-inputs.active { display: block; }
+        .link-desc { margin: 0 0 15px 0; font-size: 13px; color: #64748b; font-weight: 600; display:flex; align-items:center; gap:6px;}
+        .link-desc svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;}
+
+        .btn-wrap { display: flex; justify-content: flex-end; gap: 10px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px;}
+        .btn { padding: 12px 24px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-cancel { background: #fff; border: 1px solid #ccc; color: #555; }
+        .btn-cancel:hover { background: #f9f9f9; }
+        .btn-submit { background: var(--text-main); color: #fff; }
+        .btn-submit:hover { background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        
+        /* 썸네일 업로드 영역 */
+        .thumb-upload {
+            width: 200px; height: 130px; border: 2px dashed #cbd5e1; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #94a3b8; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            background: #f8fafc url('') center/cover no-repeat;
+        }
+        .thumb-upload:hover { border-color: var(--primary); color: var(--primary); background-color: #f0fdf4;}
+        
+    </style>
+</head>
+<body>
+
+<div class="write-container">
+    <div class="header">
+        <h1>통합 게시물 작성</h1>
+        <span style="color:var(--text-muted); font-size:14px; font-weight:600;">작성자: <span id="currentAuthor">관리자</span></span>
+    </div>
+
+    <!-- 1. 기본 정보 폼 -->
+    <div class="form-row">
+        <div class="form-group" style="flex: 0.3;">
+            <label class="form-label">게시판 선택</label>
+            <select class="form-control" id="boardSelect" onchange="handleSkinChange()">
+                <option value="" disabled selected>게시판을 선택하세요</option>
+                <option value="bbs_drone" data-skin="video_album">드론영상 (자료실)</option>
+                <option value="bbs_form" data-skin="file_album">계약서/양식 (자료실)</option>
+                <option value="bbs_free" data-skin="default_bbs">자유게시판 (일반형)</option>
+            </select>
+        </div>
+        <div class="form-group" style="flex: 0.2;">
+            <label class="form-label">카테고리</label>
+            <select class="form-control" id="categorySelect">
+                <option value="전체">전체</option>
+                <option value="아파트">아파트</option>
+                <option value="빌딩">빌딩</option>
+            </select>
+        </div>
+        <div class="form-group" style="flex: 0.5;">
+            <label class="form-label">게시글 제목</label>
+            <input type="text" class="form-control" id="postTitle" placeholder="제목을 입력하세요">
+        </div>
+    </div>
+
+    <!-- 2. 확장 링크 폼 (유튜브/드라이브 전용) -->
+    <div class="link-inputs" id="mediaLinkSection">
+        <p class="link-desc">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            영상 스킨(video_album) 및 자료실 스킨(file_album) 전용 간편 등록 필드입니다. HTML 복붙 없이 주소만 넣으세요.
+        </p>
+        
+        <div class="form-row" style="gap: 20px;">
+            <!-- 유튜브 링크 (video_album 일 때만 노출) -->
+            <div class="form-group" id="ytbField" style="display:none; flex:1;">
+                <label class="form-label" style="color:#dc2626;">YouTube 영상 링크</label>
+                <input type="text" class="form-control" id="ytbUrl" placeholder="예: https://youtu.be/...">
+            </div>
+            
+            <!-- 드라이브 링크 -->
+            <div class="form-group" style="flex:1;">
+                <label class="form-label" style="color:#2563eb;">구글 드라이브 다운로드 링크</label>
+                <input type="text" class="form-control" id="driveUrl" placeholder="예: https://drive.google.com/file/d/...">
+            </div>
+        </div>
+        
+        <!-- 썸네일 업로드 -->
+        <div class="form-group">
+            <label class="form-label">목록 노출용 대표 썸네일 (필수)</label>
+            <div class="thumb-upload" id="thumbBox" onclick="document.getElementById('thumbInput').click()">
+                <div style="font-size:24px; margin-bottom:8px;">📸</div>
+                이미지 클릭하여 첨부
+            </div>
+            <input type="file" id="thumbInput" style="display:none;" accept="image/*" onchange="previewThumb(this)">
+        </div>
+    </div>
+
+    <!-- 3. 본문 에디터 -->
+    <div class="form-group">
+        <label class="form-label">상세 본문 (선택)</label>
+        <textarea id="summernote"></textarea>
+    </div>
+
+    <div class="btn-wrap">
+        <button class="btn btn-cancel" onclick="history.back()">목록으로 취소</button>
+        <button class="btn btn-submit" onclick="submitPost()">🚀 게시글 최종 등록</button>
+    </div>
+</div>
+
+<script>
+    // Summernote 초기화
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            height: 400,
+            lang: 'ko-KR',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture']]
+            ],
+            placeholder: '게시물 본문을 자유롭게 작성하세요.'
+        });
+    });
+
+    // 스킨 변경에 따른 UI 동적 변화 로직
+    function handleSkinChange() {
+        const select = document.getElementById('boardSelect');
+        const selectedOption = select.options[select.selectedIndex];
+        const skin = selectedOption.getAttribute('data-skin');
+        
+        const mediaSection = document.getElementById('mediaLinkSection');
+        const ytbField = document.getElementById('ytbField');
+        
+        if(skin === 'video_album') {
+            // 비디오 앨범은 유튜브 + 드라이브 모두 켬
+            mediaSection.classList.add('active');
+            ytbField.style.display = 'block';
+        } else if (skin === 'file_album') {
+            // 파일 자료실은 유튜브 끄고 드라이브+썸네일만 켬
+            mediaSection.classList.add('active');
+            ytbField.style.display = 'none';
+        } else {
+            // 일반 게시판은 다 끄고 에디터만 씀
+            mediaSection.classList.remove('active');
+        }
+    }
+
+    // 썸네일 미리보기
+    function previewThumb(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const box = document.getElementById('thumbBox');
+                box.style.backgroundImage = `url(${e.target.result})`;
+                box.innerHTML = ''; 
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 등록 액션 (Supabase 연동 완료)
+    async function submitPost() {
+        const boardId = document.getElementById('boardSelect').value;
+        const category = document.getElementById('categorySelect').value;
+        const title = document.getElementById('postTitle').value;
+        const content = $('#summernote').summernote('code');
+        const ytbUrl = document.getElementById('ytbUrl')?.value || null;
+        const driveUrl = document.getElementById('driveUrl')?.value || null;
+        
+        if(!boardId) return alert('게시판을 선택해주세요.');
+        if(!title) return alert('제목을 입력해주세요.');
+
+        // 로그인된 유저 정보 가져오기 (현재는 Supabase auth 세션 기반, 없어도 admin으로 처리)
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return alert('DB 클라이언트가 초기화되지 않았습니다.');
+
+        let currentUserId = '00000000-0000-0000-0000-000000000000'; // Fallback uuid
+        let currentUserName = '관리자';
+
+        const { data: { user } } = await sb.auth.getUser();
+        if(user) {
+            currentUserId = user.id;
+            const { data: profile } = await sb.from('users_profile').select('name').eq('id', user.id).single();
+            if(profile && profile.name) {
+                currentUserName = profile.name;
+            }
+        }
+
+        const insertData = {
+            board_id: boardId,
+            author_id: currentUserId,
+            author_name: currentUserName,
+            category: category,
+            title: title,
+            content: content === '<p><br></p>' ? null : content,
+            youtube_url: ytbUrl,
+            drive_url: driveUrl,
+            // 썸네일 업로드가 있다면 여기에 URL 할당을 하지만, 현재는 파일 업로드 로직 간소화 
+            // (실제 프로젝트에서는 스토리지 업로드 후 url을 반환받아 기입합니다)
+            thumbnail_url: null 
+        };
+
+        const { error } = await sb.from('board_posts').insert([insertData]);
+
+        if (error) {
+            console.error(error);
+            alert('게시물 등록 중 오류가 발생했습니다: ' + error.message);
+        } else {
+            alert('성공적으로 등록되었습니다!');
+            window.location.href = `board.html?id=${boardId}`;
+        }
+    }
+</script>
+
+</body>
+</html>

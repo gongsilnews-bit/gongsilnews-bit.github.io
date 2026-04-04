@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시글 보기 - 공실뉴스</title>
+    <!-- 폰트/공통 스타일 -->
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Supabase / JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
+    
+    <style>
+        .board-detail-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            font-family: 'Pretendard Variable', sans-serif;
+            min-height: 70vh;
+        }
+
+        .board-header { padding-bottom: 24px; border-bottom: 2px solid #111; margin-bottom: 30px; }
+        .b-category { font-size: 14px; font-weight: 700; color: #2563eb; margin-bottom: 12px; }
+        .b-title { font-size: 32px; font-weight: 800; color: #111; margin-bottom: 16px; line-height: 1.4; }
+        .b-meta { display: flex; align-items: center; justify-content: space-between; font-size: 14px; color: #666; }
+        .b-meta-left { display: flex; align-items: center; gap: 12px; }
+        .b-author { font-weight: 700; color: #333; }
+        
+        .b-content-area { font-size: 17px; line-height: 1.7; color: #333; margin-bottom: 50px; }
+        .b-content-area img { max-width: 100%; height: auto; border-radius: 8px; margin: 15px 0; }
+        
+        /* 비디오 영역 */
+        .b-video-box { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; background: #000; border-radius: 8px; margin-bottom: 30px; }
+        .b-video-box iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+
+        /* 다운로드 버튼 팩 */
+        .b-download-box { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .b-dl-info .dl-title { font-size: 15px; font-weight: 700; color: #1e293b; margin-bottom: 4px; }
+        .b-dl-info .dl-desc { font-size: 13px; color: #64748b; }
+        .btn-download { display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; font-size: 15px; font-weight: 700; border-radius: 6px; transition: background 0.2s; }
+        .btn-download:hover { background: #1d4ed8; }
+
+        /* 이전목록 버튼 */
+        .b-nav { text-align: center; margin-top: 40px; border-top: 1px solid #eee; padding-top: 30px; }
+        .btn-list { display: inline-block; padding: 10px 40px; font-size: 15px; font-weight: 600; color: #555; background: #fff; border: 1px solid #ccc; border-radius: 30px; text-decoration: none; transition: 0.2s; }
+        .btn-list:hover { background: #f9fafb; border-color: #aaa; color: #111; }
+
+        /* 댓글 영역 (news_read 재활용 CSS) */
+        .comments-section { border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; background: #fff; margin-top: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+        .cmt-item { border-top: 1px solid #f3f4f6; padding: 16px 0; }
+        .cmt-item:first-child { border-top: none; }
+        .cmt-header { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px;}
+        .cmt-author { font-weight: 700; color: #374151; }
+        .cmt-date { color: #9ca3af; }
+        .cmt-body { font-size: 15px; color: #4b5563; line-height: 1.5; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    
+    <!-- GNB (뉴스메인과 동일) -->
+    <header class="header">
+        <div class="header-inner" style="max-width:1200px; margin:0 auto; padding:15px; display:flex; gap:30px; align-items:center;">
+            <a href="index.html" style="font-size:24px; font-weight:900; color:#508bf5; text-decoration:none;">공실뉴스</a>
+            <div style="display:flex; gap:20px; font-weight:700;">
+                <a href="board.html?id=bbs_drone" style="text-decoration:none; color:#333;">드론영상</a>
+                <a href="board.html?id=bbs_form" style="text-decoration:none; color:#333;">자료실</a>
+                <a href="board.html?id=bbs_free" style="text-decoration:none; color:#333;">자유게시판</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="board-detail-container">
+        <!-- 1. 헤더 (제목/작성자/날짜) -->
+        <div class="board-header">
+            <div class="b-category" id="vCategory">분류</div>
+            <div class="b-title" id="vTitle">게시물 제목을 불러오는 중입니다...</div>
+            <div class="b-meta">
+                <div class="b-meta-left">
+                    <span class="b-author" id="vAuthor">작성자</span>
+                    <span id="vDate">날짜</span>
+                </div>
+                <div>조회수 <span id="vViews">0</span></div>
+            </div>
+        </div>
+        
+        <!-- 2. 확장 기능 (비디오 & 파일 다운로드) -->
+        <div id="vVideoArea" style="display:none;"></div>
+        
+        <div class="b-download-box" id="vDownloadArea" style="display:none;">
+            <div class="b-dl-info">
+                <div class="dl-title" id="vDlTitle">첨부파일 다운로드</div>
+                <div class="dl-desc">구글 드라이브 링크로 연결됩니다. (포인트 차감 시 이곳에서 처리)</div>
+            </div>
+            <a href="#" target="_blank" class="btn-download" id="vDriveBtn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                자료 다운로드 받기
+            </a>
+        </div>
+
+        <!-- 3. 본문 내용 -->
+        <div class="b-content-area" id="vContent">
+            내용을 불러오고 있습니다...
+        </div>
+
+        <!-- 4. 댓글 영역 (뉴스 댓글 시스템 이식) -->
+        <div class="comments-section">
+            <div style="font-size:20px; font-weight:800; margin-bottom:15px;" id="portalCommentCount">0개의 댓글</div>
+            
+            <div style="border:1px solid #e5e7eb; border-radius:8px; padding:15px; margin-bottom:24px;">
+                <div style="font-weight:bold; margin-bottom:8px; color:#333; font-size:14px;" id="commentUserName">로그인이 필요합니다</div>
+                <textarea id="commentInput" placeholder="게시물에 대한 의견을 남겨보세요." style="width:100%; height:60px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+                    <span style="font-size:12px; color:#9ca3af;"><span id="commentLength">0</span> / 400</span>
+                    <button style="background:#111; color:#fff; border:none; border-radius:6px; padding:8px 24px; font-weight:bold; cursor:pointer; font-size:14px;" onclick="submitBoardComment()">댓글 등록</button>
+                </div>
+            </div>
+            
+            <div id="portalCommentList">
+                <div style="text-align:center; padding:20px; color:#999; font-size:14px;">등록된 댓글이 없습니다.</div>
+            </div>
+        </div>
+
+        <!-- 하단 목록으로 -->
+        <div class="b-nav">
+            <a href="javascript:history.back()" class="btn-list">목록으로 돌아가기</a>
+        </div>
+    </div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const postId = urlParams.get('post_id');
+        const fallbackBoardId = urlParams.get('board_id') || 'bbs_free';
+        let currentPost = null;
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (!postId) {
+                // 파라미터가 없으면 가상 UI 데모 진행
+                loadMockData();
+                return;
+            }
+            await fetchPostData();
+            await loadBoardComments();
+        });
+
+        async function fetchPostData() {
+            const sb = window.gongsiClient || window.supabaseClient;
+            if(!sb) return;
+
+            const { data, error } = await sb.from('board_posts').select('*').eq('id', postId).single();
+            if (error || !data) {
+                alert('게시글을 불러올 수 없거나 삭제되었습니다.');
+                history.back();
+                return;
+            }
+            
+            currentPost = data;
+
+            // 조회수 1 증가 (조회 꼼수 방지는 나중에 보완)
+            await sb.from('board_posts').update({ view_count: (data.view_count || 0) + 1 }).eq('id', postId);
+
+            renderPostDetails(data);
+        }
+
+        // URL 파라미터 없을 시 보여줄 가짜 데이터
+        function loadMockData() {
+            renderPostDetails({
+                category: '아파트',
+                title: '[가상 데이터] 강남역 대로변 빌딩 조망권 영상',
+                author_name: '관리자',
+                created_at: new Date().toISOString(),
+                view_count: 55,
+                content: '<p>이 화면은 DB가 아직 연동되지 않았을 때 보여지는 가상 UI 뷰입니다.<br>아래 유튜브 영상과 다운로드 박스 렌더링을 확인해보세요.</p>',
+                youtube_url: 'https://youtube.com/embed/dQw4w9WgXcQ', 
+                drive_url: 'https://drive.google.com/...'
+            });
+        }
+
+        function renderPostDetails(info) {
+            document.getElementById('vCategory').innerText = `[${info.category || '일반'}]`;
+            document.getElementById('vTitle').innerText = info.title;
+            document.getElementById('vAuthor').innerText = info.author_name || '익명';
+            document.getElementById('vViews').innerText = (info.view_count || 0).toLocaleString();
+            
+            const dateStr = new Date(info.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit' });
+            document.getElementById('vDate').innerText = dateStr;
+
+            // 유튜브 URL 파싱
+            if (info.youtube_url) {
+                const vidArea = document.getElementById('vVideoArea');
+                let embedUrl = info.youtube_url;
+                // 링크 형식 변경
+                if(embedUrl.includes('youtu.be/')) embedUrl = embedUrl.replace('youtu.be/', 'youtube.com/embed/');
+                if(embedUrl.includes('watch?v=')) embedUrl = embedUrl.replace('watch?v=', 'embed/');
+                
+                vidArea.style.display = 'block';
+                vidArea.innerHTML = `<div class="b-video-box"><iframe src="${embedUrl}" allowfullscreen></iframe></div>`;
+            }
+
+            // 구글드라이브 URL 파싱
+            if (info.drive_url) {
+                document.getElementById('vDownloadArea').style.display = 'flex';
+                document.getElementById('vDriveBtn').href = info.drive_url;
+            }
+
+            document.getElementById('vContent').innerHTML = info.content || '';
+        }
+
+        /* --- 댓글 시스템 이식부 --- */
+        async function loadBoardComments() {
+            const sb = window.gongsiClient || window.supabaseClient;
+            if(!sb || !postId) return;
+
+            // 기존 댓글 테이블(comments) 활용. 나중에 target_type 이 추가된다는 가정하에 진행
+            // 임시로 article_id 자리에 post_id 를 넣어 호환 테스트 (UUID 타입 불일치 가능성 주의)
+            // 따라서 board_comments 처럼 테이블을 따로 하거나, target_id=문자열 구조로 변경 필요.
+            // (여기선 UI 데모를 위해 가상 리스트 호출)
+            document.getElementById('portalCommentCount').innerText = '0개의 댓글';
+        }
+
+        function submitBoardComment() {
+            const val = document.getElementById('commentInput').value;
+            if(!val) return alert('댓글 내용을 입력하세요.');
+            
+            // 데모 액션
+            document.getElementById('portalCommentList').innerHTML = `
+                <div class="cmt-item">
+                    <div class="cmt-header">
+                        <span class="cmt-author">나의 아이디</span>
+                        <span class="cmt-date">방금 전</span>
+                    </div>
+                    <div class="cmt-body">${val}</div>
+                </div>
+            ` + document.getElementById('portalCommentList').innerHTML.replace(/등록된 댓글이 없습니다.*/, '');
+            
+            document.getElementById('commentInput').value = '';
+            document.getElementById('portalCommentCount').innerText = '1개의 댓글';
+            alert('댓글이 성공적으로 등록되었습니다. (UI 데모)');
+        }
+
+        // 로그인 유저 표시
+        window.addEventListener('load', async () => {
+            const sb = window.gongsiClient || window.supabaseClient;
+            if(!sb) return;
+            const { data: { user } } = await sb.auth.getUser();
+            if(user) {
+                const { data: ud } = await sb.from('users_profile').select('name').eq('id', user.id).single();
+                document.getElementById('commentUserName').innerText = (ud?.name || user.email.split('@')[0]) + '님';
+            }
+        });
+    </script>
+</body>
+</html>

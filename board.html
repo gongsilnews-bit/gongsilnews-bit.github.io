@@ -420,7 +420,14 @@
             </div>
             
             <!-- Login/User -->
-            <svg id="headerLoginBtn" style="cursor: pointer;" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 4px; cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span style="font-size: 13px; font-weight: 700; color: #111; line-height: 1;">회원가입</span>
+                </div>
+                <span style="color: #ccc; font-size: 11px;">|</span>
+                <span id="headerLoginOnlyBtn" style="font-size: 13px; font-weight: 700; color: #111; cursor: pointer; line-height: 1;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')">로그인</span>
+            </div>
             
             <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
                 <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
@@ -884,316 +891,206 @@
     const ITEMS_PER_PAGE = 10;
     let currentPage = 1;
     let totalItems = 0;
-    let allNewsDataCache = []; // 캐시 보관용
+    let currentBoardId = 'bbs_drone'; // 기본 게시판
+    let currentSkin = 'video_album'; // 기본 스킨
     
     document.addEventListener('DOMContentLoaded', async () => {
-        // 메인 GNB의 '전체뉴스' 링크 활성화 스타일 (선택사항)
-        const menuLinks = document.querySelectorAll('.gnb-new a');
-        menuLinks.forEach(a => {
-            if(a.innerText === '무효') {
-                a.style.color = '#508bf5';
-                a.style.fontWeight = '800';
-            }
-        });
-        
-        await loadAllNewsData();
+        // 탑 네비게이션 활성화
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('id')) currentBoardId = urlParams.get('id');
+
+        await initBoardSystem();
         await loadPopularSidebarNews();
-        await loadRecommendSidebarProps();
     });
-    
-    // 1. 전체뉴스 리스트 로드 (페이지네이션)
-    async function loadAllNewsData() {
+
+    async function initBoardSystem() {
         const sb = window.gongsiClient || window.supabaseClient;
-        if(!sb) return;
+        if(!sb) return showError('DB 연결이 셋팅되지 않았습니다.');
         
-        // Count query
-        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published');
-        if(!countErr) totalItems = count || 0;
+        // 1. 게시판 메타 정보 불러오기
+        const { data: boardData, error: boardErr } = await sb.from('boards').select('*').eq('board_id', currentBoardId).single();
         
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-        document.getElementById('totalPagesDisplay').innerText = totalPages;
+        // DB 테이블 미생성을 대비한 폴백 데이터(Fallback)
+        let boardMeta = boardData;
+        if (boardErr || !boardData) {
+            console.warn("DB 'boards' 테이블 조회 실패. UI 설계를 위해 가상 데이터를 렌더링합니다.");
+            boardMeta = {
+                board_name: currentBoardId === 'bbs_free' ? '자유게시판' : (currentBoardId === 'bbs_form' ? '계약서/양식' : '드론영상'),
+                subtitle: currentBoardId === 'bbs_free' ? '커뮤니티' : '자료실',
+                skin_type: currentBoardId === 'bbs_free' ? 'default_bbs' : (currentBoardId === 'bbs_form' ? 'file_album' : 'video_album'),
+                categories: '전체,드론,아파트,상가'
+            };
+        }
+
+        currentSkin = boardMeta.skin_type;
         
-        fetchPageData();
+        // UI 타이틀 및 탭 변경
+        document.querySelector('.board-title').innerHTML = `${boardMeta.board_name} <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(${boardMeta.subtitle || ''})</span>`;
+        
+        if (boardMeta.categories) {
+            const tabsContainer = document.querySelector('.board-tabs');
+            tabsContainer.innerHTML = boardMeta.categories.split(',').map((cat, idx) => 
+                `<div class="b-tab ${idx===0?'active':''}">${cat.trim()}</div>`
+            ).join('');
+        }
+
+        // 2. 게시글 목록 불러오기
+        await loadBoardPosts();
     }
     
-    async function fetchPageData() {
+    async function loadBoardPosts() {
         const sb = window.gongsiClient || window.supabaseClient;
-        if(!sb) return;
+        const container = document.querySelector('.news-list-area');
         
-        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
-        const endIdx = startIdx + ITEMS_PER_PAGE - 1;
+        // 기존 뼈대 초기화 (페이지네이션은 남김)
+        container.innerHTML = '<div style="padding:40px; text-align:center;">게시글을 불러오고 있습니다...</div>';
+
+        const { data: postsData, error: postsErr } = await sb.from('board_posts')
+            .select('*')
+            .eq('board_id', currentBoardId)
+            .order('created_at', { ascending: false });
+
+        let posts = postsData || [];
         
-        const container = document.getElementById('allNewsContainer');
-        container.innerHTML = '<div style="padding: 20px;text-align:center;color:#666;">로딩중...</div>';
-        
-        const { data, error } = await sb.from('articles')
-            .select('*, article_media!fk_rep_media(url)')
-            .eq('status', 'published')
-            .order('created_at', { ascending: false })
-            .range(startIdx, endIdx);
-            
-        if(error || !data) {
-            container.innerHTML = '<div style="padding: 20px; text-align:center;">데이터를 불러올 수 없습니다.</div>';
-            return;
+        // DB 미구축 시 폴백(임시) 리스트 생성
+        if (postsErr || posts.length === 0) {
+            if (currentSkin === 'video_album') {
+                posts = [
+                    { id: 1, title: '[아파트] 서초동 재건축 단지 4K 원본', view_count: 142, author_name: '홍길동(매니저)', category: '아파트', youtube_url: 'https://youtube.com', created_at: new Date().toISOString() },
+                    { id: 2, title: '[빌딩] 강남역 사거리 대로변 빌딩 조망권', view_count: 55, author_name: '김담당', category: '빌딩', youtube_url: 'https://youtube.com', created_at: new Date().toISOString() }
+                ];
+            } else if (currentSkin === 'file_album') {
+                posts = [
+                    { id: 1, title: '[명함] 부동산 양면 명함 PSD 파일모음', view_count: 45, author_name: '디자인팀', drive_url: 'http', created_at: new Date().toISOString() },
+                    { id: 2, title: '[계약서] 표준 임대차 계약서(양식)', view_count: 231, author_name: '법무팀', drive_url: 'http', created_at: new Date().toISOString() }
+                ];
+            } else {
+                posts = [
+                    { id: 1, title: '강남구 일대 공실현황 조사하실 분 구합니다.', view_count: 12, author_name: '공인1', created_at: new Date().toISOString() },
+                    { id: 2, title: '요즘 손님이 너무 없네요.. 다들 어떠신가요?', view_count: 35, author_name: '회원A', created_at: new Date().toISOString() }
+                ];
+            }
+            container.innerHTML = '<div style="background:#fff3cd; color:#856404; padding:15px; border-radius:6px; margin-bottom:20px; font-weight:bold;">안내: 아직 DB가 연동되지 않아 임시(Mock) 데이터를 보여줍니다.</div>';
+        } else {
+            container.innerHTML = '';
         }
+
+        // 스킨에 따른 렌더링 분기
+        if (currentSkin === 'video_album') renderVideoAlbum(container, posts);
+        else if (currentSkin === 'file_album') renderFileAlbum(container, posts);
+        else renderDefaultBbs(container, posts); // 일반 리스트형
         
-        container.innerHTML = '';
-        data.forEach(news => {
-            const dateStr = new Date(news.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
-            
-            const card = document.createElement('div');
-            card.className = 'an-card';
-            const detailUrl = `news_read.html?article_id=${news.id}`; 
-            card.onclick = () => window.location.href = detailUrl;
-            
-            let extractUrl = (news.article_media && news.article_media.url) ? news.article_media.url : news.image_url;
-            let isVideo = false;
-            
-            if (extractUrl && extractUrl.includes('youtube.com/embed/')) {
-                isVideo = true;
-                const parts = extractUrl.split('youtube.com/embed/');
-                if (parts.length > 1) {
-                    const vId = parts[1].split('?')[0].split('"')[0];
-                    extractUrl = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
-                }
-            }
+        // 페이지네이션 덧붙이기
+        container.innerHTML += `
+            <div class="pagination">
+                <button class="page-btn" disabled>&lt; 이전</button>
+                <span class="page-info">1 / 1</span>
+                <button class="page-btn" disabled>다음 &gt;</button>
+            </div>
+        `;
+    }
 
-            if(!extractUrl && news.content) {
-                const ytIframeMatch = news.content.match(/<iframe[^>]+src=["']([^"']*youtube\.com\/embed\/[^"']+)["']/i);
-                if (ytIframeMatch) {
-                    isVideo = true;
-                    const parts = ytIframeMatch[1].split('youtube.com/embed/');
-                    if (parts.length > 1) {
-                        const vId = parts[1].split('?')[0].split('"')[0];
-                        extractUrl = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
-                    }
-                } else {
-                    const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
-                    if(imgMatch) extractUrl = imgMatch[1];
-                }
-            }
-            
-            const playOverlay = isVideo ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.4); border-radius:50%; border: 2.5px solid white; display:flex; align-items:center; justify-content:center; z-index:5;"><svg viewBox="0 0 24 24" width="24" height="24" fill="white" style="margin-left:4px;"><path d="M8 5v14l11-7z"/></svg></div>` : ``;
-
-            let imgHtml = '';
-            if (extractUrl) {
-                imgHtml = `<img src="${extractUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" onerror="this.src='https://via.placeholder.com/160x100?text=News'">`;
-                imgHtml = `<div class="an-img" style="position:relative; flex-shrink:0;">${imgHtml}${playOverlay}</div>`;
-            }
-            
-            const categoryBadge = news.section1 ? `[${news.section1}${news.section2 ? ' > '+news.section2 : ''}]` : '';
-            
-            card.innerHTML = `
-                ${imgHtml}
-                <div class="an-body">
-                    <div class="an-title">${news.title}</div>
-                    <div class="an-desc">${news.subtitle || news.content?.replace(/<[^>]+>/g, '').substring(0, 150) || ''}</div>
-                    <div class="an-meta"><span style="color:#508bf5; font-weight:bold; margin-right:8px;">${categoryBadge}</span> ${dateStr} · ${news.reporter_name || '공실뉴스'}</div>
+    /* 렌더러: 동영상 앨범형 스킨 */
+    function renderVideoAlbum(container, posts) {
+        let html = '<div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:20px;">';
+        posts.forEach(p => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <div class="vid-card" style="border:1px solid #eee; border-radius:8px; overflow:hidden; cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:160px; background:#222; position:relative; overflow:hidden;">
+                        <img src="${p.thumbnail_url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=320&q=80'}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.6); border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center;"><svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                    </div>
+                    <div style="padding:15px;">
+                        <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.title}</div>
+                        <div style="font-size:13px; color:#777; display:flex; justify-content:space-between;">
+                            <span>${p.author_name}</span>
+                            <span>조회 ${p.view_count || 0} · ${dateStr}</span>
+                        </div>
+                    </div>
                 </div>
             `;
-            container.appendChild(card);
         });
-        
-        document.getElementById('currentPageDisplay').innerText = currentPage;
-        
-        // 버튼 활성화 처리
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-        document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
-        document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+        html += '</div>';
+        container.innerHTML += html;
     }
-    
-    // Text Banner Ticker Animation & Dropdown
-    document.addEventListener("DOMContentLoaded", function() {
-        const container = document.getElementById('txt-banner-container');
-        const bannerList = document.getElementById('txt-banner-list');
-        const dropdown = document.querySelector('.txt-dropdown');
-        if (!bannerList || !container || !dropdown) return;
-        
-        const items = bannerList.querySelectorAll('li');
-        if (items.length <= 1) return;
-        
-        let idx = 0;
-        const itemHeight = 24; 
-        
-        const firstClone = items[0].cloneNode(true);
-        bannerList.appendChild(firstClone);
-        const totalItems = items.length + 1;
-        
-        let tickerInterval;
-        function startTicker() {
-            tickerInterval = setInterval(() => {
-                idx++;
-                bannerList.style.transition = 'transform 0.5s ease-in-out';
-                bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
-                if (idx === totalItems - 1) {
-                    setTimeout(() => {
-                        bannerList.style.transition = 'none';
-                        bannerList.style.transform = `translateY(0)`;
-                        idx = 0;
-                    }, 500);
-                }
-            }, 3000);
-        }
-        startTicker();
-        
-        container.addEventListener('mouseenter', () => {
-            clearInterval(tickerInterval);
-            dropdown.style.display = 'block';
-        });
-        container.addEventListener('mouseleave', () => {
-            startTicker();
-            dropdown.style.display = 'none';
-        });
-    });
 
-    // Sticky Header scroll detection
+    /* 렌더러: 자료실 썸네일형 스킨 */
+    function renderFileAlbum(container, posts) {
+        let html = '<div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:15px;">';
+        posts.forEach(p => {
+            html += `
+                <div class="file-card" style="cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:140px; background:#f0f4f8; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        ${p.thumbnail_url 
+                            ? `<img src="${p.thumbnail_url}" style="width:100%; height:100%; object-fit:cover;">` 
+                            : `<div style="font-size:40px;">📄</div>`
+                        }
+                    </div>
+                    <div style="font-size:14px; font-weight:700; color:#222; margin-bottom:4px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${p.title}</div>
+                    <div style="font-size:12px; color:#888;">${p.author_name} · 조회 ${p.view_count||0}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML += html;
+    }
+
+    /* 렌더러: 일반 리스트형 스킨 (자유게시판) */
+    function renderDefaultBbs(container, posts) {
+        let html = '<table style="width:100%; border-collapse:collapse; border-top:2px solid #111;">';
+        html += `
+            <tr style="border-bottom:1px solid #ccc; background:#f9fafb;">
+                <th style="padding:12px; font-size:14px; width:60px;">번호</th>
+                <th style="padding:12px; font-size:14px; text-align:left;">제목</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성자</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성일</th>
+                <th style="padding:12px; font-size:14px; width:60px;">조회</th>
+            </tr>
+        `;
+        posts.forEach((p, idx) => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <tr style="border-bottom:1px solid #eee; cursor:pointer;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='transparent'" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.id || (idx+1)}</td>
+                    <td style="padding:12px; font-size:15px; font-weight:600; color:#222;">${p.title}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.author_name}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${dateStr}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${p.view_count || 0}</td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+        container.innerHTML += html;
+    }
+
+    function showError(msg) {
+        document.querySelector('.news-list-area').innerHTML = `<div style="padding:40px; text-align:center; color:#dc2626; font-weight:bold;">[시스템 오류] ${msg}</div>`;
+    }
+
+    // 텍스트 배너, 헤더 스크롤 등 기존 UI 기능 유지
     document.addEventListener("scroll", () => {
         const header = document.querySelector('.header');
         if (header) {
-            if (window.scrollY > 40) {
-                header.classList.add('is-sticky');
-            } else {
-                header.classList.remove('is-sticky');
-            }
+            header.classList.toggle('is-sticky', window.scrollY > 40);
         }
     });
-    
-    function changePage(delta) {
-        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
-        let newPage = currentPage + delta;
-        if(newPage < 1) newPage = 1;
-        if(newPage > totalPages) newPage = totalPages;
-        
-        if(newPage !== currentPage) {
-            currentPage = newPage;
-            fetchPageData();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-    }
-    
-    // 2. 우측 사이드바: 많이 본 뉴스 (Top 5)
+
+    // 사이드바 인기 게시물 (뉴스 정보 가져옴)
     async function loadPopularSidebarNews() {
         const sb = window.gongsiClient || window.supabaseClient;
         if(!sb) return;
-        
-        const { data, error } = await sb.from('articles')
-            .select('id, title, view_count')
-            .eq('status', 'published')
-            .order('view_count', { ascending: false })
-            .limit(5);
-            
-        const c = document.getElementById('popularNewsSidebarContainer');
-        if(error || !data) return;
-        
-        c.innerHTML = data.map((item, i) => `
-            <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
-                <span class="pop-ranking">${i+1}</span>
-                <span class="pop-title">${item.title}</span>
-            </li>
-        `).join('');
-    }
-    
-    // 3. 우측 사이드바: 추천공실 매물리스트
-    //    매물 클릭 시 공실열람으로 이동
-    async function loadRecommendSidebarProps() {
-        const container = document.getElementById('recommendPropSidebarContainer');
-        const sb = window.gongsiClient || window.supabaseClient;
-        if(!sb) return;
-
-        const { data, error } = await sb.from('properties')
-            .select('*')
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(4);
-
-        if(error || !data || data.length === 0) {
-            container.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">추천 공실이 없습니다.</div>';
-            return;
+        const { data } = await sb.from('articles').select('id, title, view_count').eq('status', 'published').order('view_count', { ascending: false }).limit(5);
+        const c = document.querySelector('.pop-list');
+        if(data && c) {
+            c.innerHTML = data.map((item, i) => `
+                <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
+                    <span class="pop-ranking">${i+1}</span>
+                    <span class="pop-title">${item.title}</span>
+                </li>
+            `).join('');
         }
-
-        function formatPriceValue(val) {
-            val = Number(val);
-            if (!val || val === 0) return '0';
-            if (val >= 10000) {
-                const uk = Math.floor(val / 10000);
-                const man = val % 10000;
-                return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
-            }
-            return val.toLocaleString();
-        }
-
-        container.innerHTML = data.map(p => {
-            let propTitle = p.building_name || p.property_type || '공실매물';
-            if (p.main_category === '아파트·오피스텔') {
-                let aptName = p.building_name || p.property_type || '';
-                let dongStr = '';
-                if (p.dong_number) dongStr = String(p.dong_number).includes('동') ? p.dong_number : `${p.dong_number}동`;
-                let roomStr = '';
-                if (p.room_number) roomStr = String(p.room_number).includes('호') ? p.room_number : `${p.room_number}호`;
-                let tempStr = `${aptName} ${dongStr} ${roomStr}`.trim();
-                if (tempStr) propTitle = tempStr;
-            }
-
-            const badgeText = (function(pf) {
-                if (!pf) return '공실매물';
-                if (pf.includes('100') || pf.includes('양타')) return '수수료100%';
-                if (pf.includes('50') || pf.includes('단타')) return '수수료50%';
-                if (pf.includes('25')) return '수수료25%';
-                if (pf.includes('공동')) return '공동중개';
-                return '공동중개';
-            })(p.brokerage_fee);
-
-            const dep = formatPriceValue(p.deposit);
-            let priceStr = '';
-            if (p.trade_type === '매매' || p.trade_type === '전세') priceStr = `${p.trade_type} ${dep}`;
-            else priceStr = `${p.trade_type} ${dep}/${p.monthly_rent || 0}`;
-
-            const supAreaM2 = p.supply_area ? parseFloat(p.supply_area) : 0;
-            const excAreaM2 = p.dedicated_area ? parseFloat(p.dedicated_area) : (p.area ? parseFloat(p.area) : 0);
-            const fmtM2P = (m2) => m2 ? `${m2}㎡(${(m2 / 3.3058).toFixed(1)}평)` : '';
-            let areaDisplay = '';
-            if (supAreaM2 && excAreaM2) areaDisplay = `${fmtM2P(supAreaM2)} / ${fmtM2P(excAreaM2)}`;
-            else if (supAreaM2) areaDisplay = fmtM2P(supAreaM2);
-            else if (excAreaM2) areaDisplay = fmtM2P(excAreaM2);
-
-            let locStr = '';
-            if(p.address) {
-                 const words = p.address.split(' ');
-                 if(words.length > 2) locStr = words[2];
-                 else locStr = words[0];
-            } else {
-                 locStr = p.location || '';
-            }
-
-            let metaArr = [];
-            if(locStr) metaArr.push(locStr);
-            if(areaDisplay) metaArr.push('면적 ' + areaDisplay);
-            
-            let extraArr = [];
-            if(p.room_count) extraArr.push(`룸 ${p.room_count}개`);
-            if(p.bathroom_count) extraArr.push(`욕실 ${p.bathroom_count}개`);
-            
-            let metaHtml = metaArr.join(' · ');
-            if (extraArr.length > 0) metaHtml += '<br>' + extraArr.join(', ');
-
-            let imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/80?text=NoImg';
-
-            return `
-            <div class="prop-item" onclick="window.location.href='gongsil/index.html'">
-                <div class="prop-info" style="min-width:0; overflow:hidden;">
-                    <div class="prop-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width:180px;">${propTitle}</div>
-                    <div class="prop-price">${priceStr}</div>
-                    <div class="prop-meta">${metaHtml}</div>
-                    <span class="prop-badge">${badgeText}</span>
-                </div>
-                <div class="prop-img-wrapper" style="flex-shrink:0;">
-                    <img src="${imgUrl}" class="prop-img" onerror="this.src='https://via.placeholder.com/80?text=NoImg'">
-                </div>
-            </div>
-            `;
-        }).join('');
     }
-    
     </script>
 </body>
 </html>

@@ -46,7 +46,7 @@ function _gongsiAuthInit(supabase) {
     };
 
     // 공실뉴스 특화 로그인 안내 모달 표시
-    function showGongsilLoginModal(redirectUrl) {
+    function showGongsilLoginModal(redirectUrl, action) {
         let modal = document.getElementById('gongsilLoginModal');
         if (!modal) {
             // 동적 스타일 추가
@@ -131,12 +131,21 @@ function _gongsiAuthInit(supabase) {
             window.executeGoogleOAuth(redirectUrl);
         });
 
+        const titleEl = modal.querySelector('.glb-title');
+        const descEl = modal.querySelector('.glb-desc');
+        if (action === 'login') {
+            titleEl.textContent = '반갑습니다! 공실뉴스 로그인';
+            descEl.textContent = '로그인하시고 공실뉴스만의 혜택을 누려보세요';
+        } else {
+            titleEl.textContent = '공실뉴스 회원이 되어 보세요';
+            descEl.textContent = '지금 바로 공실뉴스 회원으로 가입하시고, 독점 혜택을 누려보세요';
+        }
         modal.style.display = 'flex';
     }
 
     // 로그인 클릭 핸들러
-    window.handleLoginClick = async function(e) {
-        if (e) e.preventDefault();
+    window.handleLoginClick = async function(e, action = 'signup') {
+        if (e) { e.preventDefault(); e.stopPropagation(); }
         try {
             let redirectPath = window.location.pathname;
             if (redirectPath !== '/' && !redirectPath.endsWith('.html') && !redirectPath.endsWith('/')) {
@@ -145,7 +154,7 @@ function _gongsiAuthInit(supabase) {
             const redirectUrl = window.location.origin + redirectPath + window.location.search;
             
             // 모달 노출 (실제 구글 로그인은 모달 내 버튼에서 처리)
-            showGongsilLoginModal(redirectUrl);
+            showGongsilLoginModal(redirectUrl, action);
 
         } catch(err) {
             console.error("로그인 모달 표시 에러:", err);
@@ -153,7 +162,11 @@ function _gongsiAuthInit(supabase) {
     };
 
     // 로그인 버튼에 이벤트 연결
-    loginBtns.forEach(btn => btn.addEventListener('click', window.handleLoginClick));
+    loginBtns.forEach(btn => btn.addEventListener('click', e => {
+        // Find if this specific button says 로그인
+        const isLogin = e.target.textContent.includes('로그인') || e.target.id === 'headerLoginOnlyBtn';
+        window.handleLoginClick(e, isLogin ? 'login' : 'signup');
+    }));
 
     // 로그아웃 버튼에 이벤트 연결
     logoutBtns.forEach(btn => btn.addEventListener('click', async (e) => {
@@ -638,6 +651,15 @@ function _gongsiAuthInit(supabase) {
                     alert("처리 중 오류가 발생했습니다: " + err.message);
                 }
             });
+        }
+        const titleEl = modal.querySelector('.glb-title');
+        const descEl = modal.querySelector('.glb-desc');
+        if (action === 'login') {
+            titleEl.textContent = '반갑습니다! 공실뉴스 로그인';
+            descEl.textContent = '로그인하시고 공실뉴스만의 혜택을 누려보세요';
+        } else {
+            titleEl.textContent = '공실뉴스 회원이 되어 보세요';
+            descEl.textContent = '지금 바로 공실뉴스 회원으로 가입하시고, 독점 혜택을 누려보세요';
         }
         modal.style.display = 'flex';
     }
