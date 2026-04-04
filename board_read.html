@@ -543,6 +543,7 @@
                 <div class="action-group">
                     <button class="btn-list" id="btnGoList">목록</button>
                     <button class="btn-list" id="btnGoEdit" style="display:none;">수정</button>
+                    <button class="btn-list" id="btnGoDelete" style="display:none; color:#dc2626; border-color:#fca5a5; background:#fef2f2;">삭제</button>
                     <button class="btn-write" id="btnGoWrite">글쓰기</button>
                 </div>
             </div>
@@ -842,13 +843,32 @@
                 const { data: ud } = await sb.from('users_profile').select('name').eq('id', user.id).single();
                 document.getElementById('commentUserName').innerText = (ud?.name || user.email.split('@')[0]) + '님';
                 
-                // 사용자가 글쓴이인 경우 수정 버튼 표시
+                // 사용자가 글쓴이인 경우 수정/삭제 버튼 표시
                 if (user.id === window._postAuthorId) {
                     document.getElementById('btnGoEdit').style.display = 'inline-block';
+                    document.getElementById('btnGoDelete').style.display = 'inline-block';
                 }
             }
         } catch(e) { console.warn('유저 로드 오류:', e); }
     }
+
+    // ========== 게시글 삭제 ==========
+    document.getElementById('btnGoDelete').addEventListener('click', async () => {
+        if (!confirm('정말로 이 게시글을 삭제하시겠습니까?\n삭제 후에는 복구할 수 없습니다.')) return;
+        
+        const sb = window.gongsiClient || window.supabaseClient;
+        if (!sb) return alert('DB 연결 오류');
+
+        try {
+            const { error } = await sb.from('board_posts').delete().eq('id', POST_ID);
+            if (error) throw error;
+            alert('게시글이 삭제되었습니다.');
+            location.href = `board.html?id=${BOARD_ID}`;
+        } catch (e) {
+            console.error(e);
+            alert('게시글 삭제에 실패했습니다: ' + e.message);
+        }
+    });
 
     // ========== 사이드바 인기 게시물 ==========
     async function loadSidebar() {
