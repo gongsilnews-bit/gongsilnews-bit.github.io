@@ -1326,7 +1326,7 @@
                     }
                     
                     html += `
-                        <div class="hi-item" style="cursor:pointer;" onclick="window.location.href='news_read.html?id=${item.id}'">
+                        <div class="hi-item" style="cursor:pointer;" onclick="window.location.href='news_read.html?article_id=${item.id}'">
                             ${imgHtml}
                             <div class="hi-txt">
                                 <h3>${item.title || '제목없음'}</h3>
@@ -1395,7 +1395,7 @@
                         videos.forEach(item => {
                             const imgUrl = `https://img.youtube.com/vi/${item._videoId}/mqdefault.jpg`;
                             innerHtml += `
-                            <div class="vid-item" onclick="window.location.href='news_read.html?id=${item.id}'">
+                            <div class="vid-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
                                 <div class="vid-thumb" style="background: url('${imgUrl}') center/cover; position:relative;">
                                     <div class="vid-play" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:44px; height:44px; background:rgba(0,0,0,0.6); border-radius:50%; border:2px solid #fff; display:flex; justify-content:center; align-items:center;">
                                         <div style="width:0; height:0; border-top:8px solid transparent; border-bottom:8px solid transparent; border-left:12px solid #fff; margin-left:4px;"></div>
