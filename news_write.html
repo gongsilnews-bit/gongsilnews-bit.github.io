@@ -1275,7 +1275,7 @@
             const paddingRatio = isShorts ? '177.77%' : '56.25%';
             const maxWidthStr = isShorts ? 'max-width:400px; margin:0 auto;' : 'width:100%;';
             
-            combinedHtml = `<p><br></p><div style="${maxWidthStr}">`
+            combinedHtml = `<div style="${maxWidthStr}">`
                          + `<div style="position:relative; width:100%; padding-bottom:${paddingRatio}; height:0; overflow:hidden; border-radius:8px;">`
                          + `<iframe src="https://www.youtube.com/embed/${videoId}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe>`
                          + `</div></div><p><br></p>`;
@@ -1748,7 +1748,7 @@
 
     function forceInsertPhoto(url, photoId) {
         var imgId = 'photo_' + photoId;
-        var combinedHtml = '<p><br></p><figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure><p><br></p>';
+        var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure><p><br></p>';
         if (typeof window.insertNodeAtCursor === 'function') {
             window.insertNodeAtCursor(combinedHtml);
         } else if (typeof $ !== 'undefined' && $('#summernote').length) {
@@ -2479,7 +2479,7 @@
             }
             renderPhotoGrid();
 
-            var combinedHtml = '<p><br></p><figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + iPosStr + '; margin:0 auto;">'
+            var combinedHtml = '<figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + id + '" style="text-align:' + iPosStr + '; margin:0 auto;">'
                 + '<img src="' + url + '" style="max-width:100%; display:inline-block; width:' + iSizeStr + ';">'
                 + '<figcaption contenteditable="true" style="text-align:' + cAlignStr + ';">' + captionStr + '</figcaption>'
                 + '</figure><p><br></p>';
