@@ -3,6 +3,7 @@ import Link from 'next/link';
 import KakaoMap from '@/components/KakaoMap';
 
 export const revalidate = 60; // ISR 캐싱 60초
+export const experimental_ppr = true; // 부분 사전 렌더링 활성화
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
