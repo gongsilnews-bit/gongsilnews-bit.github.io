@@ -1,0 +1,1536 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>공실뉴스 - 부동산 중개망의 스마트한 변화</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        :root {
+            --brand-navy: #102c57;
+            --brand-blue: #508bf5;
+            --border-light: #e5e5e5;
+            --text-dark: #222222;
+            --text-gray: #777777;
+            --bg-body: #ffffff;
+            --bg-gray: #f8f9fa;
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            min-width: 1200px;
+            overflow-x: auto;
+            overflow-y: scroll !important;
+        }
+        ul, li { list-style: none; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+        /* Container */
+        .container {
+            width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 1. Top Nav Bar */
+        .top-bar {
+            position: relative;
+            z-index: 10000000;
+            background-color: var(--brand-navy);
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            min-width: 1200px;
+        }
+        .top-bar-left { 
+            display: flex; 
+            align-items: center; 
+        }
+        .top-logo {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            margin-right: 20px;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+        .top-desc {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+            letter-spacing: -0.5px;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .top-bar-right svg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            stroke: #fff;
+            opacity: 0.9;
+            transition: opacity 0.2s, stroke 0.2s;
+        }
+        .top-bar-right svg:hover {
+            opacity: 1;
+        }
+        
+        /* Expanding Search Bar */
+        .top-search-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .top-search-input {
+            width: 0;
+            opacity: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            border-radius: 4px;
+            height: 26px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s;
+        }
+        .top-search-wrap.active .top-search-input {
+            width: 180px;
+            opacity: 1;
+            padding: 0 10px;
+            margin-right: 10px;
+        }
+
+        /* 2. Main Header */
+        .header {
+            background: rgba(255, 255, 255, 1);
+            border-bottom: 2px solid #111111;
+            padding-top: 24px;
+            position: sticky;
+            top: -1px;
+            z-index: 9999999;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky {
+            padding-top: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-bottom: 2px solid #111111;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-top {
+            margin-bottom: 12px;
+        }
+        .header img.ht-logo {
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky img.ht-logo {
+            height: 32px;
+        }
+        .ht-left, .ht-right { flex: 1; }
+        .ht-right { display: flex; justify-content: flex-end; }
+        .ht-center { flex: 0 0 auto; }
+        
+        .free-banner {
+            color: #508bf5;
+            font-weight: 800;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .header-bottom {
+            padding-bottom: 16px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-bottom {
+            padding-bottom: 10px;
+        }
+        .gnb-new {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 800;
+            color: #222;
+            align-items: center;
+        }
+        .gnb-new a { transition: color 0.2s; }
+        .gnb-new a:hover { color: var(--brand-blue); }
+        .gnb-new .divider {
+            width: 1px; height: 16px; background: #ddd; margin: 0 5px;
+        }
+
+        /* Component: Section Title */
+        .sec-title-wrap {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .sec-title-wrap::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--brand-blue);
+            margin-right: 10px;
+        }
+        .sec-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            letter-spacing: -0.5px;
+        }
+
+        /* Grey Box Placeholder */
+        .box-placeholder {
+            background-color: #e2e2e2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Layout Spaces */
+        .mt-50 { margin-top: 50px; }
+        .mb-50 { margin-bottom: 50px; }
+        .py-60 { padding-top: 60px; padding-bottom: 60px; }
+        .px-20 { padding-left: 20px; padding-right: 20px; }
+
+        /* 3. Hero Section */
+        .hero-section {
+            display: flex;
+            gap: 24px;
+            position: relative;
+        }
+        .hero-left {
+            flex: 2; /* takes more space */
+            position: relative;
+        }
+        .app-mock { 
+            width: 360px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+        .app-search {
+            display: flex; align-items: center; background: #f1f3f5; border-radius: 8px; padding: 12px; margin-bottom: 5px; cursor: text;
+        }
+        .app-search input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: #333; margin-left: 8px; }
+        .app-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .app-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .app-img { width: 80px; height: 80px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .app-txt h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+        .app-txt p { font-size: 14px; color: #c00; font-weight: 800; }
+        .app-txt span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
+        
+        .map-btn {
+            position: absolute; top: 15px; left: calc(50% + 140px); transform: translateX(-50%); background: #1a4282; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 99999; 
+        }
+
+        .hero-right {
+            flex: 1; /* roughly 380px */
+            display: flex;
+            flex-direction: column;
+        }
+        .hn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1a4282; padding-bottom: 10px;}
+        .hn-header h2 { font-size: 18px; font-weight: 800; color: #1a4282; }
+        .hn-header a { font-size: 12px; color: #666; font-weight: 600; }
+        .hn-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+        .hn-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+        .hn-img { width: 90px; height: 65px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .hn-txt h4 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: #111; word-break: keep-all; }
+        .hn-txt span { font-size: 12px; color: #999; }
+        .hn-ad { flex: 1; background: #e2e2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 13px; font-weight: bold;}
+        
+        /* Floating Quick Menu */
+        .quick-menu {
+            position: fixed;
+            top: 250px;
+            left: 50%;
+            margin-left: 620px;
+            width: 70px;
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
+        .qm-item:last-child { border-bottom: none; }
+        .qm-item span { display: block; font-size: 18px; margin-bottom: 4px; color: var(--brand-blue); }
+
+        /* 4. Ticker Section */
+        .ticker-bar {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+            background: #fff;
+            width: 100%;
+        }
+        .ticker-label {
+            background: var(--brand-blue);
+            color: #fff;
+            padding: 20px 30px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+        .ticker-label:hover {
+            background: #000;
+        }
+        .ticker-wrap {
+            flex: 1;
+            overflow: hidden;
+            padding: 20px 0;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ticker-wrap:hover { background: #f9f9f9; }
+        .ticker {
+            display: inline-flex;
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+            /* Move from left to right gently, extremely slowly */
+            animation: moveTicker 10000s linear infinite;
+        }
+        .ticker:hover {
+            animation-play-state: paused;
+        }
+        @keyframes moveTicker {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0%); }
+        }
+        .ticker-item {
+            display: inline-flex;
+            gap: 15px;
+            align-items: center;
+            color: #333;
+            margin-right: 50px;
+        }
+
+        .ticker-val { color: #d32f2f; }
+        .ticker-val.down { color: #1976d2; }
+
+        /* 5. Hot Issue Section */
+        .hot-issue-wrap {
+            display: flex;
+            gap: 40px;
+        }
+        .hi-left { flex: 1; }
+        .hi-list { display: flex; flex-direction: column; gap: 20px; }
+        .hi-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .hi-item img { width: 140px; height: 100px; background: #ddd; object-fit: cover; border-radius: 4px; }
+        .hi-txt h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: #111; }
+        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        
+        .hi-right { flex: 1; height: 260px; }
+
+        /* 6. Video News Section */
+        .video-wrap { border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .vid-item { cursor: pointer; }
+        .vid-thumb { height: 220px; background: #222; position: relative; border-radius: 4px; margin-bottom: 15px; }
+        .vid-play { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); width: 44px; height: 44px; background: rgba(0,0,0,0.6); border-radius: 50%; border: 2px solid #fff;}
+        .vid-play::after { content:''; display:block; border-left:12px solid #fff; border-top:8px solid transparent; border-bottom:8px solid transparent; margin-left:18px; margin-top:12px; }
+        .vid-title { font-size: 16px; font-weight: 700; line-height: 1.4; color:#111; }
+
+        /* 7. Premium Section (Dark Blue) */
+        .premium-bg { background-color: var(--brand-navy); color: #fff; padding: 60px 0; }
+        .premium-bg .sec-title { color: #fff; }
+        .premium-bg .sec-title-wrap::before { background-color: #508bf5; }
+        .prem-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .prem-card { cursor: pointer; }
+        .prem-img { height: 180px; background: #555; margin-bottom: 15px; border-radius: 4px; }
+        .prem-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .prem-desc { font-size: 13px; color: #aaa; line-height: 1.4; }
+
+        /* 8. Expert Section */
+        .expert-wrap { display: flex; gap: 40px; }
+        .expert-left { flex: 1; border-top: 2px solid #222; padding-top: 20px;}
+        .ex-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 20px 0; }
+        .ex-img { width: 100px; height: 100px; background: #ddd; border-radius: 50%; }
+        .ex-txt h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+        .ex-txt p { font-size: 14px; color: #666; line-height: 1.6; }
+        .expert-right { flex: 1; height: 300px; padding-top: 20px; }
+
+        /* 9. Study Section */
+        .study-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .study-card { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .st-img { height: 180px; background: #e2e2e2; position: relative; }
+        .st-badge { position: absolute; top:0; left:0; padding:6px 12px; color:#fff; font-size:12px; font-weight:bold; }
+        .st-badge.blue { background: #508bf5; }
+        .st-badge.red { background: #f44336; }
+        .st-badge.black { background: #222; }
+        .st-txt { padding: 20px; }
+        .st-title { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; }
+        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;}
+        .st-price { font-size: 15px; font-weight: 700; color: #ff5722; }
+
+        /* 10. Knowhow & Notice Section */
+        .bottom-wrap { display: flex; gap: 40px; border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .bm-left { flex: 2; }
+        .kh-item { display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .kh-item img { width: 120px; height: 80px; background: #ddd; border-radius: 4px; }
+        .kh-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .kh-txt p { font-size: 14px; color: #666; }
+        .bm-right { flex: 1; height: 400px; }
+
+        /* 11. Chatbot Banner */
+        .chat-banner {
+            background-color: #fafafa;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            padding-top: 50px;
+        }
+        .chat-title { font-size: 20px; font-weight: 800; color: #508bf5; margin-bottom: 5px; }
+        .chat-sub { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 40px; letter-spacing: -1px; }
+        .chat-mockup { width: 300px; height: 450px; background: #ddd; margin: 0 auto; border-radius: 30px 30px 0 0; position:relative; overflow:hidden;}
+        
+        /* 12. Footer */
+        .footer {
+            background: #fff;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-light);
+        }
+        .f-logos { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .f-logo { border: 1px solid #ddd; padding: 10px 20px; color: #555; font-size: 14px; font-weight: bold; border-radius: 4px; }
+        .f-info { text-align: center; font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 20px; }
+        .f-links { text-align: center; margin-bottom: 20px; }
+        .f-links a { font-size: 14px; font-weight: 700; color: #333; margin: 0 10px; }
+        .f-copyright { text-align: center; font-size: 12px; color: #999; }
+
+        /* --- 스터디(특강) 관련 스타일 --- */
+        .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .lecture-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; border: 1px solid #e2e8f0; }
+        .lecture-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .lecture-thumb { width: 100%; height: 180px; background: #eee; position: relative; }
+        .lecture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .badge-new { position: absolute; top: 12px; left: 12px; background: #508bf5; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .bookmark-btn { position: absolute; top: 12px; right: 12px; color: rgba(255,255,255,0.8); font-size: 20px; }
+        .lecture-info { padding: 16px; }
+        .lecture-cat { font-size: 11px; color: #508bf5; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .lecture-title { font-size: 16px; font-weight: bold; color: #222; line-height: 1.4; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 12px; }
+        .lecture-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #888; margin-bottom:12px; }
+        .instructor { font-weight: 600; color: #444; }
+        .rating { display: flex; align-items: center; gap: 4px; color: #508bf5; }
+    </style>
+<style>
+        .icon-tooltip-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-tooltip-wrap::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background-color: #ffffff;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .icon-tooltip-wrap:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Top Nav Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
+            <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
+        </div>
+        <div class="top-bar-right">
+            <!-- Search -->
+            <div class="top-search-wrap" id="topSearchWrap">
+                <input type="text" class="top-search-input" id="topSearchInput" placeholder="검색어를 입력하세요">
+                <div class="icon-tooltip-wrap" data-tooltip="검색">
+                <svg onclick="document.getElementById('topSearchWrap').classList.toggle('active'); document.getElementById('topSearchInput').focus();" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="검색"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            </div>
+            
+            <!-- Login/User -->
+            <!-- Login/User -->
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 24px;">
+                <div class="icon-tooltip-wrap" data-tooltip="회원가입">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="회원가입"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="icon-tooltip-wrap" data-tooltip="로그인">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')" id="headerLoginOnlyBtn" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="로그인"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                </div>
+            </div>
+            
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
+                <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
+                <span id="headerLogoutBtn" style="cursor:pointer; font-size:12px; color:#aaa;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">로그아웃</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Header -->
+    <header class="header">
+        <div class="container px-20">
+            <div class="header-top">
+                <div class="ht-left"></div>
+                <div class="ht-center">
+                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
+                </div>
+                <div class="ht-right">
+                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
+                        <!-- The scrolling ticker -->
+                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
+                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- The dropdown on hover -->
+                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <nav class="gnb-new">
+                    <a href="news_all.html">전체뉴스</a>
+                    <a href="news.html">우리동네뉴스</a>
+                    <a href="news_finance.html">부동산·주식·재테크</a>
+                    <a href="news_politics.html">정치·경제·사회</a>
+                    <a href="news_law.html">세무·법률</a>
+                    <a href="news_life.html">여행·건강·생활</a>
+                    <a href="news_etc.html">기타</a>
+                    <span class="divider"></span>
+                    <a href="gongsil/index.html">공실열람</a>
+                    <div style="position: relative; display: inline-block;" onmouseover="this.querySelector('.gnb-dropdown').style.display='block'" onmouseout="this.querySelector('.gnb-dropdown').style.display='none'">
+                        <a href="board.html" style="padding: 10px 0; transition: color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color=''">자료실</a>
+                        <div class="gnb-dropdown" style="display: none; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 140px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: center;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=drone" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">드론영상</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=app" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">APP(앱)</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=design" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">디자인</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=sound" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">음원</a></li>
+                                <li><a href="board.html?id=doc" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">계약서/양식</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/gongsilnews-bit.github.io/')) { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
+                    <a href="#">중개업소무료가입</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    
+    <style>
+        .news-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+        
+        /* Left: Read Area */
+        .news-read-area {
+            flex: 1;
+        }
+        
+        .detail-breadcrumb { font-size: 14px; color: #508bf5; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .detail-title { font-size: 32px; font-weight: 800; color: #111; line-height: 1.35; margin-bottom: 25px; word-break: keep-all; letter-spacing: -1px; }
+        .detail-meta { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            border-top: 2px solid #111; 
+            border-bottom: 1px solid #eee; 
+            padding: 16px 0; 
+            margin-bottom: 40px; 
+            font-size: 14px; 
+            color: #666; 
+        }
+        .meta-info { display: flex; gap: 20px; }
+        
+        .article-body { font-size: 17px; line-height: 1.8; color: #333; font-family: 'Pretendard', sans-serif; }
+        .article-body p { margin-bottom: 24px; }
+        .article-body b { display: block; margin: 30px 0 20px; color: #111; font-size: 19px; font-weight: 700; background: #fdfdfd; padding: 15px; border-left: 4px solid #508bf5; }
+        .article-img-wrap { width: 100%; border-radius: 8px; overflow: hidden; margin: 30px 0; text-align: center; }
+        .article-img { max-width: 100%; display: block; margin: 0 auto; object-fit: contain;}
+        
+        /* Right: Sidebar */
+        .news-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .sb-banner {
+            width: 100%;
+            height: 200px;
+            background: #e2e2e2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .sb-widget {
+            margin-bottom: 40px;
+        }
+        .sb-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sb-title-more {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        .pop-list { list-style: none; margin: 0; padding: 0; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; cursor:pointer;}
+        .pop-item:hover .pop-title { text-decoration: underline; color: var(--brand-blue); }
+        .pop-ranking { font-size: 18px; font-weight: 900; color: #111; width: 14px; font-style: italic;}
+        .pop-title { font-size: 14px; color: #333; line-height: 1.4; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Prop List */
+        .prop-item { display: flex; gap: 15px; margin-bottom: 20px; cursor: pointer; padding-bottom: 15px; border-bottom: 1px solid #f2f2f2;}
+        .prop-item:hover .prop-title { text-decoration: underline; color: var(--brand-blue); }
+        .prop-info { flex: 1; }
+        .prop-title { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; line-height: 1.3;}
+        .prop-price { font-size: 14px; font-weight: 900; color: #1a73e8; margin-bottom: 4px;}
+        .prop-meta { font-size: 11px; color: #777; line-height: 1.4;}
+        .prop-img-wrapper { width: 80px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #eee;}
+        .prop-img { width: 100%; height: 100%; object-fit: cover; }
+        .prop-badge { font-size: 10px; color:#e74c3c; border:1px solid #e74c3c; border-radius:3px; padding:1px 4px; display:inline-block; margin-top:4px;}
+
+    </style>
+
+    <main class="container px-20 relative">
+        <div id="scrollIndicator" style="position:fixed; top:0; left:0; height:4px; background:#508bf5; z-index:999999; width:0%; transition:width 0.1s;"></div>
+        <div class="news-layout">
+            <!-- 좌측 본문 영역 (1200px 레이아웃의 좌측 본문) -->
+            <div class="news-read-area">
+                <div class="detail-breadcrumb" id="detailCategory">로딩 중...</div>
+                <h1 class="detail-title" id="detailTitle">기사를 불러오는 중입니다...</h1>
+                
+                <div class="detail-meta">
+                    <div class="meta-info">
+                        <span id="detailAuthor" style="color: #111; font-weight: bold;">공실뉴스</span>
+                        <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                        <span id="detailDate">입력 -</span>
+                        <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                        <span id="detailViews">조회수 0</span>
+                    </div>
+                    <div class="meta-stats" style="display: flex; gap: 16px; align-items: center;">
+                        <!-- 찜하기 -->
+                        <span id="btnScrap" style="cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="if(!this.dataset.scrapped) this.style.color='#888'" title="찜하기" onclick="window.toggleScrap()">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        </span>
+                        <!-- 공유하기 -->
+                        <span style="cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color='#888'" title="공유하기" onclick="window.openShareModal()">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        </span>
+                        <!-- 글자 크기 조절 버튼 -->
+                        <span style="cursor:pointer; color:#888; transition:color 0.2s; font-size:14px; font-weight:700; display:flex; align-items:baseline; gap:1px; letter-spacing:-1px;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="글자 크기" onclick="document.getElementById('fontSizeModal').style.display='flex'">
+                            <span style="font-size:13px;">가</span><span style="font-size:17px;">가</span>
+                        </span>
+                        <!-- 프린트 -->
+                        <span style="cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="기사 인쇄" onclick="window.print()">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- 글자 크기 조절 모달 -->
+                <div id="fontSizeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                    <div style="background:#fff; border-radius:16px; padding:36px 40px; width:380px; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                        <button onclick="document.getElementById('fontSizeModal').style.display='none'" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:22px; cursor:pointer; color:#888;">&#10005;</button>
+                        <div style="margin-bottom:28px;">
+                            <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자크기</div>
+                            <input type="range" id="fontSizeSlider" min="13" max="24" value="17" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>가</span><span style="font-size:16px;">가</span></div>
+                        </div>
+                        <div>
+                            <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자행간</div>
+                            <input type="range" id="lineHeightSlider" min="140" max="240" value="180" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                            <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>좁게</span><span>넓게</span></div>
+                        </div>
+                        <div style="margin-top:25px; text-align:center;">
+                            <button onclick="window.saveReadingPref()" style="background:#508bf5; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#508bf5'">설정 저장하기</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 공유하기 모달 -->
+                <div id="shareArticleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                    <div style="background:#fff; border-radius:16px; padding:32px 24px; width:340px; box-sizing:border-box; position:relative; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                        <button onclick="document.getElementById('shareArticleModal').style.display='none'" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; color:#888; cursor:pointer;">✕</button>
+                        <h3 style="margin:0 0 24px 0; font-size:18px; color:#111; font-weight:800;">공유하기</h3>
+                        
+                        <button onclick="window.shareArticleToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#FEE500; color:#111; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:12px;">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 3c5.523 0 10 3.866 10 8.636 0 4.77-4.477 8.636-10 8.636-1.745 0-3.385-.386-4.832-1.07l-4.223 1.155a.49.49 0 0 1-.58-.65l1.096-3.876C2.264 14.162 1 12.167 1 11.636 1 6.866 5.477 3 12 3z"/></svg>
+                            카카오톡으로 기사 공유
+                        </button>
+                        
+                        <button onclick="window.shareGongsilToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#1a73e8; color:#fff; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:16px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                            공실매물 공유하기
+                        </button>
+                        
+                        <button onclick="window.copyArticleShareLink()" style="width:100%; background:#f5f5f5; border:none; color:#555; font-size:14px; cursor:pointer; padding:12px; border-radius:8px; font-weight:600;">
+                            기사 링크 복사
+                        </button>
+                    </div>
+                </div>
+
+                <div class="article-body" id="detailBody">
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <div class="save-btn" id="saveArticleBtn" style="cursor:pointer;" title="이 기사 저장하기">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="saved-icon"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                        </div>
+                        <div class="tts-btn" style="cursor:pointer; display:flex; align-items:center;" onclick="window.toggleTTS()" id="ttsBtn" title="음성으로 듣기">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="ttsIcon"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+                        </div>
+                        <div class="share-btn" style="cursor:pointer;" onclick="window.openShareModal()" title="공유하기">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        </div>
+                        <div class="font-size-btn" style="cursor:pointer;" onclick="document.getElementById('fontSizeModal').style.display='flex'" title="글자크기/행간 설정">
+                            <span style="font-size:16px; font-weight:700; color:#555;">가가</span>
+                        </div>
+                        <div class="print-btn" style="cursor:pointer;" onclick="window.print()" title="인쇄하기">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#555" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        </div>
+                    </div>
+                    <div style="padding: 100px 0; text-align: center; color:#888;">
+                        <svg class="animate-spin" style="animation: spin 1s linear infinite; margin: 0 auto 10px;" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>
+                        로딩 중...
+                    </div>
+                </div>
+                
+                <!-- 관련 기사 영역 -->
+                <div id="readRelatedArticles" style="display:none; margin-top: 40px; padding: 25px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+                    <div style="font-size:16px; font-weight:800; color:#111; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                        <span style="display:inline-block; width:4px; height:16px; background:#508bf5; border-radius:2px;"></span>관련 기사
+                    </div>
+                    <div id="readRelatedList" style="display:flex; flex-direction:column; gap:12px;"></div>
+                </div>
+
+                <!-- 댓글 및 푸터 영역 -->
+                <div id="articleFooterArea" style="margin-top: 40px; display: none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ccc; border-bottom:1px solid #ccc; padding:15px 0; margin-bottom:50px; font-size:15px;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span id="footerReporter" style="font-weight:800; color:#111;">공실뉴스</span>
+                        </div>
+                        <div style="color:#888; font-size:13px;">
+                            저작권자 © 공실뉴스 무단전재 및 재배포 금지
+                        </div>
+                    </div>
+
+                    <div class="comments-section" style="margin-bottom: 60px;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                            <div style="font-size:22px; font-weight:800;" id="portalCommentCount">0개의 댓글</div>
+                            <div style="font-size:14px; color:#555; cursor:pointer;">내 댓글 〉</div>
+                        </div>
+                        
+                        <div style="border:1px solid #ddd; border-radius:6px; padding:15px; margin-bottom:30px; background:#fff;">
+                            <div style="font-weight:bold; margin-bottom:12px; color:#333; font-size:14px;" id="commentUserName">로그인이 필요합니다</div>
+                            <textarea id="commentInput" placeholder="댓글을 남겨보세요" style="width:100%; height:44px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px; margin-top:8px;">
+                                <div style="font-size:13px; color:#999; display:flex; align-items:center; gap:16px;">
+                                    <span><span style="font-weight:bold; color:#111;" id="commentLength">0</span> / 400</span>
+                                    <label style="cursor:pointer; display:flex; align-items:center; gap:4px; color:#555;">
+                                        <input type="checkbox" id="isSecretComment" style="accent-color:#508bf5;"> 비밀댓글
+                                    </label>
+                                </div>
+                                <button style="background:#508bf5; color:#fff; border:none; border-radius:4px; padding:8px 24px; font-weight:bold; cursor:pointer; font-size:14px;" onclick="window.submitReadComment()">등록</button>
+                            </div>
+                        </div>
+
+                        <div id="portalCommentList">
+                            <div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ccc; text-align: center;">
+                    <button onclick="window.history.back()" style="padding: 10px 40px; background: #f4f6fa; border: 1px solid #ddd; border-radius: 4px; font-weight: bold; cursor: pointer; color: #333; font-size: 15px;">목록으로 돌아가기</button>
+                </div>
+            </div>
+            
+            <!-- 우측 사이드바 -->
+            <div class="news-sidebar">
+                
+                <div class="sb-widget">
+                    <div style="font-weight:bold; font-size:15px; color:#508bf5; margin-bottom:10px;">HOT 매물/광고</div>
+                    <div style="width:100%; height:140px; background:#e0e0e0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">공실가이드맵 (지도 이미지)</div>
+                    <div style="background:#333; color:#fff; text-align:center; padding:8px; font-size:12px; margin-top:8px; border-radius:4px;">강남구 역삼동 신축 빌딩 (수익률 6%)</div>
+                </div>
+
+                <div class="sb-widget">
+                    <div style="background:#00b894; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:14px; cursor:pointer;">
+                        공실알림<br><span style="font-size:12px;font-weight:normal;">(관심도 1,000개 부동산 가입)</span>
+                    </div>
+                    <div style="background:#00cec9; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:30px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="window.location.href='gongsil/index.html'">
+                        신축/분양/권리조회<br><span style="font-size:12px;font-weight:normal;">(부동산 전문가에게 의뢰)</span>
+                    </div>
+                </div>
+                
+                <!-- 많이 본 뉴스 5개 -->
+                <div class="sb-widget">
+                    <div class="sb-title">많이 본 뉴스</div>
+                    <ul class="pop-list" id="popularNewsSidebarContainer">
+                        <!-- 동적 렌더링 -->
+                    </ul>
+                </div>
+                
+                <!-- 추천공실 매물리스트 -->
+                <div class="sb-widget">
+                    <div class="sb-title">
+                        추천 공실
+                        <span class="sb-title-more" onclick="window.location.href='gongsil/index.html'">더보기 &gt;</span>
+                    </div>
+                    <div id="recommendPropSidebarContainer">
+                        <!-- 동적 렌더링 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase 등 공통 스크립트 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.4.0/kakao.min.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
+    <script src="script.js?v=1.4"></script>
+    
+    <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        if (typeof window.loadReadingPref === 'function') {
+            await window.loadReadingPref();
+        }
+        await loadArticle();
+        await loadPopularSidebarNews();
+        await loadRecommendSidebarProps();
+    });
+    
+    async function loadArticle() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        
+        const params = new URLSearchParams(window.location.search);
+        const articleId = params.get('article_id');
+        
+        if(!articleId) {
+            document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 찾을 수 없습니다.</div>';
+            return;
+        }
+        
+        // 기사 데이터 우선 로딩
+        const { data: news, error } = await sb.from('articles').select('*').eq('id', articleId).single();
+
+        // 조회수 증가 비동기 처리 (블로킹 방지)
+        if (news) {
+            sb.from('articles').update({ view_count: (news.view_count || 0) + 1 }).eq('id', articleId).then(() => {});
+        }
+        
+        if(error || !news) {
+            document.getElementById('detailBody').innerHTML = '<div style="padding: 100px 0; text-align: center;">기사를 불러오는 중 오류가 발생했습니다.</div>';
+            return;
+        }
+        
+        // 하이라이팅: 기사 카테고리 로직
+        const categoryBadge = news.section1 ? `[${news.section1}${news.section2 ? ' > '+news.section2 : ''}]` : '전체뉴스';
+        document.getElementById('detailCategory').innerText = categoryBadge;
+        document.getElementById('detailTitle').innerText = news.title;
+        const authorStr = news.reporter_name || '공실뉴스';
+        document.getElementById('detailAuthor').innerText = authorStr;
+        if(document.getElementById('footerReporter')) document.getElementById('footerReporter').innerText = authorStr;
+        
+        const dateStr = new Date(news.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+        document.getElementById('detailDate').innerText = '입력 ' + dateStr;
+        document.getElementById('detailViews').innerText = '조회수 ' + ((news.view_count || 0) + 1);
+        
+        let contentHtml = '';
+        if (news.image_url) {
+            contentHtml += `<div class="article-img-wrap"><img src="${news.image_url}" class="article-img" alt="기사 이미지" onerror="this.src='https://via.placeholder.com/600x400?text=NoImage'"></div>`;
+        }
+        if (news.subtitle) {
+            contentHtml += `<div style="border-left: 3px solid #508bf5; padding-left: 16px; margin: 24px 0; font-size: 16px; color: #111; font-weight: 600; line-height: 1.6; white-space: pre-line; word-break: keep-all;">${news.subtitle}</div>`;
+        }
+        
+        if (news.content && news.content.includes('<p>')) {
+             contentHtml += `${news.content}`;
+        } else if (news.content) {
+             const lines = news.content.split('\n');
+             lines.forEach(line => {
+                 if(line.trim() !== '') contentHtml += `<p>${line}</p>`;
+             });
+        }
+        document.getElementById('detailBody').innerHTML = contentHtml;
+        
+        // 관련 기사 렌더링
+        if (news.related_articles && Array.isArray(news.related_articles) && news.related_articles.length > 0) {
+            document.getElementById('readRelatedArticles').style.display = 'block';
+            document.getElementById('readRelatedList').innerHTML = news.related_articles.map(r => `
+                <a href="news_read.html?article_id=${r.id}" style="font-size:15px; color:#333; text-decoration:none; display:flex; align-items:flex-start; line-height:1.4;" onmouseover="this.style.color='#1a73e8'; this.style.textDecoration='underline'" onmouseout="this.style.color='#333'; this.style.textDecoration='none'">
+                    <span style="color:#aaa; font-weight:bold; margin-right:8px; display:inline-block; padding-top:2px;">ㄴ</span>
+                    <span style="flex:1; word-break:keep-all;">${r.title}</span>
+                </a>
+            `).join('');
+        }
+        
+        document.getElementById('articleFooterArea').style.display = 'block';
+        window.currentArticleId = articleId;
+        window.loadReadComments(articleId);
+
+        // GNB 네비게이션 활성화
+        const menuLinks = document.querySelectorAll('.gnb-new a');
+        let matched = false;
+        if(news.section1) {
+            menuLinks.forEach(a => {
+                const text = a.innerText.trim();
+                // "부동산·주식·재테크", "정치·경제·사회" 등과 매칭되는지 확인.
+                if(text.includes(news.section1) || (news.section1.includes('부동산') && text.includes('부동산'))) {
+                    a.style.color = '#508bf5';
+                    a.style.fontWeight = '800';
+                    matched = true;
+                }
+            });
+        }
+        if(!matched) {
+            menuLinks.forEach(a => {
+                if(a.innerText === '전체뉴스') {
+                    a.style.color = '#508bf5';
+                    a.style.fontWeight = '800';
+                }
+            });
+        }
+    }
+    
+    // 댓글 관련 기능 추가
+    window.loadReadComments = async function(articleId) {
+        if (!articleId) return;
+        const sb = window.gongsiClient || window.supabaseClient;
+        if (!sb) return;
+        
+        document.getElementById('portalCommentCount').innerText = '0개의 댓글';
+        const listEl = document.getElementById('portalCommentList');
+        if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">댓글을 불러오는 중...</div>';
+        
+        const { data: comments, error } = await sb.from('comments').select('*').eq('article_id', articleId).order('created_at', { ascending: false });
+        if (error) {
+            if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#e11d48; font-size:14px;">댓글을 불러올 수 없습니다.</div>';
+            return;
+        }
+        
+        const { data: sessionData } = await sb.auth.getSession();
+        const currentUserId = sessionData?.session?.user?.id;
+        
+        if(currentUserId) {
+            const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+            document.getElementById('commentUserName').innerText = (ud.profile?.name || ud.email?.split('@')[0] || '사용자') + '님';
+        } else {
+            document.getElementById('commentUserName').innerText = '로그인이 필요합니다';
+        }
+        
+        document.getElementById('portalCommentCount').innerText = (comments ? comments.length : 0) + '개의 댓글';
+        
+        if (!comments || comments.length === 0) {
+            if (listEl) listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>';
+            return;
+        }
+        
+        listEl.innerHTML = comments.map(c => {
+            const name = c.user_name || '사용자';
+            const firstChar = name.charAt(0);
+            const cd = new Date(c.created_at);
+            const dateStr = cd.getFullYear() + '.' + (cd.getMonth()+1).toString().padStart(2,'0') + '.' + cd.getDate().toString().padStart(2,'0');
+            const isMine = currentUserId && (currentUserId === c.user_id);
+            
+            let displayContent = c.content;
+            let isSecretLabel = '';
+            if (c.is_secret) {
+                isSecretLabel = '<span style="color:#ef4444; font-size:13px; font-weight:bold; margin-right:6px;">[비밀댓글]</span>';
+                if (!isMine) {
+                    displayContent = '<span style="color:#aaa;">방문자와 작성자만 볼 수 있는 비밀댓글입니다. 🔒</span>';
+                }
+            }
+            
+            return `
+                <div style="display:flex; gap:14px; margin-bottom:20px; border-bottom:1px solid #f2f4f7; padding-bottom:20px;">
+                    <div style="width:42px; height:42px; border-radius:50%; border:2px solid #333; display:flex; align-items:center; justify-content:center; flex-shrink:0; font-weight:bold; font-size:16px;">
+                        ${firstChar}
+                    </div>
+                    <div style="flex:1;">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                            <div style="display:flex; align-items:center; font-size:13px;">
+                                <span style="font-weight:bold; color:#111;">${name}</span>
+                                <span style="color:#ddd; margin: 0 8px;">|</span>
+                                <span style="color:#999;">${dateStr}</span>
+                            </div>
+                        </div>
+                        <div style="font-size:15px; color:#222; line-height:1.6; margin-bottom:12px; white-space:pre-wrap; word-break:break-all;">${isSecretLabel}${displayContent}</div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    };
+    
+    window.submitReadComment = async function() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if (!sb || !window.currentArticleId) return;
+        
+        const { data: { session } } = await sb.auth.getSession();
+        if (!session || !session.user) {
+            alert('로그인이 필요한 서비스입니다.');
+            return;
+        }
+        
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const userName = ud.profile?.name || (ud.email ? ud.email.split('@')[0] : '사용자');
+        const inputEl = document.getElementById('commentInput');
+        const content = inputEl ? inputEl.value.trim() : '';
+        if (!content) {
+            alert('댓글 내용을 입력하세요.');
+            return;
+        }
+        
+        const isSecret = document.getElementById('isSecretComment')?.checked || false;
+        
+        const { error } = await sb.from('comments').insert([{
+            article_id: window.currentArticleId,
+            user_id: session.user.id,
+            user_name: userName,
+            content: content,
+            is_secret: isSecret
+        }]);
+        
+        if (error) {
+            alert('댓글 작성 실패: ' + error.message);
+            return;
+        }
+        
+        inputEl.value = '';
+        window.loadReadComments(window.currentArticleId);
+    };
+    
+    const cInput = document.getElementById('commentInput');
+    if(cInput) {
+        cInput.addEventListener('input', function() {
+            const lenEl = document.getElementById('commentLength');
+            if(lenEl) lenEl.innerText = this.value.length;
+        });
+    }
+    
+    // 글자 크기 / 행간 실시간 적용
+    window.applyReadingStyle = function() {
+        const sz = parseInt(document.getElementById('fontSizeSlider').value);
+        const lh = parseInt(document.getElementById('lineHeightSlider').value);
+        const body = document.getElementById('detailBody');
+        if(!body) return;
+
+        // 부모에 줘도 인라인 스타일을 가진 자식이 우선되므로 CSS 주입으로 강제 적용
+        let styleTag = document.getElementById('readingStyleOverride');
+        if(!styleTag) {
+            styleTag = document.createElement('style');
+            styleTag.id = 'readingStyleOverride';
+            document.head.appendChild(styleTag);
+        }
+        styleTag.textContent = `
+            #detailBody, #detailBody * {
+                font-size: ${sz}px !important;
+                line-height: ${(lh / 100).toFixed(2)} !important;
+            }
+        `;
+    };
+
+    window.saveReadingPref = async function() {
+        try {
+            const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
+            if (!sb) {
+                window.showToast('오류: 데이터베이스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+                return;
+            }
+            const { data, error } = await sb.auth.getSession();
+            if (error) throw error;
+            const session = data?.session;
+            
+            if (!session || !session.user) {
+                // 사용자가 저장하려고 했던 값을 임시 저장. 로그인 후 모달이 다시 열리게 함
+                const sz = document.getElementById('fontSizeSlider').value;
+                const lh = document.getElementById('lineHeightSlider').value;
+                localStorage.setItem('pending_gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
+
+                window.showToast('🚨 회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+                setTimeout(() => {
+                    if (window.handleLoginClick) window.handleLoginClick();
+                }, 1500);
+                return;
+            }
+            const sz = document.getElementById('fontSizeSlider').value;
+            const lh = document.getElementById('lineHeightSlider').value;
+            localStorage.setItem('gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
+            window.showToast('✔️ 나만의 글자 설정이 성공적으로 저장되었습니다.', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+            document.getElementById('fontSizeModal').style.display = 'none';
+        } catch (e) {
+            window.showToast('저장 중 오류 발생: ' + (e.message || e), null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+            console.error('saveReadingPref error:', e);
+        }
+    };
+
+    // TTS 기능
+    window.isTTSPlaying = false;
+    window.toggleTTS = function() {
+        if (!window.speechSynthesis) {
+            window.showToast('현재 브라우저에서는 음성 듣기를 지원하지 않습니다.');
+            return;
+        }
+        if (window.isTTSPlaying) {
+            window.speechSynthesis.cancel();
+            window.isTTSPlaying = false;
+            document.getElementById('ttsIcon').style.stroke = '#555';
+            document.getElementById('ttsIcon').style.fill = 'none';
+        } else {
+            const title = document.querySelector('.article-title')?.innerText || '';
+            let content = '';
+            const bodyEl = document.getElementById('articleBody');
+            if (bodyEl) {
+                content = Array.from(bodyEl.querySelectorAll('p, div, span, h1, h2, h3'))
+                    .filter(el => el.innerText.trim() !== '')
+                    .map(el => el.innerText.trim())
+                    .join(' ');
+            }
+            if(!content) content = document.body.innerText;
+            
+            const msg = new SpeechSynthesisUtterance(title + "...... " + content);
+            msg.lang = 'ko-KR';
+            msg.rate = 1.0;
+            msg.pitch = 1.0;
+            msg.onend = function() {
+                window.isTTSPlaying = false;
+                if(document.getElementById('ttsIcon')) {
+                    document.getElementById('ttsIcon').style.stroke = '#555';
+                    document.getElementById('ttsIcon').style.fill = 'none';
+                }
+            };
+            window.speechSynthesis.speak(msg);
+            window.isTTSPlaying = true;
+            document.getElementById('ttsIcon').style.stroke = '#1a73e8';
+            document.getElementById('ttsIcon').style.fill = 'rgba(26, 115, 232, 0.1)';
+        }
+    };
+
+    // 저장된 설정 불러오기
+    window.loadReadingPref = async function() {
+        try {
+            const prefStr = localStorage.getItem('gongsil_reading_pref');
+            const pendingStr = localStorage.getItem('pending_gongsil_reading_pref');
+            if (!prefStr && !pendingStr) return;
+            
+            const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
+            if (!sb) return;
+            const { data, error } = await sb.auth.getSession();
+            if (error) throw error;
+            const session = data?.session;
+            
+            if (session && session.user) {
+                // 방금 로그인하고 되돌아온 경우 (설정 저장 대기 상태)
+                if (pendingStr) {
+                    const pref = JSON.parse(pendingStr);
+                    const sSlider = document.getElementById('fontSizeSlider');
+                    const lSlider = document.getElementById('lineHeightSlider');
+                    if (sSlider && pref.sz) sSlider.value = pref.sz;
+                    if (lSlider && pref.lh) lSlider.value = pref.lh;
+                    window.applyReadingStyle();
+                    
+                    // 모달 창을 다시 띄워줍니다
+                    document.getElementById('fontSizeModal').style.display = 'flex';
+                    // 임시 저장 값 비우기 (불필요한 반복 팝업 방지)
+                    localStorage.removeItem('pending_gongsil_reading_pref');
+                } else if (prefStr) {
+                    const pref = JSON.parse(prefStr);
+                    const sSlider = document.getElementById('fontSizeSlider');
+                    const lSlider = document.getElementById('lineHeightSlider');
+                    if (sSlider && pref.sz) sSlider.value = pref.sz;
+                    if (lSlider && pref.lh) lSlider.value = pref.lh;
+                    window.applyReadingStyle();
+                }
+            }
+        } catch (e) {
+            console.error('loadReadingPref error:', e);
+        }
+    };
+
+    // 찜하기 토글
+    window.toggleScrap = function() {
+        const btn = document.getElementById('btnScrap');
+        if(!btn) return;
+        const isScrapped = btn.dataset.scrapped === '1';
+        if(isScrapped) {
+            btn.dataset.scrapped = '';
+            btn.style.color = '#888';
+            btn.querySelector('svg polygon, svg path') && (btn.querySelector('svg').style.fill = 'none');
+            btn.querySelector('svg').style.fill = 'none';
+        } else {
+            btn.dataset.scrapped = '1';
+            btn.style.color = '#508bf5';
+            btn.querySelector('svg').style.fill = '#508bf5';
+            btn.querySelector('svg').style.stroke = '#508bf5';
+        }
+    };
+
+    window.addEventListener('scroll', () => {
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        const scrollPos = window.scrollY;
+        const scrollPercent = docHeight > 0 ? (scrollPos / docHeight) * 100 : 0;
+        const indicator = document.getElementById('scrollIndicator');
+        if(indicator) indicator.style.width = scrollPercent + '%';
+        
+        // Sticky Header scroll detection
+        const header = document.querySelector('.header');
+        if (header) {
+            if (window.scrollY > 40) {
+                header.classList.add('is-sticky');
+            } else {
+                header.classList.remove('is-sticky');
+            }
+        }
+    });
+
+    // Text Banner Ticker Animation & Dropdown
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('txt-banner-container');
+        const bannerList = document.getElementById('txt-banner-list');
+        const dropdown = document.querySelector('.txt-dropdown');
+        if (!bannerList || !container || !dropdown) return;
+        
+        const items = bannerList.querySelectorAll('li');
+        if (items.length <= 1) return;
+        
+        let idx = 0;
+        const itemHeight = 24; 
+        
+        const firstClone = items[0].cloneNode(true);
+        bannerList.appendChild(firstClone);
+        const totalItems = items.length + 1;
+        
+        let tickerInterval;
+        function startTicker() {
+            tickerInterval = setInterval(() => {
+                idx++;
+                bannerList.style.transition = 'transform 0.5s ease-in-out';
+                bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
+                if (idx === totalItems - 1) {
+                    setTimeout(() => {
+                        bannerList.style.transition = 'none';
+                        bannerList.style.transform = `translateY(0)`;
+                        idx = 0;
+                    }, 500);
+                }
+            }, 3000);
+        }
+        startTicker();
+        
+        container.addEventListener('mouseenter', () => {
+            clearInterval(tickerInterval);
+            dropdown.style.display = 'block';
+        });
+        container.addEventListener('mouseleave', () => {
+            startTicker();
+            dropdown.style.display = 'none';
+        });
+    });
+    
+    window.openShareModal = function() {
+        document.getElementById('shareArticleModal').style.display = 'flex';
+    };
+
+    window.copyArticleShareLink = function() {
+        navigator.clipboard.writeText(window.location.href).then(() => {
+            alert("기사 URL이 복사되었습니다.");
+            document.getElementById('shareArticleModal').style.display = 'none';
+        });
+    };
+
+    window.shareArticleToKakao = function() {
+        if (typeof Kakao === 'undefined') {
+            alert('카카오 공유 기능을 불러오지 못했습니다.');
+            return;
+        }
+        if (!Kakao.isInitialized()) {
+            Kakao.init('435d3602201a49ea712e5f5a36fe6efc');
+        }
+        
+        let pTitle = document.getElementById('detailTitle')?.innerText || '공실뉴스 기사';
+        let pImg = 'https://via.placeholder.com/800x400/1e56a0/ffffff?text=GongsilNews';
+        const imgEl = document.querySelector('.article-img');
+        if (imgEl && imgEl.src && !imgEl.src.includes('NoImage')) {
+            pImg = imgEl.src;
+        }
+
+        try {
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: pTitle,
+                    description: '공실뉴스에서 상세 기사를 확인해보세요.',
+                    imageUrl: pImg,
+                    link: {
+                        mobileWebUrl: window.location.href,
+                        webUrl: window.location.href,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '기사 보기',
+                        link: {
+                            mobileWebUrl: window.location.href,
+                            webUrl: window.location.href,
+                        },
+                    },
+                ],
+            });
+            document.getElementById('shareArticleModal').style.display = 'none';
+        } catch (err) {
+            console.error('Kakao Share error:', err);
+            alert('카카오톡 공유에 실패했습니다.');
+        }
+    };
+
+    window.shareGongsilToKakao = function() {
+        if (typeof Kakao === 'undefined') {
+            alert('카카오 공유 기능을 불러오지 못했습니다.');
+            return;
+        }
+        if (!Kakao.isInitialized()) {
+            Kakao.init('435d3602201a49ea712e5f5a36fe6efc'); 
+        }
+        
+        // 공실 가이드맵 절대주소
+        const gongsilUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'gongsil/index.html';
+        
+        try {
+            Kakao.Share.sendDefault({
+                objectType: 'feed',
+                content: {
+                    title: '공실뉴스 - 공실가이드맵',
+                    description: '다양한 매물을 공실가이드맵에서 한눈에 확인해보세요!',
+                    imageUrl: 'https://via.placeholder.com/800x400/1a73e8/ffffff?text=Gongsil+Map',
+                    link: {
+                        mobileWebUrl: gongsilUrl,
+                        webUrl: gongsilUrl,
+                    },
+                },
+                buttons: [
+                    {
+                        title: '공실매물 보러가기',
+                        link: {
+                            mobileWebUrl: gongsilUrl,
+                            webUrl: gongsilUrl,
+                        },
+                    },
+                ],
+            });
+            document.getElementById('shareArticleModal').style.display = 'none';
+        } catch (err) {
+            console.error('Kakao Share error:', err);
+            alert('카카오톡 공유에 실패했습니다.');
+        }
+    };
+    
+    async function loadPopularSidebarNews() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        const { data, error } = await sb.from('articles').select('id, title, view_count').eq('status', 'published').order('view_count', { ascending: false }).limit(5);
+        const c = document.getElementById('popularNewsSidebarContainer');
+        if(error || !data) return;
+        c.innerHTML = data.map((item, i) => `
+            <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
+                <span class="pop-ranking">${i+1}</span>
+                <span class="pop-title">${item.title}</span>
+            </li>
+        `).join('');
+    }
+    
+    async function loadRecommendSidebarProps() {
+        const container = document.getElementById('recommendPropSidebarContainer');
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+
+        const { data, error } = await sb.from('properties')
+            .select('*')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(4);
+
+        if(error || !data || data.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">추천 공실이 없습니다.</div>';
+            return;
+        }
+
+        function formatPriceValue(val) {
+            val = Number(val);
+            if (!val || val === 0) return '0';
+            if (val >= 10000) {
+                const uk = Math.floor(val / 10000);
+                const man = val % 10000;
+                return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
+            }
+            return val.toLocaleString();
+        }
+
+        container.innerHTML = data.map(p => {
+            let propTitle = p.building_name || p.property_type || '공실매물';
+            if (p.main_category === '아파트·오피스텔') {
+                let aptName = p.building_name || p.property_type || '';
+                let dongStr = '';
+                if (p.dong_number) dongStr = String(p.dong_number).includes('동') ? p.dong_number : `${p.dong_number}동`;
+                let roomStr = '';
+                if (p.room_number) roomStr = String(p.room_number).includes('호') ? p.room_number : `${p.room_number}호`;
+                let tempStr = `${aptName} ${dongStr} ${roomStr}`.trim();
+                if (tempStr) propTitle = tempStr;
+            }
+
+            const badgeText = (function(pf) {
+                if (!pf) return '공실매물';
+                if (pf.includes('100') || pf.includes('양타')) return '수수료100%';
+                if (pf.includes('50') || pf.includes('단타')) return '수수료50%';
+                if (pf.includes('25')) return '수수료25%';
+                if (pf.includes('공동')) return '공동중개';
+                return '공동중개';
+            })(p.brokerage_fee);
+
+            const dep = formatPriceValue(p.deposit);
+            let priceStr = '';
+            if (p.trade_type === '매매' || p.trade_type === '전세') priceStr = `${p.trade_type} ${dep}`;
+            else priceStr = `${p.trade_type} ${dep}/${p.monthly_rent || 0}`;
+
+            const supAreaM2 = p.supply_area ? parseFloat(p.supply_area) : 0;
+            const excAreaM2 = p.dedicated_area ? parseFloat(p.dedicated_area) : (p.area ? parseFloat(p.area) : 0);
+            const fmtM2P = (m2) => m2 ? `${m2}㎡(${(m2 / 3.3058).toFixed(1)}평)` : '';
+            let areaDisplay = '';
+            if (supAreaM2 && excAreaM2) areaDisplay = `${fmtM2P(supAreaM2)} / ${fmtM2P(excAreaM2)}`;
+            else if (supAreaM2) areaDisplay = fmtM2P(supAreaM2);
+            else if (excAreaM2) areaDisplay = fmtM2P(excAreaM2);
+
+            let locStr = '';
+            if(p.address) {
+                 const words = p.address.split(' ');
+                 if(words.length > 2) locStr = words[2];
+                 else locStr = words[0];
+            } else {
+                 locStr = p.location || '';
+            }
+
+            let metaArr = [];
+            if(locStr) metaArr.push(locStr);
+            if(areaDisplay) metaArr.push('면적 ' + areaDisplay);
+            
+            let extraArr = [];
+            if(p.room_count) extraArr.push(`룸 ${p.room_count}개`);
+            if(p.bathroom_count) extraArr.push(`욕실 ${p.bathroom_count}개`);
+            
+            let metaHtml = metaArr.join(' · ');
+            if (extraArr.length > 0) metaHtml += '<br>' + extraArr.join(', ');
+
+            let imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/80?text=NoImg';
+
+            return `
+            <div class="prop-item" onclick="window.location.href='gongsil/index.html'">
+                <div class="prop-info" style="min-width:0; overflow:hidden;">
+                    <div class="prop-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width:180px;">${propTitle}</div>
+                    <div class="prop-price">${priceStr}</div>
+                    <div class="prop-meta">${metaHtml}</div>
+                    <span class="prop-badge">${badgeText}</span>
+                </div>
+                <div class="prop-img-wrapper" style="flex-shrink:0;">
+                    <img src="${imgUrl}" class="prop-img" onerror="this.src='https://via.placeholder.com/80?text=NoImg'">
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+    
+    </script>
+</body>
+</html>

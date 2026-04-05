@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <!-- 모바일 맵 최적화: user-scalable=no 추가 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>공실뉴스 지도 (Gongsil News Map)</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+
+    <style>
+        /* 초기 로딩 및 풀스크린 맵 레이아웃 최적화 */
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* 상단 고정 요소 처리 (메뉴 끊김 방지) */
+        .header { flex: none; }
+        .news-nav-bar { flex: none; }
+        
+        /* 메인 컨텐츠 영역은 남은 공간만 100% 점유 */
+        .main-container {
+            flex: 1;
+            height: auto;
+            min-height: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .detail-container { 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            display: grid;
+            grid-template-columns: 1fr 300px; /* 우측 광고/배너 영역 300px */
+            column-gap: 40px; 
+            row-gap: 15px; /* 헤더와 본문 사이의 간극 축소 */
+            padding: 20px 40px 40px; /* 상단 여백을 20px로 줄여 좌측 사이드바와 비슷하게 정렬 */
+            position: relative;
+        }
+
+        .detail-content { min-width: 0; padding-top: 0; }
+        .detail-breadcrumb { font-size: 14px; color: #508bf5; margin-bottom: 24px; font-weight: 700; letter-spacing: -0.5px; }
+        .detail-title { font-size: 32px; font-weight: 800; color: #111; line-height: 1.35; margin-bottom: 25px; word-break: keep-all; letter-spacing: -1px; }
+        .detail-meta { 
+            display: flex; 
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #eee; 
+            border-bottom: 1px solid #eee; 
+            padding: 16px 0; 
+            margin-bottom: 40px; 
+            font-size: 14px; 
+            color: #666; 
+        }
+        .meta-info { display: flex; gap: 20px; }
+        
+        .article-body { font-size: 17px; line-height: 1.8; color: #333; font-family: 'Pretendard', sans-serif; }
+        .article-body p { margin-bottom: 24px; }
+        .article-body b { display: block; margin: 30px 0 20px; color: #111; font-size: 19px; font-weight: 700; background: #fffcf0; padding: 15px; border-left: 4px solid #508bf5; }
+        .article-img-wrap { width: 100%; border-radius: 8px; overflow: hidden; margin: 30px 0; }
+        .article-img { width: 100%; display: block; }
+        
+        .detail-sidebar { position: sticky; top: 20px; align-self: start; }
+        .ad-banner {
+            background:#f9f9f9; 
+            padding:15px; 
+            border:1px solid #eee; 
+            margin-bottom:20px; 
+            border-radius:8px;
+        }
+
+        .btn-close-detail { 
+            position: absolute;
+            background: #222; 
+            color: #fff; 
+            border-radius: 40px; 
+            padding: 10px 24px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer; 
+            transition: all 0.2s;
+            z-index: 2100;
+        }
+        .btn-close-detail:hover { background: #000; }
+
+        #news-detail-view {
+            position: absolute; /* 맵 래퍼 내의 디폴트 포지션 */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f2f4f7;
+            z-index: 2000;
+            overflow-y: auto;
+            display: none;
+            box-sizing: border-box;
+            box-shadow: -2px 0 10px rgba(0,0,0,0.1);
+            animation: fadeIn 0.2s ease;
+        }
+        
+        /* 뉴스/칼럼 (포털 모드) 일 때는 맵 플로팅이 아니며, portal-view에서 자체 스크롤 권한을 갖도록 position 해제 */
+        body.portal-mode #news-detail-view {
+            position: relative;
+            height: auto;
+            overflow-y: visible;
+            box-shadow: none;
+        }
+
+        #news-detail-view:not(.map-floating-mode) .detail-container {
+            background-color: #ffffff;
+            max-width: 1200px; 
+            margin: 20px auto 40px; /* 기존과 완벽히 오차없는 20px 갭 유지 */
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #e1e4e8;
+            padding: 30px 40px; 
+        }
+
+        /* 우리동네부동산 맵 위 플로팅 모드 (우측 배너 제거 및 축소) */
+        #news-detail-view.map-floating-mode {
+            width: 750px; /* 1200px에서 축소하여 맵 영역 확보 */
+            max-width: 100%; /* 모바일 대응 */
+            height: 100%;
+            border-right: 1px solid #ddd;
+            box-shadow: 5px 0 20px rgba(0,0,0,0.1);
+            animation: fadeIn 0.2s ease;
+            position: absolute;
+            left: 0;
+            top: 0;
+            background-color: #ffffff; /* 플로팅 뷰 자체는 지도 위에 뜨므로 하얀색 배경 유지 */
+        }
+
+        #news-detail-view.map-floating-mode .detail-container {
+            grid-template-columns: 1fr; /* 우측 사이드바 컬럼 제거 */
+        }
+        
+        #news-detail-view.map-floating-mode .detail-sidebar {
+            display: none !important; /* 플로팅 모드에서는 우측 배너 숨김 */
+        }
+        
+        #news-detail-view:not(.map-floating-mode) .map-sidebar-content {
+            display: none !important; /* 포털 모드인 경우 매물 사이드바 숨김 */
+        }
+
+
+
+        .article-x-btn {
+            position: absolute;
+            top: -10px; /* 약간 위로 조정하여 시각적 밸런스 맞춤 */
+            right: 0;
+            background: none;
+            border: none;
+            font-size: 32px;
+            color: #999;
+            cursor: pointer;
+            transition: color 0.15s ease;
+            padding: 10px; /* 클릭 영역 확보 */
+            line-height: 1;
+            z-index: 10;
+        }
+        .article-x-btn:hover {
+            color: #508bf5; /* 오렌지색상 반영 */
+        }
+
+        #news-detail-view.map-floating-mode .btn-close-detail {
+            top: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 13px;
+            display: none; /* 플로팅 중앙 x버튼 추가됨으로 인해 기존 투박한 검은버튼 숨김 */
+        }
+
+        /* ========================================
+           기사 스크롤 리더 인디케이터 (플로팅 헤더)
+           ======================================== */
+        #stickyReadHeader {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            z-index: 3000;
+            transform: translateY(-100%);
+            transition: transform 0.3s ease, opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            margin-bottom: -62px; /* ★ 핵심: 문서 흐름에서 높이를 제거하여 아래쪽 공백 0으로 만듦 */
+        }
+        #stickyReadHeader.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .str-container {
+            display: flex;
+            height: 48px; /* 높이를 전체기사 탭 48px와 정확히 일치 */
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .str-left, .str-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+        .str-btn { 
+            background: #fff; border: 1px solid #ddd; padding: 6px; width: 34px; height: 34px; font-size: 16px; border-radius: 6px;
+            cursor: pointer; color: #333; font-weight: bold; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .str-btn:hover { background: #f9f9f9; color: #508bf5; border-color: #508bf5; }
+        .str-logo { height: 24px; margin-left: 10px; cursor: pointer; }
+        .str-center { flex: 1; min-width: 0; padding: 0 30px; display: flex; align-items: center; justify-content: center; }
+        .str-title { 
+            font-size: 18px; font-weight: 800; color: #111; /* 제목 폰트 사이즈 키움 */
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
+        }
+        .str-progress-bar { width: 100%; height: 1.5px; background: #e2e8f0; }
+        .str-progress-indicator { height: 100%; background: #508bf5; width: 0%; transition: width 0.1s ease-out; }
+
+        /* ========================================
+           포털 뉴스 그리드 전용 레이어 스타일
+           ======================================== */
+        #portal-view {
+            display: none;
+            flex: 1;
+            width: 100%;
+            background: #f2f4f7; /* 네이버와 같은 옅은 파란회색 배경 */
+            overflow-y: auto;
+            position: relative;
+        }
+        /* 포털 모드일 때 메인컨테이너(지도) 숨기고 포털 뷰 보이기 */
+        body.portal-mode .main-container { display: none !important; }
+        body.portal-mode #portal-view { display: block !important; }
+
+        .portal-body {
+            max-width: 1200px; /* 우리동네부동산 상세폭(1200px)과 정확히 맞춤 */
+            margin: 20px auto 40px; /* 상단 여백 축소하여 위아래 과도한 갭 줄임 */
+            padding: 30px 40px; /* 내부 좌우 여백을 기존 디폴트와 맞춤 */
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid #e1e4e8;
+        }
+        .portal-section-title {
+            display: none; /* 섹션 타이틀 삭제 요청 반영 */
+            font-size: 22px;
+            font-weight: 900;
+            color: #111;
+            margin-bottom: 28px;
+            padding-left: 12px;
+            border-left: 4px solid #508bf5;
+        }
+        /* 포털 메인 2단 레이아웃 */
+        .portal-layout {
+            display: grid;
+            grid-template-columns: 1fr 340px; /* 좌측 1fr, 우측 사이드바 340px */
+            gap: 40px;
+        }
+
+        /* ==== 좌측 메인 영역 ==== */
+        .portal-main { min-width: 0; }
+        
+        /* 핫 아티클 (최상단 큰 기사) */
+        .portal-hot-article {
+            margin-bottom: 30px;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        .portal-hot-title {
+            font-size: 32px;
+            font-weight: 800;
+            color: #111;
+            line-height: 1.35;
+            margin-bottom: 16px;
+            letter-spacing: -0.5px;
+            transition: color 0.2s;
+        }
+        .portal-hot-article:hover .portal-hot-title { color: #555; text-decoration: none; }
+        .portal-hot-img-wrap {
+            width: 100%;
+            height: 400px;
+            overflow: hidden;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            background: #eee;
+        }
+        .portal-hot-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.4s ease;
+        }
+        .portal-hot-article:hover .portal-hot-img { transform: scale(1.04); }
+        .portal-hot-desc {
+            font-size: 15px;
+            color: #555;
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .portal-divider {
+            height: 1px;
+            background: #eee;
+            margin: 30px 0;
+            border: none;
+        }
+
+        /* 리스트형 기사 */
+        .portal-list-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-bottom: 1px solid #f1f3f5;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .portal-list-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .portal-list-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #222;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: color 0.2s;
+        }
+        .portal-list-item:hover .portal-list-title { color: #555; text-decoration: none; }
+        .portal-list-desc {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .portal-list-meta { font-size: 13px; color: #999; margin-top: auto; }
+        .portal-list-img-wrap {
+            width: 160px;
+            height: 100px;
+            border-radius: 6px;
+            background: #f0f0f0;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .portal-list-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .portal-list-item:hover .portal-list-img { transform: scale(1.05); }
+
+        /* 더보기 버튼 */
+        .portal-btn-more {
+            display: block;
+            width: 100%;
+            padding: 16px;
+            text-align: center;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: background 0.2s;
+        }
+        .portal-btn-more:hover { background: #f9f9f9; border-color: #999; color: #111; }
+
+        /* ==== 우측 사이드바 영역 ==== */
+        .portal-side { 
+            min-width: 0; 
+        }
+        .portal-side.sticky-sidebar {
+            position: sticky;
+            top: 40px;
+            align-self: flex-start;
+        }
+        /* 우측 상단 소형 기사 4개 */
+        .portal-side-top { 
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+        .portal-side-item {
+            display: flex;
+            gap: 16px;
+            padding-bottom: 15px; /* 약간 여백 축소 */
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            text-decoration: none;
+            align-items: center;
+        }
+        .portal-side-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .portal-side-item-content { flex: 1; min-width: 0; align-self: stretch; display: flex; align-items: center; }
+        .portal-side-item-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111;
+            line-height: 1.45;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            transition: color 0.2s;
+        }
+        .portal-side-item:hover .portal-side-item-title { color: #555; text-decoration: none; }
+        .portal-side-item-img-wrap {
+            width: 120px;
+            height: 80px;
+            border-radius: 4px;
+            background: #eee;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .portal-side-item-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .portal-side-item:hover .portal-side-item-img { transform: scale(1.05); }
+
+        /* 배너 */
+        .portal-banner {
+            width: 100%;
+            background: #eef1f5;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #888;
+            font-size: 15px;
+            font-weight: bold;
+            text-align: center;
+            overflow: hidden;
+            border: 1px solid #ddd;
+            min-height: 250px;
+        }
+        .portal-banner img { width: 100%; height: auto; display: block; }
+
+        /* 많이 본 뉴스 */
+        .portal-popular { margin-bottom: 30px; }
+        .portal-popular-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 2px solid #111;
+        }
+        .portal-popular-list { list-style: none; padding: 0; margin: 0; }
+        .portal-popular-list li {
+            display: flex;
+            font-size: 14px;
+            margin-bottom: 16px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .portal-popular-num { font-weight: 900; color: #508bf5; width: 24px; flex-shrink: 0; font-size: 15px; }
+        .portal-popular-text { font-weight: 600; color: #555; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; transition: color 0.1s; }
+        .portal-popular-list li:hover .portal-popular-text { color: #111; text-decoration: underline; }
+
+
+        /* 신규 뉴스 네비게이션 스타일 - 공실열람과 간격/폰트 완벽 통일 */
+        .news-nav-bar { background: #fff; border-bottom: 1px solid #ddd; z-index: 50; position: relative; }
+        .news-tier1 { display: flex; gap: 24px; padding: 0 20px; border-bottom: 1px solid #ddd; overflow-x: auto; }
+        .news-tab-item { background: none; border: none; font-size: 16px; font-weight: bold; color: #555; cursor: pointer; padding: 16px 4px; position: relative; white-space: nowrap; font-family: inherit; }
+        .news-tab-item:hover { color: #508bf5; }
+        .news-tab-item.active { color: #508bf5; border-bottom: 3px solid #508bf5; }
+
+        .filter-bar-news { background: #fff; border-bottom: 1px solid #e0e0e0; }
+        .filter-row { display: flex; align-items: center; gap: 8px; padding: 10px 20px; overflow-x: auto; }
+        body.portal-mode .filter-row { max-width: 1200px; margin: 0 auto; padding: 10px 20px; }
+        .news-pill { background: #fff; border: 1px solid #ccc; padding: 6px 14px; border-radius: 20px; font-size: 13px; color: #333; cursor: pointer; white-space: nowrap; transition: all 0.2s; font-weight: 500; font-family: inherit; }
+        .news-pill:hover { background: #f9fafb; border-color: #999; }
+        .news-pill.active { background: #fff8f1; border-color: #508bf5; color: #508bf5; font-weight: bold; }
+        .news-pill.active::before { content: '✓ '; font-weight: bold; }
+
+        /* MY관심기사/기사관리 전용 탭 (사이드바 내부) */
+        .news-interest-tabs { display: none; width: 100%; border-bottom: 1px solid #eee; }
+        .wish-mode .news-interest-tabs { display: flex; }
+        .news-interest-tab { flex: 1; padding: 12px 0; text-align: center; border: 1px solid #eee; background: #fff; font-size: 13px; cursor: pointer; color: #666; font-weight: bold; border-top: none; }
+        .news-interest-tab.active { background: #508bf5; color: #fff; border-color: #508bf5; }
+        
+        .news-wish-sort-bar { display: none; padding: 12px 20px; justify-content: space-between; align-items: center; border-bottom: 1px solid #f5f5f5; font-size: 12px; color: #888; background: #fff; }
+        .wish-mode .news-wish-sort-bar { display: flex; }
+        .news-wish-sort-items { display: flex; gap: 10px; }
+        .news-wish-sort-item { cursor: pointer; }
+        .news-wish-sort-item.active { color: #508bf5; font-weight: bold; }
+        .news-edit-btn { cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+        /* 지도 통합 플로팅 검색 스타일 (공실열람 스타일 이식 + 주황색 테마) */
+        #wishFloatingFilter { display: flex; position: absolute; top: 15px; left: 20px; z-index: 10; background: #fff; padding: 5px 15px; border-radius: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid #ddd; align-items: center; gap: 10px; font-size: 14px; color: #333; transition: box-shadow 0.2s; }
+        #wishFloatingFilter:hover { box-shadow: 0 6px 15px rgba(0,0,0,0.15); }
+        .wish-select { background: none; border: none; cursor: pointer; font-weight: bold; padding: 5px 10px; }
+        .wish-select::after { content: ' ▼'; font-size: 10px; color: #999; }
+        
+        .region-tab { flex:1; padding:12px; background:transparent; border:none; cursor:pointer; font-weight:bold; font-size:14px; color:#666; transition:all 0.2s; border-bottom:2px solid transparent; }
+        .region-tab.active { color:var(--primary-color); border-bottom:2px solid var(--primary-color); background:#fff; }
+        .reg-item-btn { padding:8px 5px; background:#fff; border:1px solid #eee; border-radius:4px; font-size:13px; color:#444; cursor:pointer; transition:all 0.2s; text-align:center; }
+        .reg-item-btn:hover { background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
+        .region-close-btn:hover { background:#ddd !important; }
+
+        /* 유튜브 반응형 플레이어 (에디터 내 삽입 클래스 및 일반 iframe 모두 커버) */
+        .yt-wrap, .yt-ratio-box {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 비율 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            margin: 20px 0;
+            background: #000;
+        }
+        .yt-wrap iframe, .yt-ratio-box iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* 쇼츠(세로형) 유튜브 영상 플레이어 */
+        .yt-shorts-box {
+            position: relative;
+            width: 100%;
+            max-width: 320px; /* 스마트폰 세로 비율 최대 너비 제한 */
+            aspect-ratio: 9 / 16;
+            margin: 30px auto; /* 가운데 정렬 */
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .yt-shorts-box iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        
+        /* 혹시라도 위 클래스 없이 에디터에서 단순 비디오 추가한 경우 대비 */
+        .article-body iframe[src*="youtube"] {
+            width: 100% !important;
+            border-radius: 8px;
+            aspect-ratio: 16/9;
+            height: auto !important;
+        }
+
+        .yt-drag-handle {
+            display: none !important; /* 드래그 아이콘/텍스트는 뷰에서는 숨김 */
+        }
+        
+        /* 대형 이전/다음 네비게이션 화살표 (스크롤 시 자동 숨김) */
+        .big-nav-arrow {
+            position: fixed;
+            top: 50vh;
+            transform: translateY(-50%);
+            width: 80px;
+            height: 120px;
+            background: rgba(120, 120, 120, 0.5); /* 더 진하게 수정 */
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 60px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 8px;
+            z-index: 9999;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .big-nav-arrow:hover { background: rgba(80, 80, 80, 0.8); }
+        .big-nav-arrow.hidden { opacity: 0; pointer-events: none; }
+        .big-prev-arrow { left: 40px; }
+        .big-next-arrow { right: 40px; }
+        @media (max-width: 1400px) {
+            .big-nav-arrow { display: none !important; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 새 상단 메뉴 (우리동네뉴스 전용) -->
+    <header class="slim-header" style="display:flex; align-items:center; padding: 12px 20px; border-bottom:1px solid #ddd; background:#fff; z-index:100; position:relative;">
+        <a href="./" class="logo-img-link" style="margin-right: 15px; display:flex; align-items:center;">
+            <img src="logo.png" alt="공실뉴스" style="height: 34px;">
+        </a>
+        <h1 style="font-size: 26px; font-weight: 800; margin: 0; margin-right: 20px; color:#111;">우리동네뉴스</h1>
+        <select id="sec1Filter" class="news-select-filter" onchange="window.onSec1FilterChange(this.value)" style="padding: 6px 10px; border:1px solid #ccc; border-radius:4px; outline:none; font-size:14px; min-width:130px; font-weight:600; cursor:pointer;">
+            <option value="">1차섹션 전체</option>
+            <option value="우리동네부동산">우리동네부동산</option>
+            <option value="뉴스/칼럼">뉴스/칼럼</option>
+        </select>
+        <select id="sec2Filter" class="news-select-filter" onchange="window.onSec2FilterChange(this.value)" style="padding: 6px 10px; border:1px solid #ccc; border-radius:4px; outline:none; font-size:14px; min-width:130px; font-weight:600; cursor:pointer; margin-left:8px;">
+            <option value="">2차섹션 전체</option>
+        </select>
+        <script>
+            var SEC_FILTER_SUBS = {
+                '': [],
+                '우리동네부동산': ['아파트\u00b7오피스텔', '빌라\u00b7주택', '원룸\u00b7투룸', '상가\u00b7업무\u00b7공장\u00b7토지', '분양'],
+                '뉴스/칼럼': ['부동산·주식·재테크', '정치·경제·사회', '세무·법률', '여행·맛집', '건강·헬스', 'IT·가전·가구', '스포츠·연예·Car', '인물·미션·기타']
+            };
+            window.onSec1FilterChange = function(val) {
+                var sec2 = document.getElementById('sec2Filter');
+                sec2.innerHTML = '<option value="">2차섹션 전체</option>';
+                var subs = SEC_FILTER_SUBS[val] || [];
+                subs.forEach(function(s) {
+                    var opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s;
+                    sec2.appendChild(opt);
+                });
+                if (typeof window.loadNews === 'function') window.loadNews(val || '전체기사');
+            };
+            window.onSec2FilterChange = function(val) {
+                var sec1 = (document.getElementById('sec1Filter') || {}).value || '';
+                if (typeof window.loadNews === 'function') window.loadNews(val || sec1 || '전체기사');
+            };
+            window.selectSelectTab = function(val) { window.onSec1FilterChange(val); };
+        </script>
+    </header>
+
+    <!-- 포털 뉴스 전용 레이어 (뉴스/칼럼 탭 클릭 시 표시) -->
+    <div id="portal-view">
+        <div class="portal-body">
+            <div class="portal-section-title" id="portalSectionTitle">최신 뉴스</div>
+            <div id="portalContainer">
+                <!-- JS Load Area -->
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 컨텐츠 (지도 + 사이드바) -->
+    <main class="main-container">
+
+        <!-- 좌측 사이드바 (뉴스 리스트) -->
+        <aside class="sidebar">
+            <div class="sidebar-header" style="padding: 0; border-bottom: none;">
+                <!-- MY관심기사 전용 탭 -->
+                <div class="news-interest-tabs" id="newsInterestTabs">
+                    <!-- JS rendering -->
+                </div>
+
+                <!-- MY관심기사 정렬 바 -->
+                <div class="news-wish-sort-bar" id="newsWishSortBar">
+                    <div class="news-wish-sort-items">
+                        <span class="news-wish-sort-item active">등록일순</span>
+                        <span class="news-wish-sort-item">가나다순</span>
+                        <span class="news-wish-sort-item">세대수순</span>
+                        <span class="news-wish-sort-item">최근입주순</span>
+                    </div>
+                    <span class="news-edit-btn">⚙︎ 편집</span>
+                </div>
+
+                <h2 id="newsCategoryTitle" style="padding: 15px 20px; margin: 0; font-size: 15px; font-weight: 800; color: #111; border-bottom: 1px solid #eee; display: flex; align-items: center;">최신 뉴스</h2>
+            </div>
+            <div id="news-content" class="news-list">
+                <!-- 자바스크립트로 뉴스 로드됨 -->
+                <div class="loading-spinner">뉴스 불러오는 중...</div>
+            </div>
+        </aside>
+
+        <!-- 우측 지도 영역 -->
+        <div class="map-wrapper">
+            <!-- 뉴스 상세 페이지 (레이아웃) -->
+            <div id="news-detail-view">
+                
+                <!-- 대형 사이드 네비게이션 화살표 -->
+                <div class="big-nav-arrow big-prev-arrow" onclick="window.navigateArticle(1)" title="이전(과거) 기사">❮</div>
+                <div class="big-nav-arrow big-next-arrow" onclick="window.navigateArticle(-1)" title="다음(최신) 기사">❯</div>
+                
+                <!-- 스크롤 리더 인디케이터 헤더 -->
+                <div id="stickyReadHeader">
+                    <div class="str-container">
+                        <div class="str-left">
+                            <button class="str-btn" onclick="window.navigateArticle(1)" title="이전(과거) 기사" style="border:none; font-size: 20px;">❮</button>
+                            <img src="https://gongsilnews.com/image/logo/logo.png" alt="로고" class="str-logo" onerror="this.onerror=null; this.style.display='none';">
+                        </div>
+                        <div class="str-center">
+                            <div class="str-title" id="stickyReadTitle">기사 제목</div>
+                        </div>
+                        <div class="str-right">
+                            <button class="str-btn btn-scrap" title="스크랩" onclick="window.scrapArticle()" style="border:none; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color='#888'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"></path></svg></button>
+                            <button class="str-btn btn-share" title="공유" onclick="window.openShareModal()" style="border:none; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color='#888'"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
+                            <button class="str-btn" title="다음(최신) 기사" onclick="window.navigateArticle(-1)" style="border:none; font-size:20px; font-weight:normal; color:#888;">❯</button>
+                            <button class="str-btn" title="닫기(목록으로)" onclick="closeNewsDetail()" style="border:none; font-size:20px; font-weight:bold; margin-left:5px; color:#888;">✕</button>
+                        </div>
+                    </div>
+                    <!-- 프로그레스 바 영역 -->
+                    <div class="str-progress-bar">
+                        <div class="str-progress-indicator" id="readProgressIndicator"></div>
+                    </div>
+                </div>
+
+                <div class="detail-container">
+                    <!-- 상단 헤더 영역 (그리드 전체 폭 차지) -->
+                    <div class="detail-header-full" style="grid-column: 1 / -1; margin-bottom: 0; position: relative;">
+                        <!-- 기사 닫기 x버튼 (우측 상단) -->
+                        <button class="article-x-btn" onclick="closeNewsDetail()" title="닫기 ✕">✕</button>
+                        
+                        <div class="detail-breadcrumb" id="detailCategory" style="font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600;">뉴스/칼럼 > 부동산·주식·재테크</div>
+                        <h1 class="detail-title" id="detailTitle" style="font-size: 36px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 16px; letter-spacing:-1.5px; word-break:keep-all;">로딩 중...</h1>
+                        <div class="detail-meta" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 0;">
+                            <div class="meta-info" style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">
+                                <span id="detailAuthor" style="color: #111; font-weight: bold;">공실뉴스</span>
+                                <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                                <span id="detailDate">입력 2026.03.19 10:51</span>
+                                <span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>
+                                <span id="detailViews">조회수 0</span>
+                            </div>
+                            <div class="meta-stats" style="display: flex; gap: 16px; align-items: center; color: #333; font-size: 20px;">
+                                <a id="btnViewOriginal" href="#" style="font-size: 13px; font-weight: bold; color: #508bf5; border: 1px solid #508bf5; border-radius: 20px; padding: 4px 14px; text-decoration: none; transition: all 0.2s; display:none;" onmouseover="this.style.background='#508bf5'; this.style.color='#fff';" onmouseout="this.style.background='transparent'; this.style.color='#508bf5';">원문보기</a>
+                                <span class="btn-scrap" style="display:flex; align-items:center; cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color='#888'" title="스크랩" onclick="window.scrapArticle()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z"></path></svg></span>
+                                <span class="btn-share" style="display:flex; align-items:center; cursor:pointer; color:#888; transition:color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color='#888'" title="공유" onclick="window.openShareModal()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></span>
+                                <!-- 글자 크기 조절 버튼 -->
+                                <span style="cursor:pointer; color:#888; transition:color 0.2s; font-size:14px; font-weight:700; display:flex; align-items:baseline; gap:1px; letter-spacing:-1px;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="글자 크기" onclick="document.getElementById('fontSizeModal').style.display='flex'">
+                                    <span style="font-size:13px;">가</span><span style="font-size:17px;">가</span>
+                                </span>
+                                <!-- 프린트 -->
+                                <span style="cursor:pointer; color:#888; transition:color 0.2s; display:flex; align-items:center;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#888'" title="기사 인쇄" onclick="window.print()">
+                                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 글자 크기 조절 모달 -->
+                    <div id="fontSizeModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                        <div style="background:#fff; border-radius:16px; padding:36px 40px; width:380px; position:relative; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                            <button onclick="document.getElementById('fontSizeModal').style.display='none'" style="position:absolute; top:14px; right:16px; background:none; border:none; font-size:22px; cursor:pointer; color:#888;">&#10005;</button>
+                            <div style="margin-bottom:28px;">
+                                <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자크기</div>
+                                <input type="range" id="fontSizeSlider" min="13" max="24" value="17" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>가</span><span style="font-size:16px;">가</span></div>
+                            </div>
+                            <div>
+                                <div style="font-size:16px; font-weight:700; color:#111; margin-bottom:14px; text-align:center;">글자행간</div>
+                                <input type="range" id="lineHeightSlider" min="140" max="240" value="180" style="width:100%; accent-color:#111; height:4px; cursor:pointer;" oninput="applyReadingStyle()">
+                                <div style="display:flex; justify-content:space-between; font-size:12px; color:#aaa; margin-top:6px;"><span>좁게</span><span>넓게</span></div>
+                            </div>
+                            <div style="margin-top:25px; text-align:center;">
+                                <button onclick="window.saveReadingPref()" style="background:#508bf5; color:#fff; border:none; padding:10px 24px; border-radius:6px; font-weight:bold; font-size:14px; cursor:pointer;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#508bf5'">설정 저장하기</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 공유하기 모달 -->
+                    <div id="shareArticleModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:99999; align-items:center; justify-content:center;" onclick="if(event.target===this)this.style.display='none'">
+                        <div style="background:#fff; border-radius:16px; padding:32px 24px; width:340px; box-sizing:border-box; position:relative; text-align:center; box-shadow:0 10px 40px rgba(0,0,0,0.2);">
+                            <button onclick="document.getElementById('shareArticleModal').style.display='none'" style="position:absolute; top:12px; right:16px; background:none; border:none; font-size:24px; color:#888; cursor:pointer;">✕</button>
+                            <h3 style="margin:0 0 24px 0; font-size:18px; color:#111; font-weight:800;">공유하기</h3>
+                            
+                            <button onclick="window.shareArticleToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#FEE500; color:#111; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:12px;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="#111"><path d="M12 3c5.523 0 10 3.866 10 8.636 0 4.77-4.477 8.636-10 8.636-1.745 0-3.385-.386-4.832-1.07l-4.223 1.155a.49.49 0 0 1-.58-.65l1.096-3.876C2.264 14.162 1 12.167 1 11.636 1 6.866 5.477 3 12 3z"/></svg>
+                                카카오톡으로 기사 공유
+                            </button>
+                            
+                            <button onclick="window.shareGongsilToKakao()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:8px; background:#1a73e8; color:#fff; border:none; padding:14px; border-radius:8px; font-size:15px; font-weight:bold; cursor:pointer; margin-bottom:16px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                                공실매물 공유하기
+                            </button>
+                            
+                            <button onclick="window.copyArticleShareLink()" style="width:100%; background:#f5f5f5; border:none; color:#555; font-size:14px; cursor:pointer; padding:12px; border-radius:8px; font-weight:600;">
+                                기사 링크 복사
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 좌측 본문 영역 -->
+                    <div class="detail-content" style="padding-top: 0;">
+                        <div class="article-body" id="detailBody">
+                            <!-- JS에서 내용 채움 -->
+                        </div>
+
+                        <!-- 공통 기사 하단 영역 (태그, 기자 정보, 댓글) -->
+                        <div id="articleFooterArea" style="margin-top: 40px; display: none;">
+                            <!-- 키워드 해시태그 -->
+                            <div id="footerKeywords" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:40px;">
+                                <!-- JS 로드 -->
+                            </div>
+                            
+                            <!-- 기자, 다른기사보기, 저작권 -->
+                            <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #ccc; border-bottom:1px solid #ccc; padding:15px 0; margin-bottom:50px; font-size:15px;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span id="footerReporter" style="font-weight:800; color:#111;">공실뉴스</span>
+                                    <a href="javascript:void(0)" style="color:#aaa; text-decoration:none; font-size:14px;" onmouseover="this.style.color='#777'" onmouseout="this.style.color='#aaa'">다른기사 보기</a>
+                                </div>
+                                <div style="color:#888; font-size:13px; letter-spacing:-0.3px;">
+                                    저작권자 © 공실뉴스 무단전재 및 재배포 금지
+                                </div>
+                            </div>
+
+                            <!-- 댓글 섹션 -->
+                            <div class="comments-section" style="margin-bottom: 60px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                                    <div style="font-size:22px; font-weight:800;" id="portalCommentCount">0개의 댓글</div>
+                                    <div style="font-size:14px; color:#555; cursor:pointer;">내 댓글 〉</div>
+                                </div>
+                                
+                                <!-- 댓글 입력창 -->
+                                <div style="border:1px solid #ddd; border-radius:6px; padding:15px; margin-bottom:30px; background:#fff;">
+                                    <div style="font-weight:bold; margin-bottom:12px; color:#333; font-size:14px;" id="commentUserName">로그인이 필요합니다</div>
+                                    <textarea id="commentInput" placeholder="댓글을 남겨보세요" style="width:100%; height:44px; border:none; resize:none; font-family:inherit; font-size:15px; outline:none; background:transparent;"></textarea>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid #eee; padding-top:12px; margin-top:8px;">
+                                        <div style="font-size:13px; color:#999; display:flex; align-items:center; gap:16px;">
+                                            <span><span style="font-weight:bold; color:#111;" id="commentLength">0</span> / 400</span>
+                                            <label style="cursor:pointer; display:flex; align-items:center; gap:4px; color:#555;">
+                                                <input type="checkbox" id="isSecretComment" style="accent-color:#508bf5;"> 비밀댓글
+                                            </label>
+                                        </div>
+                                        <button style="background:#508bf5; color:#fff; border:none; border-radius:4px; padding:8px 24px; font-weight:bold; cursor:pointer; font-size:14px;" onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#508bf5'" onclick="submitPortalComment()">등록</button>
+                                    </div>
+                                </div>
+
+                                <!-- 댓글 목록 필터 -->
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; padding-bottom:12px; border-bottom:1px solid #eee;">
+                                    <div style="display:flex; gap:16px; font-size:15px;">
+                                        <span style="font-weight:800; color:#111; cursor:pointer;">최신순</span>
+                                        <span style="color:#888; cursor:pointer;">추천순</span>
+                                        <span style="color:#888; cursor:pointer;">답글순</span>
+                                    </div>
+                                    <div style="font-size:13px; color:#666; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                                        BEST댓글
+                                    </div>
+                                </div>
+
+                                <!-- 개별 댓글 아이템 영역 (JS로 로드됨) -->
+                                <div id="portalCommentList">
+                                    <div style="padding:20px; text-align:center; color:#999; font-size:14px;">첫 댓글을 남겨보세요.</div>
+                                </div>
+                                
+                            </div>
+                        </div>
+
+                        <!-- 하단 관련 기사 추천 -->
+                        <div style="margin-top: 60px; padding-top: 40px; border-top: 2px solid #111;">
+                            <h3 style="font-size: 20px; font-weight: 800; margin-bottom: 25px;">함께 보면 좋은 뉴스</h3>
+                            <div id="relatedNewsGrid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">은마·목동 등 재건축 단지 불확실성 해소 전망...</div>
+                                </div>
+                                <div style="display: flex; gap: 15px; cursor:pointer;">
+                                    <div style="width: 100px; height: 70px; background: #eee; border-radius: 4px; flex-shrink:0;"></div>
+                                    <div style="font-size: 14px; font-weight: bold; line-height: 1.4;">2024년 부동산 전망 전문가 심층 토론회 개최...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="detail-sidebar">
+                        
+                        <!-- 포털 모드 전용 사이드바 (광고, 배너, 많이 본 기사) -->
+                        <div class="portal-sidebar-content">
+                            <div class="ad-banner">
+                                <div style="font-weight:bold; font-size:15px; color:#508bf5; margin-bottom:10px;">HOT 매물/광고</div>
+                                <div style="width:100%; height:140px; background:#e0e0e0; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#999;">공실가이드맵 (지도 이미지)</div>
+                                <div style="background:#333; color:#fff; text-align:center; padding:8px; font-size:12px; margin-top:8px; border-radius:4px;">강남구 역삼동 신축 빌딩 (수익률 6%)</div>
+                            </div>
+                            
+                            <div style="background:#00b894; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:10px; font-weight:bold; font-size:14px; cursor:pointer;">
+                                공실알림<br><span style="font-size:12px;font-weight:normal;">(관심도 1,000개 부동산 가입)</span>
+                            </div>
+                            <div style="background:#00cec9; color:#fff; text-align:center; padding:15px; border-radius:8px; margin-bottom:30px; font-weight:bold; font-size:14px; cursor:pointer;">
+                                신축/분양/권리조회<br><span style="font-size:12px;font-weight:normal;">(부동산 전문가에게 의뢰)</span>
+                            </div>
+
+                            <h3 style="font-size:16px; font-weight:800; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:15px;" id="detailPopularNewsTitle">많이 본 뉴스</h3>
+                            <ul class="portal-popular-list" id="detailPopularNewsList">
+                                <li><span class="portal-popular-num">1</span><span class="portal-popular-text">대법원, 신반포2차 재건축 상가 분쟁 마침표</span></li>
+                                <li><span class="portal-popular-num">2</span><span class="portal-popular-text">부모님 자산 형태에 따른 세무 가이드</span></li>
+                                <li><span class="portal-popular-num">3</span><span class="portal-popular-text">강남 아파트값 3년 만에 최고 상승률</span></li>
+                                <li><span class="portal-popular-num">4</span><span class="portal-popular-text">5호선 연장·위례신사선 확정... 서부 호재</span></li>
+                                <li><span class="portal-popular-num">5</span><span class="portal-popular-text">다주택자 양도세 중과 완화 정책 분석</span></li>
+                            </ul>
+                        </div>
+
+                        <!-- 많이 본 뉴스 하단 – 실제 등록 부동산 매물 -->
+                        <div class="map-sidebar-content">
+                            <h3 style="font-size:16px; font-weight:800; border-bottom:2px solid #111; padding-bottom:10px; margin-bottom:15px;">
+                                🏢 등록 부동산 공실
+                            </h3>
+                            <div id="sidebarPropertyList">
+                                <div style="padding:20px; text-align:center; color:#bbb; font-size:13px;">매물을 불러오는 중...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="wishFloatingFilter">
+                <span class="wish-select" id="mapRegionDo" onclick="window.openRegionSelector('sido')">위치 파악중</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" id="mapRegionGu" onclick="window.openRegionSelector('gugun')">-</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" id="mapRegionDong" onclick="window.openRegionSelector('dong')">-</span>
+                <div class="v-divider" style="height:12px;"></div>
+                <span class="wish-select" style="color:var(--primary-color);" onclick="window.toggleMapSearch()">검색 🔍</span>
+            </div>
+
+            <!-- 지역 선택 캐스케이딩 패널 -->
+            <div id="regionSelectorPanel" style="display:none; position:absolute; top:70px; left:20px; z-index:20; background:#fff; width:380px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); overflow:hidden;">
+                <div style="display:flex; border-bottom:1px solid #ccc; background:#f9f9f9;">
+                    <button class="region-tab active" id="tabSido" onclick="window.switchRegTab('sido')">시/도</button>
+                    <button class="region-tab" id="tabGugun" onclick="window.switchRegTab('gugun')">시/군/구</button>
+                    <button class="region-tab" id="tabDong" onclick="window.switchRegTab('dong')">읍/면/동</button>
+                </div>
+                <div class="region-content-box" style="padding:15px; height:250px; overflow-y:auto;">
+                    <div id="panelSido" class="reg-panel" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                    <div id="panelGugun" class="reg-panel" style="display:none; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                    <div id="panelDong" class="reg-panel" style="display:none; grid-template-columns:repeat(3, 1fr); gap:8px;"></div>
+                </div>
+                <button onclick="document.getElementById('regionSelectorPanel').style.display='none';" style="width:100%; padding:10px; border:none; background:#eee; cursor:pointer;" class="region-close-btn">닫기</button>
+            </div>
+
+            <!-- 지도 검색 입력 패널 -->
+            <div id="mapSearchPanel" style="display:none; position:absolute; top:70px; left:20px; z-index:20; background:#fff; padding:15px; border-radius:8px; box-shadow:0 4px 15px rgba(0,0,0,0.2); width:320px;">
+                <div style="display:flex; gap:8px; margin-bottom:10px;">
+                    <input type="text" id="mapSearchInput" placeholder="동, 읍, 면 또는 랜드마크 검색" style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px; outline:none;" onkeypress="if(event.key==='Enter') window.executeMapKeywordSearch()">
+                    <button onclick="window.executeMapKeywordSearch()" style="padding:8px 12px; background:var(--primary-color); color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">이동</button>
+                </div>
+                <div id="mapSearchResultList" style="max-height:200px; overflow-y:auto; font-size:13px; color:#555;"></div>
+            </div>
+
+            <div id="map"></div>
+        </div>
+    </main>
+
+    <!-- Kakao Map SDK (services 라이브러리 추가) -->
+    <script type="text/javascript"
+        src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=435d3602201a49ea712e5f5a36fe6efc&libraries=clusterer,services"></script>
+    <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.4.0/kakao.min.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="script.js?v=1.4"></script>
+
+    <!-- Supabase 인증 모듈 추가 -->
+    <script type="module" src="supabase_auth.js"></script>
+
+    <!-- 뉴스 검색 기능 스크립트 -->
+    <script>
+        window.toggleGlobalSearchPanel = function() {
+            const panel = document.getElementById('globalSearchPanel');
+            const iconClosed = document.getElementById('iconSearchClosed');
+            const iconOpened = document.getElementById('iconSearchOpened');
+
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if(iconClosed) iconClosed.style.display = 'none';
+                if(iconOpened) iconOpened.style.display = 'inline-block';
+                setTimeout(() => document.getElementById('globalKeywordInput').focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if(iconClosed) iconClosed.style.display = 'inline-block';
+                if(iconOpened) iconOpened.style.display = 'none';
+                document.getElementById('globalKeywordInput').value = '';
+                if(window.filterNewsByKeyword) window.filterNewsByKeyword('');
+            }
+        };
+
+        window.executeGlobalSearch = function() {
+            const keyword = document.getElementById('globalKeywordInput').value.trim();
+            if(window.filterNewsByKeyword) {
+                window.filterNewsByKeyword(keyword);
+            }
+        };
+
+        window.filterNewsByKeyword = function(keyword) {
+            // 뉴스 사이드바 및 포털 뷰의 카드들을 클라이언트 사이드에서 숨김 처리
+            const cards = document.querySelectorAll('#news-content > div, #portalContainer > div');
+            if(cards.length === 0) return;
+            
+            let matchCount = 0;
+            cards.forEach(card => {
+                if(card.classList.contains('empty-message') || card.classList.contains('loading-spinner')) return;
+                
+                if (!keyword) {
+                    card.style.display = '';
+                    matchCount++;
+                    return;
+                }
+                const text = card.textContent.toLowerCase();
+                if (text.includes(keyword.toLowerCase())) {
+                    card.style.display = '';
+                    matchCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            if(keyword) {
+                // 간단한 피드백
+                const toast = document.createElement('div');
+                toast.textContent = matchCount > 0 ? '검색결과 ' + matchCount + '건' : '검색 결과가 없습니다.';
+                document.body.appendChild(toast);
+                setTimeout(() => toast.remove(), 2500);
+            }
+        };
+
+        // 설정 저장하기 (회원 전용)
+        window.saveReadingPref = async function() {
+            try {
+                const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
+                if (!sb) {
+                    window.showToast('오류: 데이터베이스에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.');
+                    return;
+                }
+                const { data, error } = await sb.auth.getSession();
+                if (error) throw error;
+                const session = data?.session;
+                
+                if (!session || !session.user) {
+                    window.showToast('🚨 회원가입 또는 로그인을 하시면 나만의 글자 크기를 저장할 수 있습니다!', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+                    setTimeout(() => {
+                        if (window.handleLoginClick) window.handleLoginClick();
+                    }, 1500);
+                    return;
+                }
+                const sz = document.getElementById('fontSizeSlider').value;
+                const lh = document.getElementById('lineHeightSlider').value;
+                localStorage.setItem('gongsil_reading_pref', JSON.stringify({ sz: sz, lh: lh }));
+                window.showToast('✔️ 나만의 글자 설정이 성공적으로 저장되었습니다.', null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+                document.getElementById('fontSizeModal').style.display = 'none';
+            } catch (e) {
+                window.showToast('저장 중 오류 발생: ' + (e.message || e), null, 'top: 50%; transform: translate(-50%, -50%); margin-top: 45px;');
+                console.error('saveReadingPref error:', e);
+            }
+        };
+
+        // TTS 기능
+        window.isTTSPlaying = false;
+        window.toggleTTS = function() {
+            if (!window.speechSynthesis) {
+                window.showToast('현재 브라우저에서는 음성 듣기를 지원하지 않습니다.');
+                return;
+            }
+            if (window.isTTSPlaying) {
+                window.speechSynthesis.cancel();
+                window.isTTSPlaying = false;
+                document.getElementById('ttsIcon').style.stroke = '#555';
+                document.getElementById('ttsIcon').style.fill = 'none';
+            } else {
+                const title = document.querySelector('.article-title')?.innerText || '';
+                let content = '';
+                const bodyEl = document.getElementById('articleBody');
+                if (bodyEl) {
+                    content = Array.from(bodyEl.querySelectorAll('p, div, span, h1, h2, h3'))
+                        .filter(el => el.innerText.trim() !== '')
+                        .map(el => el.innerText.trim())
+                        .join(' ');
+                }
+                if(!content) content = document.body.innerText;
+                
+                const msg = new SpeechSynthesisUtterance(title + "...... " + content);
+                msg.lang = 'ko-KR';
+                msg.rate = 1.0;
+                msg.pitch = 1.0;
+                msg.onend = function() {
+                    window.isTTSPlaying = false;
+                    if(document.getElementById('ttsIcon')) {
+                        document.getElementById('ttsIcon').style.stroke = '#555';
+                        document.getElementById('ttsIcon').style.fill = 'none';
+                    }
+                };
+                window.speechSynthesis.speak(msg);
+                window.isTTSPlaying = true;
+                document.getElementById('ttsIcon').style.stroke = '#1a73e8';
+                document.getElementById('ttsIcon').style.fill = 'rgba(26, 115, 232, 0.1)';
+            }
+        };
+
+        // 저장된 설정 불러오기
+        window.loadReadingPref = async function() {
+            try {
+                const prefStr = localStorage.getItem('gongsil_reading_pref');
+                if (!prefStr) return;
+                const sb = window.gongsiClient || (typeof supabaseClient !== 'undefined' ? supabaseClient : null) || window.supabaseClient;
+                if (!sb) return;
+                const { data, error } = await sb.auth.getSession();
+                if (error) throw error;
+                const session = data?.session;
+                
+                if (session && session.user) {
+                    const pref = JSON.parse(prefStr);
+                    const sSlider = document.getElementById('fontSizeSlider');
+                    const lSlider = document.getElementById('lineHeightSlider');
+                    if (sSlider && pref.sz) sSlider.value = pref.sz;
+                    if (lSlider && pref.lh) lSlider.value = pref.lh;
+                    window.applyReadingStyle();
+                }
+            } catch (e) {
+                console.error('loadReadingPref error:', e);
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.loadReadingPref === 'function') {
+                window.loadReadingPref();
+            }
+        });
+
+        // 글자 크기 실시간 적용 (인라인 스타일 강제 오버라이드)
+        window.applyReadingStyle = function() {
+            const sz = parseInt(document.getElementById('fontSizeSlider').value);
+            const lh = parseInt(document.getElementById('lineHeightSlider').value);
+            const body = document.getElementById('detailBody');
+            if(!body) return;
+
+            let styleTag = document.getElementById('readingStyleOverride');
+            if(!styleTag) {
+                styleTag = document.createElement('style');
+                styleTag.id = 'readingStyleOverride';
+                document.head.appendChild(styleTag);
+            }
+            styleTag.textContent = `
+                #detailBody, #detailBody * {
+                    font-size: ${sz}px !important;
+                    line-height: ${(lh / 100).toFixed(2)} !important;
+                }
+            `;
+        };
+
+        window.openShareModal = function() {
+            document.getElementById('shareArticleModal').style.display = 'flex';
+        };
+
+        window.copyArticleShareLink = function() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                alert("기사 URL이 복사되었습니다.");
+                document.getElementById('shareArticleModal').style.display = 'none';
+            });
+        };
+
+        window.shareArticleToKakao = function() {
+            if (typeof Kakao === 'undefined') {
+                alert('카카오 공유 기능을 불러오지 못했습니다.');
+                return;
+            }
+            if (!Kakao.isInitialized()) {
+                Kakao.init('435d3602201a49ea712e5f5a36fe6efc');
+            }
+            
+            let pTitle = document.getElementById('detailTitle')?.innerText || '공실뉴스 기사';
+            let pImg = 'https://via.placeholder.com/800x400/1e56a0/ffffff?text=GongsilNews';
+            const imgEl = document.querySelector('.article-main-image');
+            if (imgEl && imgEl.src && !imgEl.src.includes('NoImage')) {
+                pImg = imgEl.src;
+            }
+
+            try {
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: pTitle,
+                        description: '공실뉴스에서 상세 기사를 확인해보세요.',
+                        imageUrl: pImg,
+                        link: {
+                            mobileWebUrl: window.location.href,
+                            webUrl: window.location.href,
+                        },
+                    },
+                    buttons: [
+                        {
+                            title: '기사 보기',
+                            link: {
+                                mobileWebUrl: window.location.href,
+                                webUrl: window.location.href,
+                            },
+                        },
+                    ],
+                });
+                document.getElementById('shareArticleModal').style.display = 'none';
+            } catch (err) {
+                console.error('Kakao Share error:', err);
+                alert('카카오톡 공유에 실패했습니다.');
+            }
+        };
+
+        window.shareGongsilToKakao = function() {
+            if (typeof Kakao === 'undefined') {
+                alert('카카오 공유 기능을 불러오지 못했습니다.');
+                return;
+            }
+            if (!Kakao.isInitialized()) {
+                Kakao.init('435d3602201a49ea712e5f5a36fe6efc'); 
+            }
+            
+            // 공실 가이드맵 절대주소
+            const gongsilUrl = window.location.origin + window.location.pathname.replace(/[^/]*$/, '') + 'gongsil/index.html';
+            
+            try {
+                Kakao.Share.sendDefault({
+                    objectType: 'feed',
+                    content: {
+                        title: '공실뉴스 - 공실가이드맵',
+                        description: '다양한 매물을 공실가이드맵에서 한눈에 확인해보세요!',
+                        imageUrl: 'https://via.placeholder.com/800x400/1a73e8/ffffff?text=Gongsil+Map',
+                        link: {
+                            mobileWebUrl: gongsilUrl,
+                            webUrl: gongsilUrl,
+                        },
+                    },
+                    buttons: [
+                        {
+                            title: '공실매물 보러가기',
+                            link: {
+                                mobileWebUrl: gongsilUrl,
+                                webUrl: gongsilUrl,
+                            },
+                        },
+                    ],
+                });
+                document.getElementById('shareArticleModal').style.display = 'none';
+            } catch (err) {
+                console.error('Kakao Share error:', err);
+                alert('카카오톡 공유에 실패했습니다.');
+            }
+        };
+    </script>
+    <!-- ═══ 사이드바 매물 상세 패널 ═══ -->
+    <div id="propDetailPanel" style="display:none; position:fixed; top:0; right:0; width:420px; height:100vh; background:#fff; box-shadow:-4px 0 24px rgba(0,0,0,0.15); z-index:9990; overflow-y:auto; transition:transform 0.3s ease; flex-direction:column;">
+        <!-- 헤더 -->
+        <div style="position:sticky; top:0; background:#fff; border-bottom:1px solid #eee; padding:16px 20px; display:flex; justify-content:space-between; align-items:center; z-index:10;">
+            <span id="propPanelTitle" style="font-size:16px; font-weight:800; color:#111;">매물 상세정보</span>
+            <button onclick="window.closePropPanel()" style="border:none; background:none; font-size:22px; cursor:pointer; color:#666; padding:4px 8px; border-radius:4px; transition:background 0.2s;" onmouseover="this.style.background='#f3f4f6'" onmouseout="this.style.background='none'">✕</button>
+        </div>
+
+        <!-- 이미지 갤러리 -->
+        <div id="propPanelGallery" style="position:relative; width:100%; height:260px; background:#eee; overflow:hidden; flex-shrink:0;">
+            <img id="propPanelImg" src="" alt="매물사진" style="width:100%; height:100%; object-fit:cover;">
+            <div id="propPanelNoImg" style="display:none; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; color:#bbb; font-size:14px;">사진 없음</div>
+            <button id="propPanelImgPrev" onclick="window.propPanelPrevImg()" style="position:absolute; left:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.4); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer; display:none;">‹</button>
+            <button id="propPanelImgNext" onclick="window.propPanelNextImg()" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); background:rgba(0,0,0,0.4); color:#fff; border:none; border-radius:50%; width:36px; height:36px; font-size:18px; cursor:pointer; display:none;">›</button>
+            <span id="propPanelImgCount" style="position:absolute; bottom:10px; right:12px; background:rgba(0,0,0,0.5); color:#fff; font-size:12px; padding:2px 8px; border-radius:10px; display:none;"></span>
+        </div>
+
+        <!-- 본문 -->
+        <div style="padding:20px;">
+            <!-- 가격 + 거래유형 -->
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
+                <span id="propPanelTrade" style="background:#508bf5; color:#fff; font-size:12px; font-weight:700; padding:2px 8px; border-radius:4px;"></span>
+                <span id="propPanelPrice" style="font-size:22px; font-weight:900; color:#111;"></span>
+            </div>
+            <!-- 매물종류 + 면적 -->
+            <div id="propPanelMeta" style="font-size:13px; color:#666; margin-bottom:6px;"></div>
+            <!-- 주소 -->
+            <div id="propPanelAddr" style="font-size:14px; color:#333; margin-bottom:16px; display:flex; align-items:center; gap:6px;"><span>📍</span><span id="propPanelAddrText"></span></div>
+
+            <hr style="border:none; border-top:1px solid #f0f0f0; margin:0 0 16px;">
+
+            <!-- 상세 항목 -->
+            <!-- 상세 항목 -->
+            <table style="width:100%; font-size:13px; border-collapse:collapse; margin-bottom:20px;">
+                <tr><td style="color:#888; padding:10px 0; width:100px; border-top:1px solid #f0f0f0;">소재지</td><td id="propInfoLoc" style="font-weight:600; border-top:1px solid #f0f0f0; line-height:1.4;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">매물특징</td><td id="propInfoFeatures" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">공급/전용면적</td><td id="propInfoAreaDetail" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">해당층/총층</td><td id="propInfoFloor" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">방/욕실수</td><td id="propInfoRooms" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">방향</td><td id="propInfoDir" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">주차가능 여부</td><td id="propInfoPark" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">입주가능일</td><td id="propInfoMoveIn" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0;">관리비</td><td id="propInfoMaint" style="font-weight:600; border-top:1px solid #f0f0f0;"></td></tr>
+                <tr><td style="color:#888; padding:10px 0; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0;">옵션</td><td id="propInfoOpt" style="font-weight:600; border-top:1px solid #f0f0f0; border-bottom:1px solid #f0f0f0; line-height:1.4;"></td></tr>
+            </table>
+
+            <!-- 로드뷰 -->
+            <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:8px;">📍 로드뷰</div>
+            <div id="propRoadview" style="width:100%; height:200px; background:#ececec; border-radius:8px; margin-bottom:20px; display:flex; align-items:center; justify-content:center; color:#999; font-size:13px;">로드뷰를 불러오는 중입니다...</div>
+
+            <hr style="border:none; border-top:1px solid #f0f0f0; margin:0 0 16px;">
+
+            <!-- 전달사항 -->
+            <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:8px;">📋 전달사항</div>
+            <div id="propInfoDesc" style="font-size:13px; color:#555; line-height:1.7; background:#fafafa; border-radius:8px; padding:12px; min-height:60px;"></div>
+
+            <hr style="border:none; border-top:1px solid #f0f0f0; margin:16px 0;">
+
+            <!-- 등록자 연락처 -->
+            <div style="font-size:13px; font-weight:700; color:#333; margin-bottom:10px;">📞 등록자 정보</div>
+            <div id="propInfoContact" style="font-size:14px; color:#444; line-height:1.8;"></div>
+
+            <!-- 고정 하단바 -->
+            <div style="position:sticky; bottom:-20px; left:-20px; right:-20px; background:#fff; padding:15px 20px; border-top:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; margin-top:30px; margin-bottom:-20px; box-shadow:0 -2px 10px rgba(0,0,0,0.05); z-index:100; width:100%;">
+                <div style="font-size:20px; font-weight:900; color:#111; display:flex; align-items:center; gap:8px;">
+                    <span id="propPanelBottomTrade" style="font-size:14px; color:#508bf5;"></span>
+                    <span id="propPanelBottomPrice"></span>
+                </div>
+                <button onclick="document.getElementById('propInfoContact').scrollIntoView({behavior:'smooth', block:'center'});" style="background:#508bf5; color:#fff; border:none; padding:12px 24px; font-size:15px; font-weight:bold; border-radius:4px; cursor:pointer;" onmouseover="this.style.background='#e8900a'" onmouseout="this.style.background='#508bf5'">연락처 보기</button>
+            </div>
+        </div>
+    </div>
+    <!-- 딤 배경 -->
+    <div id="propDetailDim" onclick="window.closePropPanel()" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.3); z-index:9980;"></div>
+
+    <!-- 공실챗봇 스크립트 로드 -->
+    <script src="gongsil_chatbot.js?v=20260329"></script>
+</body>
+
+
+</html>

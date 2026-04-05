@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>부동산 매물 콘텐츠 AI 템플릿 - 자료실</title>
+    <!-- 기본 스타일 -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css"/>
+    
+    <style>
+        :root {
+            --primary: var(--primary-color, #ff9f1c);
+            --primary-dark: #e88c15;
+            --text-main: #1f2937;     
+            --text-sub: #6b7280;      
+            --bg-gray: #f8fafc;       
+            --border: #e2e8f0;
+            --point-blue: #0ea5e9;
+        }
+
+        html, body {
+            margin: 0; padding: 0; background-color: #fcfcfc;
+            font-family: 'Pretendard', sans-serif; color: var(--text-main);
+            scroll-behavior: smooth; height: auto !important; overflow: visible !important;
+        }
+
+        /* --- 네비게이션 공통 --- */
+        .study-nav-bar { background: #fff; border-bottom: 1px solid var(--border); z-index: 50; position: relative; }
+        .study-tier1 { display: flex; align-items: center; justify-content: space-between; padding: 0 20px; max-width: 1240px; margin: 0 auto; }
+        .study-tab-item { font-size: 16px; font-weight: 700; color: #475569; cursor: pointer; padding: 18px 4px; position: relative; text-decoration: none; transition: color 0.2s; }
+        .study-tab-item:hover, .study-tab-item.active { color: var(--primary); }
+        .study-tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background: var(--primary); }
+
+        /* --- 레이아웃 --- */
+        .detail-container { max-width: 1100px; margin: 0 auto 100px; padding: 0 20px; }
+        
+        .breadcrumb { font-size: 13px; color: var(--text-sub); margin: 24px 0; display: flex; align-items: center; gap: 8px; }
+        .breadcrumb span { color: var(--text-main); font-weight: 600; }
+
+        /* --- 상단 히어로 (미리보기 + 결제박스) --- */
+        .hero-section { display: flex; gap: 40px; margin-bottom: 50px; }
+        
+        /* 왼쪽 미리보기 슬라이드 */
+        .hero-left { width: 60%; flex-shrink: 0; }
+        .preview-main-box { width: 100%; aspect-ratio: 16/10; border-radius: 12px; overflow: hidden; background: #e2e8f0; border: 1px solid var(--border); position: relative; margin-bottom: 12px; }
+        .preview-main-img { width: 100%; height: 100%; object-fit: cover; }
+        .preview-tag { position: absolute; top: 16px; left: 16px; background: rgba(0,0,0,0.6); color: #fff; font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 4px; backdrop-filter: blur(4px); }
+        
+        .preview-thumbs { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+        .preview-thumbs::-webkit-scrollbar { height: 6px; }
+        .preview-thumbs::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        .pt-item { width: 100px; aspect-ratio: 16/10; border-radius: 6px; border: 2px solid transparent; cursor: pointer; opacity: 0.6; transition: 0.2s; overflow: hidden; flex-shrink: 0; }
+        .pt-item img { width: 100%; height: 100%; object-fit: cover; }
+        .pt-item.active, .pt-item:hover { opacity: 1; border-color: var(--primary); }
+
+        /* 오른쪽 결제(구매) 폼 */
+        .hero-right { flex: 1; display: flex; flex-direction: column; }
+        .item-category { font-size: 14px; font-weight: 700; color: var(--primary); margin-bottom: 10px; }
+        .item-title { font-size: 28px; font-weight: 800; color: var(--text-main); line-height: 1.35; margin-bottom: 16px; word-break: keep-all; }
+        .item-author-row { display: flex; align-items: center; justify-content: space-between; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+        .item-author { font-size: 15px; color: var(--text-sub); display: flex; align-items: center; gap: 6px; }
+        .item-author strong { color: var(--text-main); }
+        .item-rating { display: flex; align-items: center; gap: 4px; font-size: 14px; font-weight: 700; color: var(--text-main); }
+        .item-rating svg { fill: var(--primary); width: 16px; height: 16px; }
+        
+        /* 스펙 카드 */
+        .spec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+        .spec-item { background: #f8fafc; padding: 12px; border-radius: 8px; text-align: center; border: 1px solid #e2e8f0; }
+        .spec-item label { display: block; font-size: 12px; color: var(--text-sub); margin-bottom: 4px; }
+        .spec-item span { display: block; font-size: 14px; font-weight: 700; color: var(--text-main); }
+
+        /* 결제 박스 핵심 */
+        .payment-box { border: 2px solid var(--primary); border-radius: 12px; padding: 24px; background: #fff; box-shadow: 0 10px 25px rgba(255, 159, 28, 0.1); margin-top: auto; }
+        .price-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 16px; }
+        .price-label { font-size: 15px; font-weight: 700; color: var(--text-main); }
+        .price-val { font-size: 28px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+        .price-val svg { width: 24px; height: 24px; color: var(--primary); }
+        
+        .bal-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #f0f9ff; border-radius: 8px; margin-bottom: 24px; border: 1px solid #bae6fd; }
+        .bal-label { font-size: 13px; color: #0369a1; font-weight: 600; }
+        .bal-val { font-size: 15px; font-weight: 800; color: #0284c7; }
+
+        /* 결제 상태별 버튼 색상 */
+        .btn-buy { width: 100%; padding: 16px; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: 0.2s; border: none; display: flex; justify-content: center; align-items: center; gap: 8px; }
+        .btn-buy.lack { background: #e2e8f0; color: #64748b; }
+        .btn-buy.lack:hover { background: #cbd5e1; }
+        .btn-buy.ready { background: var(--primary); color: #fff; box-shadow: 0 4px 12px rgba(255,159,28,0.3); }
+        .btn-buy.ready:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-buy.owned { background: #10b981; color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
+        
+        .sub-actions { display: flex; gap: 10px; margin-top: 12px; }
+        .btn-sub { flex: 1; padding: 12px; border: 1px solid var(--border); background: #fff; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 6px; }
+        .btn-sub:hover { background: #f8fafc; border-color: #cbd5e1; }
+        
+        /* --- 스티키 탭 --- */
+        .sticky-tabs-wrap { position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); z-index: 100; border-bottom: 1px solid var(--border); border-top: 1px solid var(--border); margin-bottom: 40px; }
+        .sticky-tabs { max-width: 1100px; margin: 0 auto; display: flex; }
+        .s-tab { flex: 1; text-align: center; padding: 18px 0; font-size: 16px; font-weight: 700; color: var(--text-sub); text-decoration: none; position: relative; transition: 0.2s; }
+        .s-tab:hover { color: var(--text-main); background: #f8fafc; }
+        .s-tab.active { color: var(--text-main); }
+        .s-tab.active::after { content: ''; position: absolute; bottom: -1px; left: 0; width: 100%; height: 3px; background: var(--primary); }
+
+        /* --- 하단 상세 본문 --- */
+        .detail-body { max-width: 800px; margin: 0 auto; }
+        .detail-section { margin-bottom: 80px; scroll-margin-top: 100px; }
+        .detail-title { font-size: 24px; font-weight: 800; border-bottom: 2px solid var(--text-main); padding-bottom: 12px; margin-bottom: 30px; }
+        
+        /* 본문 콘텐츠 스타일 */
+        .editor-content { font-size: 16px; line-height: 1.8; color: #374151; word-break: keep-all; }
+        .editor-content img { max-width: 100%; border-radius: 12px; margin: 24px 0; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        .editor-content h3 { font-size: 20px; font-weight: 800; margin: 40px 0 16px; color: var(--text-main); }
+
+        /* 저작권 및 환불 정책 (중요 강조) */
+        .policy-box { background: #fff5f5; border: 1px solid #feb2b2; border-radius: 12px; padding: 24px 32px; }
+        .policy-box h4 { color: #e53e3e; font-size: 18px; font-weight: 800; margin-top: 0; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+        .policy-box ul { padding-left: 20px; margin: 0; }
+        .policy-box li { font-size: 15px; line-height: 1.6; color: #4a5568; margin-bottom: 8px; font-weight: 500; }
+
+        /* 리뷰 섹션 스켈레톤 */
+        .review-box { border: 1px solid var(--border); border-radius: 12px; padding: 24px; text-align: center; color: var(--text-sub); }
+
+        /* 모바일 플로팅 바 (기본 숨김) */
+        .mobile-float { display: none; position: fixed; bottom: 0; left: 0; width: 100%; background: #fff; padding: 12px 20px; border-top: 1px solid var(--border); box-shadow: 0 -4px 15px rgba(0,0,0,0.08); z-index: 999; }
+        .mf-inner { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto; gap: 16px; }
+        .mf-price { font-size: 20px; font-weight: 800; color: var(--primary); }
+        .mf-btn { flex: 1; padding: 14px; background: var(--primary); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; text-align: center; }
+
+        /* 반응형 */
+        @media (max-width: 900px) {
+            .hero-section { flex-direction: column; gap: 24px; }
+            .hero-left, .hero-right { width: 100%; }
+            .mobile-float { display: block; }
+            .payment-box { border: none; padding: 20px 0 0 0; box-shadow: none; border-top: 1px solid var(--border); border-radius: 0; margin-top: 20px; }
+        }
+        @media (max-width: 600px) {
+            .s-tab { font-size: 14px; padding: 14px 0; }
+            .item-title { font-size: 22px; }
+        }
+    </style>
+
+    <!-- Supabase & Auth Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+
+</head>
+<body>
+
+    <!-- 공통 헤더 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-group">
+                <a href="./" class="logo-img-link">
+                    <img src="logo.png" alt="공실뉴스" style="height: 28px;">
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="gongsil" class="nav-tab">공실열람</a>
+                <a href="news" class="nav-tab">뉴스기사</a>
+                <a href="study" class="nav-tab active">공실스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 0 4px; margin-left: 10px; vertical-align: middle;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </nav>
+        </div>
+        <div class="header-right" style="display: flex; align-items: center;">
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-right: 15px;">
+                <span id="userNameDisplay" style="font-size: 14px; font-weight: bold; color: #333;">이름</span>
+                <span id="userRoleBadge" style="font-size: 11px; padding: 3px 6px; border-radius: 4px; background: #f0f0f0; color: #555;">로딩중</span>
+                <a href="#" id="headerLogoutBtn" class="btn-login" style="background:#666; color:white; border:none;">로그아웃</a>
+            </div>
+            <a href="#" class="btn-login" style="background:var(--primary-color, #ff9f1c); color:white; border:none; margin-right:10px;">스터디등록</a>
+            <a href="#" id="headerLoginBtn" class="btn-login">구글 로그인</a>
+        </div>
+    </header>
+
+    <!-- 스터디 네비게이션 -->
+    <div class="study-nav-bar">
+        <div class="study-tier1">
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <a href="study.html" class="study-tab-item">스터디</a>
+                <a href="materials.html" class="study-tab-item active">자료실</a>
+                <a href="community.html" class="study-tab-item">커뮤니티</a>
+                <a href="my_study.html" class="study-tab-item">MY스터디</a>
+            </div>
+            <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                내 스터디
+                <div style="width:28px; height:28px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center;">👤</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <main class="detail-container">
+        
+        <!-- 브레드크럼 -->
+        <div class="breadcrumb">
+            홈 > 자료실 > APP(앱)자료 > <span>부동산마케팅</span>
+        </div>
+
+        <!-- 1. Hero 섹션 (미리보기 & 구매 콘솔) -->
+        <section class="hero-section">
+            
+            <!-- 좌측: 미리보기 -->
+            <div class="hero-left">
+                <!-- 메인 미리보기 창 -->
+                <div class="preview-main-box">
+                    <span class="preview-tag">템플릿 미리보기 (워터마크)</span>
+                    <img id="mainPreviewImg" class="preview-main-img" src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200" alt="메인 썸네일">
+                </div>
+                <!-- 썸네일 리스트 -->
+                <div class="preview-thumbs">
+                    <div class="pt-item active" onclick="changePreview(this, 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200')">
+                        <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=400">
+                    </div>
+                    <div class="pt-item" onclick="changePreview(this, 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1200')">
+                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=400">
+                    </div>
+                    <div class="pt-item" onclick="changePreview(this, 'https://images.unsplash.com/photo-1555421689-d68471e189f2?auto=format&fit=crop&q=80&w=1200')">
+                        <img src="https://images.unsplash.com/photo-1555421689-d68471e189f2?auto=format&fit=crop&q=80&w=400">
+                    </div>
+                    <!-- 동영상 아이콘 썸네일 예시 -->
+                    <div class="pt-item" style="position:relative;" onclick="alert('샘플 영상 미리보기 팝업이 뜹니다.')">
+                        <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.4);">
+                            <svg width="24" height="24" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&q=80&w=400">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측: 정보 및 결제 -->
+            <div class="hero-right">
+                <div class="item-category">APP(앱)자료 > 부동산마케팅</div>
+                <h1 class="item-title">공실뉴스 부동산 매물 콘텐츠 AI 작성 템플릿 V2.0 (프리미엄)</h1>
+                
+                <div class="item-author-row">
+                    <div class="item-author">
+                        제작: <strong>공실뉴스랩</strong>
+                        <span>|</span> 최신 업데이트: 24.03.31
+                    </div>
+                    <div class="item-rating">
+                        <svg viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                        4.9 <span style="font-weight:500; color:#94a3b8;">(128)</span>
+                    </div>
+                </div>
+
+                <div class="spec-grid">
+                    <div class="spec-item">
+                        <label>파일 포맷</label>
+                        <span>ZIP (PDF+HWP)</span>
+                    </div>
+                    <div class="spec-item">
+                        <label>파일 용량</label>
+                        <span>15.2 MB</span>
+                    </div>
+                    <div class="spec-item">
+                        <label>다운로드</label>
+                        <span>🔥 1,204회</span>
+                    </div>
+                </div>
+
+                <div class="payment-box">
+                    <div class="price-row">
+                        <span class="price-label">결제 필요 포인트</span>
+                        <div class="price-val">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="12 2 15 8 22 9 17 14 18 21 12 18 6 21 7 14 2 9 9 8 12 2"></polygon></svg>
+                            3,000 P
+                        </div>
+                    </div>
+                    
+                    <!-- 로그인 유저의 현재 포인트 (잔액 부족 예시) -->
+                    <div class="bal-row">
+                        <span class="bal-label">내 보유 포인트</span>
+                        <span class="bal-val" id="userPointBalance">💎 1,200 P</span>
+                    </div>
+
+                    <!-- CTA 버튼: 잔액 부족시 lack, 충분시 ready, 이미 구매시 owned 클래스 사용 -->
+                    <button class="btn-buy lack" id="btnPurchase" onclick="handlePurchaseClick()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        포인트가 부족해요 (충전/획득하기)
+                    </button>
+
+                    <div class="sub-actions">
+                        <button class="btn-sub" onclick="toggleHeart(this)">🤍 <span class="cnt">243</span> 찜하기</button>
+                        <button class="btn-sub" onclick="alert('링크가 복사되었습니다.')">🔗 공유하기</button>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- 2. Sticky 탭 네비게이션 -->
+    <div class="sticky-tabs-wrap">
+        <div class="sticky-tabs">
+            <a href="#section-detail" class="s-tab active" onclick="activateTab(this)">상세 정보</a>
+            <a href="#section-how" class="s-tab" onclick="activateTab(this)">사용 방법</a>
+            <a href="#section-policy" class="s-tab" onclick="activateTab(this)">저작권 / 환불</a>
+            <a href="#section-review" class="s-tab" onclick="activateTab(this)">에셋 리뷰 (128)</a>
+        </div>
+    </div>
+
+    <!-- 3. 상세 본문 영역 -->
+    <div class="detail-body">
+        
+        <!-- 상세 정보 -->
+        <section id="section-detail" class="detail-section">
+            <h2 class="detail-title">상세 정보</h2>
+            <div class="editor-content">
+                <h3>블로그 상위 노출을 돕는 '궁극의 AI 원고 템플릿'</h3>
+                <p>매번 매물 올릴 때마다 글 쓰기 막막하셨죠? 공실뉴스 랩에서 실제 현장 소장님들의 데이터를 기반으로 분석하여 만들어낸 최적의 프롬프트 & 템플릿 세트입니다.</p>
+                <img src="https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=1200" alt="상세 설명 이미지">
+                <p><strong>[목차 구성]</strong><br>
+                1. 상가 임대차 분석 전문 템플릿<br>
+                2. 아파트/오피스텔 감성 터칭 템플릿<br>
+                3. 현장 브리핑용 요약 AI 프롬프트<br><br>
+                다운로드 받으신 후 PDF에 있는 프롬프트를 챗GPT나 클로드에 그대로 복사+붙여넣기 하시면, 3배 더 빠르게 완성도 높은 블로그 글을 뽑아낼 수 있습니다.</p>
+            </div>
+        </section>
+
+        <!-- 사용 방법 -->
+        <section id="section-how" class="detail-section">
+            <h2 class="detail-title">사용 방법</h2>
+            <div class="editor-content">
+                <ol style="padding-left: 20px;">
+                    <li style="margin-bottom: 12px;">결제 완료 후 즉시 다운로드되는 <strong>ZIP 파일</strong>의 압축을 해제합니다.</li>
+                    <li style="margin-bottom: 12px;">폴더 내 <code>'꼭_먼저_읽어주세요.pdf'</code>를 열어 필수 안내를 확인합니다.</li>
+                    <li style="margin-bottom: 12px;">각 플랫폼별 HWP/Word 파일을 열어 나만의 양식으로 수정하여 사용합니다. (폰트는 모두 무료 폰트가 적용되어 있습니다)</li>
+                </ol>
+            </div>
+        </section>
+
+        <!-- 저작권 및 환불 규정 (핵심) -->
+        <section id="section-policy" class="detail-section">
+            <h2 class="detail-title">저작권 / 환불</h2>
+            <div class="policy-box">
+                <h4>⚠️ 디지털 에셋 구매 전 반드시 확인해주세요!</h4>
+                <ul>
+                    <li>본 자료는 ‘형태가 없는 디지털 에셋’ 특성상, <strong>포인트 결제 및 최초 다운로드가 발생한 직후에는 어떠한 사유로도 포인트 환불 및 취소가 불가</strong>합니다.</li>
+                    <li>이 자료의 모든 저작권은 '공실뉴스'에 있으며, 구매한 본인 1인에 한해 영구적인 사용 권한이 부여됩니다.</li>
+                    <li>본 자료를 수정하여 <strong>온라인에 재배포하거나, 타 플랫폼에 상업적 목적으로 되파는 행위는 엄격히 금지</strong>되며 적발 시 법적 책임을 물을 수 있습니다.</li>
+                    <li>팀 단위 공유나 기업 재판매 라이선스가 필요하신 경우 고객센터로 별도 문의 부탁드립니다.</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- 리뷰 영역 -->
+        <section id="section-review" class="detail-section">
+            <h2 class="detail-title">에셋 리뷰 (128)</h2>
+            <div class="review-box">
+                <p style="margin-bottom: 12px;"><strong>이 자료를 직접 포인트로 구매하고 다운로드한 회원만 리뷰를 작성할 수 있습니다.</strong></p>
+                <div style="font-size: 14px; padding: 20px; background: #f8fafc; border-radius: 8px;">
+                     ⭐ 5.0 (정*훈 공인중개사) : "맨날 글쓰기 막막했는데 템플릿 덕분에 1시간 걸리던 거 15분으로 줄었습니다. 3천 포인트가 전혀 아깝지 않네요!" <br><br>
+                     ⭐ 4.5 (박*영 소장) : "프롬프트가 아주 디테일합니다. 구글 닥스 버전도 추가해주시면 완벽할 것 같습니다."
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 모바일 플로팅 버튼 -->
+    <div class="mobile-float">
+        <div class="mf-inner">
+            <div class="mf-price">💎 3,000 P</div>
+            <button class="mf-btn" onclick="document.getElementById('btnPurchase').click()">구매/충전하기</button>
+        </div>
+    </div>
+
+    <script>
+        // 좌측 썸네일 클릭 시 메인 이미지 교체
+        function changePreview(clickedEl, imgUrl) {
+            document.querySelectorAll('.pt-item').forEach(el => el.classList.remove('active'));
+            clickedEl.classList.add('active');
+            document.getElementById('mainPreviewImg').src = imgUrl;
+        }
+
+        // 찜하기 토글
+        function toggleHeart(btn) {
+            const cntSpan = btn.querySelector('.cnt');
+            let cnt = parseInt(cntSpan.innerText);
+            if(btn.innerText.includes('🤍')) {
+                btn.innerHTML = `❤️ <span class="cnt">${cnt + 1}</span> 찜하기`;
+                btn.style.color = '#ef4444';
+                btn.style.borderColor = '#ef4444';
+                btn.style.background = '#fef2f2';
+            } else {
+                btn.innerHTML = `🤍 <span class="cnt">${cnt - 1}</span> 찜하기`;
+                btn.style.color = '';
+                btn.style.borderColor = '';
+                btn.style.background = '';
+            }
+        }
+
+        // 탭 활성화 시각 효과
+        function activateTab(clickedTab) {
+            document.querySelectorAll('.s-tab').forEach(tab => tab.classList.remove('active'));
+            clickedTab.classList.add('active');
+        }
+
+        // 결제 버튼 시뮬레이션
+        // (실제 데이터 연동 전, UI 작동을 보여주기 위한 변수 세팅)
+        const ITEM_PRICE = 3000;
+        let myBalance = 1200; // 잔액 부족 케이스 테스트를 위해 1200 세팅. (충분하려면 5000)
+        let hasPurchased = false;
+
+        function updateButtonState() {
+            const btn = document.getElementById('btnPurchase');
+            const balDisplay = document.getElementById('userPointBalance');
+            
+            balDisplay.innerText = `💎 ${myBalance.toLocaleString()} P`;
+
+            if (hasPurchased) {
+                btn.className = 'btn-buy owned';
+                btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 다운로드 (구매완료)`;
+                return;
+            }
+
+            if (myBalance < ITEM_PRICE) {
+                btn.className = 'btn-buy lack';
+                btn.innerHTML = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg> 포인트가 부족해요 (충전/획득하기)`;
+            } else {
+                btn.className = 'btn-buy ready';
+                btn.innerHTML = `✨ ${ITEM_PRICE.toLocaleString()}P 차감하고 바로 다운로드`;
+            }
+        }
+
+        function handlePurchaseClick() {
+            if (hasPurchased) {
+                alert("파일 다운로드가 시작됩니다. (가상)");
+                return;
+            }
+
+            if (myBalance < ITEM_PRICE) {
+                const ans = confirm(`보유 포인트가 부족합니다. (부족분: ${ITEM_PRICE - myBalance} P)\n\n커뮤니티 글쓰기로 포인트를 모으거나,\n포인트를 즉시 충전하시겠습니까?`);
+                if(ans) {
+                    // 데모용: 포인트 즉시 5000P 충전 흉내
+                    alert("데모 모드: 5,000 P가 강제 충전되었습니다!");
+                    myBalance += 5000;
+                    updateButtonState();
+                }
+            } else {
+                const confirmBuy = confirm(`💎 ${ITEM_PRICE.toLocaleString()} P를 사용하여 이 에셋을 구매할까요?\n결제 후에는 취소가 불가능합니다.`);
+                if (confirmBuy) {
+                    myBalance -= ITEM_PRICE;
+                    hasPurchased = true;
+                    updateButtonState();
+                    alert("🎉 결제가 완료되었습니다! 내 스터디(자료실)에서도 언제든 다시 다운로드 가능합니다.");
+                }
+            }
+        }
+
+        // 초기 버튼 상태 세팅
+        window.addEventListener('DOMContentLoaded', () => {
+            updateButtonState();
+        });
+
+    </script>
+</body>
+</html>

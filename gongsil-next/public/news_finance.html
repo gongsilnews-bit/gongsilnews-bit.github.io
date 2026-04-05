@@ -1,0 +1,1149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>공실뉴스 - 부동산 중개망의 스마트한 변화</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        :root {
+            --brand-navy: #102c57;
+            --brand-blue: #508bf5;
+            --border-light: #e5e5e5;
+            --text-dark: #222222;
+            --text-gray: #777777;
+            --bg-body: #ffffff;
+            --bg-gray: #f8f9fa;
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            min-width: 1200px;
+            overflow-x: auto;
+            overflow-y: scroll !important;
+        }
+        ul, li { list-style: none; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+        /* Container */
+        .container {
+            width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 1. Top Nav Bar */
+        .top-bar {
+            position: relative;
+            z-index: 10000000;
+            background-color: var(--brand-navy);
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            min-width: 1200px;
+        }
+        .top-bar-left { 
+            display: flex; 
+            align-items: center; 
+        }
+        .top-logo {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            margin-right: 20px;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+        .top-desc {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+            letter-spacing: -0.5px;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .top-bar-right svg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            stroke: #fff;
+            opacity: 0.9;
+            transition: opacity 0.2s, stroke 0.2s;
+        }
+        .top-bar-right svg:hover {
+            opacity: 1;
+        }
+        
+        /* Expanding Search Bar */
+        .top-search-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .top-search-input {
+            width: 0;
+            opacity: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            border-radius: 4px;
+            height: 26px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s;
+        }
+        .top-search-wrap.active .top-search-input {
+            width: 180px;
+            opacity: 1;
+            padding: 0 10px;
+            margin-right: 10px;
+        }
+
+        /* 2. Main Header */
+        .header {
+            background: rgba(255, 255, 255, 1);
+            border-bottom: 2px solid #111111;
+            padding-top: 24px;
+            position: sticky;
+            top: -1px;
+            z-index: 9999999;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky {
+            padding-top: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-bottom: 2px solid #111111;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-top {
+            margin-bottom: 12px;
+        }
+        .header img.ht-logo {
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky img.ht-logo {
+            height: 32px;
+        }
+        .ht-left, .ht-right { flex: 1; }
+        .ht-right { display: flex; justify-content: flex-end; }
+        .ht-center { flex: 0 0 auto; }
+        
+        .free-banner {
+            color: #508bf5;
+            font-weight: 800;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .header-bottom {
+            padding-bottom: 16px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-bottom {
+            padding-bottom: 10px;
+        }
+        .gnb-new {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 800;
+            color: #222;
+            align-items: center;
+        }
+        .gnb-new a { transition: color 0.2s; }
+        .gnb-new a:hover { color: var(--brand-blue); }
+        .gnb-new .divider {
+            width: 1px; height: 16px; background: #ddd; margin: 0 5px;
+        }
+
+        /* Component: Section Title */
+        .sec-title-wrap {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .sec-title-wrap::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--brand-blue);
+            margin-right: 10px;
+        }
+        .sec-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            letter-spacing: -0.5px;
+        }
+
+        /* Grey Box Placeholder */
+        .box-placeholder {
+            background-color: #e2e2e2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Layout Spaces */
+        .mt-50 { margin-top: 50px; }
+        .mb-50 { margin-bottom: 50px; }
+        .py-60 { padding-top: 60px; padding-bottom: 60px; }
+        .px-20 { padding-left: 20px; padding-right: 20px; }
+
+        /* 3. Hero Section */
+        .hero-section {
+            display: flex;
+            gap: 24px;
+            position: relative;
+        }
+        .hero-left {
+            flex: 2; /* takes more space */
+            position: relative;
+        }
+        .app-mock { 
+            width: 360px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+        .app-search {
+            display: flex; align-items: center; background: #f1f3f5; border-radius: 8px; padding: 12px; margin-bottom: 5px; cursor: text;
+        }
+        .app-search input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: #333; margin-left: 8px; }
+        .app-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .app-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .app-img { width: 80px; height: 80px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .app-txt h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+        .app-txt p { font-size: 14px; color: #c00; font-weight: 800; }
+        .app-txt span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
+        
+        .map-btn {
+            position: absolute; top: 15px; left: calc(50% + 140px); transform: translateX(-50%); background: #1a4282; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 99999; 
+        }
+
+        .hero-right {
+            flex: 1; /* roughly 380px */
+            display: flex;
+            flex-direction: column;
+        }
+        .hn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1a4282; padding-bottom: 10px;}
+        .hn-header h2 { font-size: 18px; font-weight: 800; color: #1a4282; }
+        .hn-header a { font-size: 12px; color: #666; font-weight: 600; }
+        .hn-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+        .hn-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+        .hn-img { width: 90px; height: 65px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .hn-txt h4 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: #111; word-break: keep-all; }
+        .hn-txt span { font-size: 12px; color: #999; }
+        .hn-ad { flex: 1; background: #e2e2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 13px; font-weight: bold;}
+        
+        /* Floating Quick Menu */
+        .quick-menu {
+            position: fixed;
+            top: 250px;
+            left: 50%;
+            margin-left: 620px;
+            width: 70px;
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
+        .qm-item:last-child { border-bottom: none; }
+        .qm-item span { display: block; font-size: 18px; margin-bottom: 4px; color: var(--brand-blue); }
+
+        /* 4. Ticker Section */
+        .ticker-bar {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border-light);
+            background: #fff;
+            width: 100%;
+        }
+        .ticker-label {
+            background: var(--brand-blue);
+            color: #fff;
+            padding: 20px 30px;
+            font-size: 16px;
+            font-weight: 700;
+            text-decoration: none;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+        .ticker-label:hover {
+            background: #000;
+        }
+        .ticker-wrap {
+            flex: 1;
+            overflow: hidden;
+            padding: 20px 0;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .ticker-wrap:hover { background: #f9f9f9; }
+        .ticker {
+            display: inline-flex;
+            font-size: 16px;
+            font-weight: 700;
+            white-space: nowrap;
+            /* Move from left to right gently, extremely slowly */
+            animation: moveTicker 10000s linear infinite;
+        }
+        .ticker:hover {
+            animation-play-state: paused;
+        }
+        @keyframes moveTicker {
+            0% { transform: translateX(-50%); }
+            100% { transform: translateX(0%); }
+        }
+        .ticker-item {
+            display: inline-flex;
+            gap: 15px;
+            align-items: center;
+            color: #333;
+            margin-right: 50px;
+        }
+
+        .ticker-val { color: #d32f2f; }
+        .ticker-val.down { color: #1976d2; }
+
+        /* 5. Hot Issue Section */
+        .hot-issue-wrap {
+            display: flex;
+            gap: 40px;
+        }
+        .hi-left { flex: 1; }
+        .hi-list { display: flex; flex-direction: column; gap: 20px; }
+        .hi-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .hi-item img { width: 140px; height: 100px; background: #ddd; object-fit: cover; border-radius: 4px; }
+        .hi-txt h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: #111; }
+        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        
+        .hi-right { flex: 1; height: 260px; }
+
+        /* 6. Video News Section */
+        .video-wrap { border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .vid-item { cursor: pointer; }
+        .vid-thumb { height: 220px; background: #222; position: relative; border-radius: 4px; margin-bottom: 15px; }
+        .vid-play { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); width: 44px; height: 44px; background: rgba(0,0,0,0.6); border-radius: 50%; border: 2px solid #fff;}
+        .vid-play::after { content:''; display:block; border-left:12px solid #fff; border-top:8px solid transparent; border-bottom:8px solid transparent; margin-left:18px; margin-top:12px; }
+        .vid-title { font-size: 16px; font-weight: 700; line-height: 1.4; color:#111; }
+
+        /* 7. Premium Section (Dark Blue) */
+        .premium-bg { background-color: var(--brand-navy); color: #fff; padding: 60px 0; }
+        .premium-bg .sec-title { color: #fff; }
+        .premium-bg .sec-title-wrap::before { background-color: #508bf5; }
+        .prem-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .prem-card { cursor: pointer; }
+        .prem-img { height: 180px; background: #555; margin-bottom: 15px; border-radius: 4px; }
+        .prem-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .prem-desc { font-size: 13px; color: #aaa; line-height: 1.4; }
+
+        /* 8. Expert Section */
+        .expert-wrap { display: flex; gap: 40px; }
+        .expert-left { flex: 1; border-top: 2px solid #222; padding-top: 20px;}
+        .ex-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 20px 0; }
+        .ex-img { width: 100px; height: 100px; background: #ddd; border-radius: 50%; }
+        .ex-txt h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+        .ex-txt p { font-size: 14px; color: #666; line-height: 1.6; }
+        .expert-right { flex: 1; height: 300px; padding-top: 20px; }
+
+        /* 9. Study Section */
+        .study-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .study-card { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .st-img { height: 180px; background: #e2e2e2; position: relative; }
+        .st-badge { position: absolute; top:0; left:0; padding:6px 12px; color:#fff; font-size:12px; font-weight:bold; }
+        .st-badge.blue { background: #508bf5; }
+        .st-badge.red { background: #f44336; }
+        .st-badge.black { background: #222; }
+        .st-txt { padding: 20px; }
+        .st-title { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; }
+        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;}
+        .st-price { font-size: 15px; font-weight: 700; color: #ff5722; }
+
+        /* 10. Knowhow & Notice Section */
+        .bottom-wrap { display: flex; gap: 40px; border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .bm-left { flex: 2; }
+        .kh-item { display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .kh-item img { width: 120px; height: 80px; background: #ddd; border-radius: 4px; }
+        .kh-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .kh-txt p { font-size: 14px; color: #666; }
+        .bm-right { flex: 1; height: 400px; }
+
+        /* 11. Chatbot Banner */
+        .chat-banner {
+            background-color: #fafafa;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            padding-top: 50px;
+        }
+        .chat-title { font-size: 20px; font-weight: 800; color: #508bf5; margin-bottom: 5px; }
+        .chat-sub { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 40px; letter-spacing: -1px; }
+        .chat-mockup { width: 300px; height: 450px; background: #ddd; margin: 0 auto; border-radius: 30px 30px 0 0; position:relative; overflow:hidden;}
+        
+        /* 12. Footer */
+        .footer {
+            background: #fff;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-light);
+        }
+        .f-logos { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .f-logo { border: 1px solid #ddd; padding: 10px 20px; color: #555; font-size: 14px; font-weight: bold; border-radius: 4px; }
+        .f-info { text-align: center; font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 20px; }
+        .f-links { text-align: center; margin-bottom: 20px; }
+        .f-links a { font-size: 14px; font-weight: 700; color: #333; margin: 0 10px; }
+        .f-copyright { text-align: center; font-size: 12px; color: #999; }
+
+        /* --- 스터디(특강) 관련 스타일 --- */
+        .lecture-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; }
+        .lecture-card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05); transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; position: relative; border: 1px solid #e2e8f0; }
+        .lecture-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+        .lecture-thumb { width: 100%; height: 180px; background: #eee; position: relative; }
+        .lecture-thumb img { width: 100%; height: 100%; object-fit: cover; }
+        .badge-new { position: absolute; top: 12px; left: 12px; background: #508bf5; color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; }
+        .bookmark-btn { position: absolute; top: 12px; right: 12px; color: rgba(255,255,255,0.8); font-size: 20px; }
+        .lecture-info { padding: 16px; }
+        .lecture-cat { font-size: 11px; color: #508bf5; font-weight: bold; margin-bottom: 8px; text-transform: uppercase; }
+        .lecture-title { font-size: 16px; font-weight: bold; color: #222; line-height: 1.4; height: 44px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 12px; }
+        .lecture-meta { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #888; margin-bottom:12px; }
+        .instructor { font-weight: 600; color: #444; }
+        .rating { display: flex; align-items: center; gap: 4px; color: #508bf5; }
+    </style>
+<style>
+        .icon-tooltip-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-tooltip-wrap::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background-color: #ffffff;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .icon-tooltip-wrap:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Top Nav Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
+            <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
+        </div>
+        <div class="top-bar-right">
+            <!-- Search -->
+            <div class="top-search-wrap" id="topSearchWrap">
+                <input type="text" class="top-search-input" id="topSearchInput" placeholder="검색어를 입력하세요">
+                <div class="icon-tooltip-wrap" data-tooltip="검색">
+                <svg onclick="document.getElementById('topSearchWrap').classList.toggle('active'); document.getElementById('topSearchInput').focus();" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="검색"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            </div>
+            
+            <!-- Login/User -->
+            <!-- Login/User -->
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 24px;">
+                <div class="icon-tooltip-wrap" data-tooltip="회원가입">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="회원가입"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="icon-tooltip-wrap" data-tooltip="로그인">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')" id="headerLoginOnlyBtn" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="로그인"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                </div>
+            </div>
+            
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
+                <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
+                <span id="headerLogoutBtn" style="cursor:pointer; font-size:12px; color:#aaa;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">로그아웃</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Header -->
+    <header class="header">
+        <div class="container px-20">
+            <div class="header-top">
+                <div class="ht-left"></div>
+                <div class="ht-center">
+                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
+                </div>
+                <div class="ht-right">
+                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
+                        <!-- The scrolling ticker -->
+                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
+                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- The dropdown on hover -->
+                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <nav class="gnb-new">
+                    <a href="news_all.html">전체뉴스</a>
+                    <a href="news.html">우리동네뉴스</a>
+                    <a href="news_finance.html">부동산·주식·재테크</a>
+                    <a href="news_politics.html">정치·경제·사회</a>
+                    <a href="news_law.html">세무·법률</a>
+                    <a href="news_life.html">여행·건강·생활</a>
+                    <a href="news_etc.html">기타</a>
+                    <span class="divider"></span>
+                    <a href="gongsil/index.html">공실열람</a>
+                    <div style="position: relative; display: inline-block;" onmouseover="this.querySelector('.gnb-dropdown').style.display='block'" onmouseout="this.querySelector('.gnb-dropdown').style.display='none'">
+                        <a href="board.html" style="padding: 10px 0; transition: color 0.2s;" onmouseover="this.style.color='#508bf5'" onmouseout="this.style.color=''">자료실</a>
+                        <div class="gnb-dropdown" style="display: none; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 140px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: center;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=drone" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">드론영상</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=app" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">APP(앱)</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=design" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">디자인</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=sound" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">음원</a></li>
+                                <li><a href="board.html?id=doc" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">계약서/양식</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('/gongsilnews-bit.github.io/')) { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
+                    <a href="#">중개업소무료가입</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    
+    <style>
+        .news-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+        /* Left: List */
+        .news-list-area {
+            flex: 1;
+        }
+        .list-header {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--brand-navy);
+            border-bottom: 2px solid #222;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .an-card {
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+            padding: 24px 10px;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+        .an-card:hover {
+            background: #f9f9f9;
+        }
+        .an-img {
+            width: 160px;
+            height: 100px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #f4f6fa;
+            flex-shrink: 0;
+        }
+        .an-body {
+            flex: 1;
+        }
+        .an-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .an-title:hover {
+            color: var(--brand-blue);
+            text-decoration: underline;
+        }
+        .an-desc {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .an-meta {
+            font-size: 13px;
+            color: #999;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+        .page-btn {
+            border: 1px solid #ddd;
+            background: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+        .page-btn:hover { background: #f9f9f9; }
+        .page-info { font-size: 14px; color: #333; font-weight: bold; margin: 0 10px;}
+        
+        /* Right: Sidebar */
+        .news-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .sb-banner {
+            width: 100%;
+            height: 200px;
+            background: #e2e2e2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .sb-widget {
+            margin-bottom: 40px;
+        }
+        .sb-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sb-title-more {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        /* Popular List */
+        .pop-list { list-style: none; margin: 0; padding: 0; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; cursor:pointer;}
+        .pop-item:hover .pop-title { text-decoration: underline; color: var(--brand-blue); }
+        .pop-ranking { font-size: 18px; font-weight: 900; color: #111; width: 14px; font-style: italic;}
+        .pop-title { font-size: 14px; color: #333; line-height: 1.4; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Prop List */
+        .prop-item { display: flex; gap: 15px; margin-bottom: 20px; cursor: pointer; padding-bottom: 15px; border-bottom: 1px solid #f2f2f2;}
+        .prop-item:hover .prop-title { text-decoration: underline; color: var(--brand-blue); }
+        .prop-info { flex: 1; }
+        .prop-title { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; line-height: 1.3;}
+        .prop-price { font-size: 14px; font-weight: 900; color: #1a73e8; margin-bottom: 4px;}
+        .prop-meta { font-size: 11px; color: #777; line-height: 1.4;}
+        .prop-img-wrapper { width: 80px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #eee;}
+        .prop-img { width: 100%; height: 100%; object-fit: cover; }
+        .prop-badge { font-size: 10px; color:#e74c3c; border:1px solid #e74c3c; border-radius:3px; padding:1px 4px; display:inline-block; margin-top:4px;}
+
+    </style>
+    
+    <style>
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: .5; }
+        }
+        .skeleton-card {
+            pointer-events: none; border:none; background: transparent;
+        }
+        .skeleton-img {
+            background: #e2e8f0; animation: pulse 1.5s infinite ease-in-out;
+        }
+        .skeleton-line {
+            background: #e2e8f0; animation: pulse 1.5s infinite ease-in-out; border-radius:4px; margin-bottom: 8px;
+        }
+    </style>
+
+    <main class="container px-20 relative">
+        <div class="news-layout">
+            <!-- 좌측 뉴스 리스트 (전체뉴스) -->
+            <div class="news-list-area">
+                <div class="list-header">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    부동산·주식·재테크
+                </div>
+                
+                <div id="allNewsContainer">
+                    <!-- Skeleton Loading UI -->
+                </div>
+                
+                <div class="pagination">
+                    <button class="page-btn" id="btnPrevPage" onclick="changePage(-1)">&lt; 이전</button>
+                    <span class="page-info"><span id="currentPageDisplay">1</span> / <span id="totalPagesDisplay">-</span></span>
+                    <button class="page-btn" id="btnNextPage" onclick="changePage(1)">다음 &gt;</button>
+                </div>
+            </div>
+            
+            <!-- 우측 사이드바 -->
+            <div class="news-sidebar">
+                <!-- 배너 영역 -->
+                <div class="sb-banner">
+                    배너 1
+                </div>
+                
+                <!-- 많이 본 뉴스 5개 -->
+                <div class="sb-widget">
+                    <div class="sb-title">많이 본 뉴스</div>
+                    <ul class="pop-list" id="popularNewsSidebarContainer">
+                        <!-- 동적 렌더링 -->
+                    </ul>
+                </div>
+                
+                <!-- 추천공실 매물리스트 -->
+                <div class="sb-widget">
+                    <div class="sb-title">
+                        추천 공실
+                        <span class="sb-title-more" onclick="window.location.href='gongsil/index.html'">더보기 &gt;</span>
+                    </div>
+                    <div id="recommendPropSidebarContainer">
+                        <!-- 동적 렌더링 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Supabase 등 공통 스크립트 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
+    
+    <script>
+    const ITEMS_PER_PAGE = 10;
+    let currentPage = 1;
+    let totalItems = 0;
+    let allNewsDataCache = []; // 캐시 보관용
+    
+    document.addEventListener('DOMContentLoaded', async () => {
+        // 메인 GNB의 '전체뉴스' 링크 활성화 스타일 (선택사항)
+        const menuLinks = document.querySelectorAll('.gnb-new a');
+        menuLinks.forEach(a => {
+            if(a.innerText === '부동산·주식·재테크') {
+                a.style.color = '#508bf5';
+                a.style.fontWeight = '800';
+            }
+        });
+        
+        await loadAllNewsData();
+        await loadPopularSidebarNews();
+        await loadRecommendSidebarProps();
+    });
+    
+    // 1. 전체뉴스 리스트 로드 (페이지네이션)
+    async function loadAllNewsData() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        
+        // Count query
+        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published').eq('section1', '뉴스/칼럼').eq('section2', '부동산·주식·재테크');
+        if(!countErr) totalItems = count || 0;
+        
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+        document.getElementById('totalPagesDisplay').innerText = totalPages;
+        
+        fetchPageData();
+    }
+    
+    async function fetchPageData() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        
+        const startIdx = (currentPage - 1) * ITEMS_PER_PAGE;
+        const endIdx = startIdx + ITEMS_PER_PAGE - 1;
+        
+        const container = document.getElementById('allNewsContainer');
+        const skeletonHtml = Array(5).fill(`
+            <div class="an-card skeleton-card">
+                <div class="an-img skeleton-img"></div>
+                <div class="an-body">
+                    <div class="skeleton-line" style="width:80%; height:20px;"></div>
+                    <div class="skeleton-line" style="width:100%; height:14px; margin-top:8px;"></div>
+                    <div class="skeleton-line" style="width:60%; height:14px;"></div>
+                    <div class="skeleton-line" style="width:30%; height:13px; margin-top:10px;"></div>
+                </div>
+            </div>
+        `).join('');
+        container.innerHTML = skeletonHtml;
+        
+        const { data, error } = await sb.from('articles')
+            .select('*, article_media!fk_rep_media(url)')
+            .eq('status', 'published')
+            .eq('section1', '뉴스/칼럼').eq('section2', '부동산·주식·재테크')
+            .order('created_at', { ascending: false })
+            .range(startIdx, endIdx);
+            
+        if(error || !data) {
+            container.innerHTML = '<div style="padding: 20px; text-align:center;">데이터를 불러올 수 없습니다.</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        data.forEach(news => {
+            const dateStr = new Date(news.created_at).toLocaleString('ko-KR', { year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', minute:'2-digit'});
+            
+            const card = document.createElement('div');
+            card.className = 'an-card';
+            const detailUrl = `news_read.html?article_id=${news.id}`; 
+            card.onclick = () => window.location.href = detailUrl;
+            
+            let extractUrl = (news.article_media && news.article_media.url) ? news.article_media.url : news.image_url;
+            let isVideo = false;
+            
+            if (extractUrl && extractUrl.includes('youtube.com/embed/')) {
+                isVideo = true;
+                const parts = extractUrl.split('youtube.com/embed/');
+                if (parts.length > 1) {
+                    const vId = parts[1].split('?')[0].split('"')[0];
+                    extractUrl = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
+                }
+            }
+
+            if(!extractUrl && news.content) {
+                const ytIframeMatch = news.content.match(/<iframe[^>]+src=["']([^"']*youtube\.com\/embed\/[^"']+)["']/i);
+                if (ytIframeMatch) {
+                    isVideo = true;
+                    const parts = ytIframeMatch[1].split('youtube.com/embed/');
+                    if (parts.length > 1) {
+                        const vId = parts[1].split('?')[0].split('"')[0];
+                        extractUrl = `https://img.youtube.com/vi/${vId}/mqdefault.jpg`;
+                    }
+                } else {
+                    const imgMatch = news.content.match(/<img[^>]+src=["']([^"']+)["']/i);
+                    if(imgMatch) extractUrl = imgMatch[1];
+                }
+            }
+            
+            const playOverlay = isVideo ? `<div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.4); border-radius:50%; border: 2.5px solid white; display:flex; align-items:center; justify-content:center; z-index:5;"><svg viewBox="0 0 24 24" width="24" height="24" fill="white" style="margin-left:4px;"><path d="M8 5v14l11-7z"/></svg></div>` : ``;
+
+            let imgHtml = '';
+            if (extractUrl) {
+                imgHtml = `<img src="${extractUrl}" style="width:100%; height:100%; object-fit:cover; border-radius:6px;" onerror="this.src='https://via.placeholder.com/160x100?text=News'">`;
+                imgHtml = `<div class="an-img" style="position:relative; flex-shrink:0;">${imgHtml}${playOverlay}</div>`;
+            }
+            
+            const categoryBadge = news.section1 ? `[${news.section1}${news.section2 ? ' > '+news.section2 : ''}]` : '';
+            
+            card.innerHTML = `
+                ${imgHtml}
+                <div class="an-body">
+                    <div class="an-title">${news.title}</div>
+                    <div class="an-desc">${news.subtitle || news.content?.replace(/<[^>]+>/g, '').substring(0, 150) || ''}</div>
+                    <div class="an-meta"><span style="color:#508bf5; font-weight:bold; margin-right:8px;">${categoryBadge}</span> ${dateStr} · ${news.reporter_name || '공실뉴스'}</div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+        
+        document.getElementById('currentPageDisplay').innerText = currentPage;
+        
+        // 버튼 활성화 처리
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+        document.getElementById('btnPrevPage').disabled = (currentPage <= 1);
+        document.getElementById('btnNextPage').disabled = (currentPage >= totalPages);
+    }
+    
+    // Text Banner Ticker Animation & Dropdown
+    document.addEventListener("DOMContentLoaded", function() {
+        const container = document.getElementById('txt-banner-container');
+        const bannerList = document.getElementById('txt-banner-list');
+        const dropdown = document.querySelector('.txt-dropdown');
+        if (!bannerList || !container || !dropdown) return;
+        
+        const items = bannerList.querySelectorAll('li');
+        if (items.length <= 1) return;
+        
+        let idx = 0;
+        const itemHeight = 24; 
+        
+        const firstClone = items[0].cloneNode(true);
+        bannerList.appendChild(firstClone);
+        const totalItems = items.length + 1;
+        
+        let tickerInterval;
+        function startTicker() {
+            tickerInterval = setInterval(() => {
+                idx++;
+                bannerList.style.transition = 'transform 0.5s ease-in-out';
+                bannerList.style.transform = `translateY(-${idx * itemHeight}px)`;
+                if (idx === totalItems - 1) {
+                    setTimeout(() => {
+                        bannerList.style.transition = 'none';
+                        bannerList.style.transform = `translateY(0)`;
+                        idx = 0;
+                    }, 500);
+                }
+            }, 3000);
+        }
+        startTicker();
+        
+        container.addEventListener('mouseenter', () => {
+            clearInterval(tickerInterval);
+            dropdown.style.display = 'block';
+        });
+        container.addEventListener('mouseleave', () => {
+            startTicker();
+            dropdown.style.display = 'none';
+        });
+    });
+
+    // Sticky Header scroll detection
+    document.addEventListener("scroll", () => {
+        const header = document.querySelector('.header');
+        if (header) {
+            if (window.scrollY > 40) {
+                header.classList.add('is-sticky');
+            } else {
+                header.classList.remove('is-sticky');
+            }
+        }
+    });
+    
+    function changePage(delta) {
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
+        let newPage = currentPage + delta;
+        if(newPage < 1) newPage = 1;
+        if(newPage > totalPages) newPage = totalPages;
+        
+        if(newPage !== currentPage) {
+            currentPage = newPage;
+            fetchPageData();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    }
+    
+    // 2. 우측 사이드바: 많이 본 뉴스 (Top 5)
+    async function loadPopularSidebarNews() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        
+        const { data, error } = await sb.from('articles')
+            .select('id, title, view_count')
+            .eq('status', 'published')
+            .eq('section1', '뉴스/칼럼').eq('section2', '부동산·주식·재테크')
+            .order('view_count', { ascending: false })
+            .limit(5);
+            
+        const c = document.getElementById('popularNewsSidebarContainer');
+        if(error || !data) return;
+        
+        c.innerHTML = data.map((item, i) => `
+            <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
+                <span class="pop-ranking">${i+1}</span>
+                <span class="pop-title">${item.title}</span>
+            </li>
+        `).join('');
+    }
+    
+    // 3. 우측 사이드바: 추천공실 매물리스트
+    //    매물 클릭 시 공실열람으로 이동
+    async function loadRecommendSidebarProps() {
+        const container = document.getElementById('recommendPropSidebarContainer');
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+
+        const { data, error } = await sb.from('properties')
+            .select('*')
+            .eq('status', 'active')
+            .order('created_at', { ascending: false })
+            .limit(4);
+
+        if(error || !data || data.length === 0) {
+            container.innerHTML = '<div style="padding:20px; text-align:center; color:#999; font-size:13px;">추천 공실이 없습니다.</div>';
+            return;
+        }
+
+        function formatPriceValue(val) {
+            val = Number(val);
+            if (!val || val === 0) return '0';
+            if (val >= 10000) {
+                const uk = Math.floor(val / 10000);
+                const man = val % 10000;
+                return man > 0 ? `${uk}억 ${man}` : `${uk}억`;
+            }
+            return val.toLocaleString();
+        }
+
+        container.innerHTML = data.map(p => {
+            let propTitle = p.building_name || p.property_type || '공실매물';
+            if (p.main_category === '아파트·오피스텔') {
+                let aptName = p.building_name || p.property_type || '';
+                let dongStr = '';
+                if (p.dong_number) dongStr = String(p.dong_number).includes('동') ? p.dong_number : `${p.dong_number}동`;
+                let roomStr = '';
+                if (p.room_number) roomStr = String(p.room_number).includes('호') ? p.room_number : `${p.room_number}호`;
+                let tempStr = `${aptName} ${dongStr} ${roomStr}`.trim();
+                if (tempStr) propTitle = tempStr;
+            }
+
+            const badgeText = (function(pf) {
+                if (!pf) return '공실매물';
+                if (pf.includes('100') || pf.includes('양타')) return '수수료100%';
+                if (pf.includes('50') || pf.includes('단타')) return '수수료50%';
+                if (pf.includes('25')) return '수수료25%';
+                if (pf.includes('공동')) return '공동중개';
+                return '공동중개';
+            })(p.brokerage_fee);
+
+            const dep = formatPriceValue(p.deposit);
+            let priceStr = '';
+            if (p.trade_type === '매매' || p.trade_type === '전세') priceStr = `${p.trade_type} ${dep}`;
+            else priceStr = `${p.trade_type} ${dep}/${p.monthly_rent || 0}`;
+
+            const supAreaM2 = p.supply_area ? parseFloat(p.supply_area) : 0;
+            const excAreaM2 = p.dedicated_area ? parseFloat(p.dedicated_area) : (p.area ? parseFloat(p.area) : 0);
+            const fmtM2P = (m2) => m2 ? `${m2}㎡(${(m2 / 3.3058).toFixed(1)}평)` : '';
+            let areaDisplay = '';
+            if (supAreaM2 && excAreaM2) areaDisplay = `${fmtM2P(supAreaM2)} / ${fmtM2P(excAreaM2)}`;
+            else if (supAreaM2) areaDisplay = fmtM2P(supAreaM2);
+            else if (excAreaM2) areaDisplay = fmtM2P(excAreaM2);
+
+            let locStr = '';
+            if(p.address) {
+                 const words = p.address.split(' ');
+                 if(words.length > 2) locStr = words[2];
+                 else locStr = words[0];
+            } else {
+                 locStr = p.location || '';
+            }
+
+            let metaArr = [];
+            if(locStr) metaArr.push(locStr);
+            if(areaDisplay) metaArr.push('면적 ' + areaDisplay);
+            
+            let extraArr = [];
+            if(p.room_count) extraArr.push(`룸 ${p.room_count}개`);
+            if(p.bathroom_count) extraArr.push(`욕실 ${p.bathroom_count}개`);
+            
+            let metaHtml = metaArr.join(' · ');
+            if (extraArr.length > 0) metaHtml += '<br>' + extraArr.join(', ');
+
+            let imgUrl = (p.images && p.images.length > 0) ? p.images[0] : 'https://via.placeholder.com/80?text=NoImg';
+
+            return `
+            <div class="prop-item" onclick="window.location.href='gongsil/index.html'">
+                <div class="prop-info" style="min-width:0; overflow:hidden;">
+                    <div class="prop-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width:180px;">${propTitle}</div>
+                    <div class="prop-price">${priceStr}</div>
+                    <div class="prop-meta">${metaHtml}</div>
+                    <span class="prop-badge">${badgeText}</span>
+                </div>
+                <div class="prop-img-wrapper" style="flex-shrink:0;">
+                    <img src="${imgUrl}" class="prop-img" onerror="this.src='https://via.placeholder.com/80?text=NoImg'">
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+    
+    </script>
+</body>
+</html>

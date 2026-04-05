@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>게시물 작성 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/lang/summernote-ko-KR.min.js"></script>
+
+    <style>
+        :root {
+            --bg-color: #f4f5f7;
+            --container-bg: #ffffff;
+            --text-main: #111827;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+        }
+        
+        body {
+            font-family: 'Pretendard Variable', -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0; padding: 40px;
+            color: var(--text-main);
+        }
+
+        .write-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: var(--container-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            padding: 40px;
+        }
+
+        .header {
+            border-bottom: 2px solid var(--text-main);
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #111; }
+        
+        .form-row { margin-bottom: 24px; display: flex; gap: 20px; }
+        .form-group { flex: 1; }
+        .form-label { display: block; font-size: 14px; font-weight: 700; margin-bottom: 8px; color: #374151; }
+        
+        .form-control {
+            width: 100%; padding: 12px 14px; border: 1px solid var(--border);
+            border-radius: 6px; font-size: 15px; box-sizing: border-box; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .form-control:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        .link-inputs {
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 30px;
+            display: none; /* 스킨에 따라 On/Off */
+        }
+        .link-inputs.active { display: block; }
+        .link-desc { margin: 0 0 15px 0; font-size: 13px; color: #64748b; font-weight: 600; display:flex; align-items:center; gap:6px;}
+        .link-desc svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2;}
+
+        .btn-wrap { display: flex; justify-content: flex-end; gap: 10px; margin-top: 40px; border-top: 1px solid var(--border); padding-top: 24px;}
+        .btn { padding: 12px 24px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-cancel { background: #fff; border: 1px solid #ccc; color: #555; }
+        .btn-cancel:hover { background: #f9f9f9; }
+        .btn-submit { background: var(--text-main); color: #fff; }
+        .btn-submit:hover { background: #000; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        
+        /* 썸네일 업로드 영역 */
+        .thumb-upload {
+            width: 200px; height: 130px; border: 2px dashed #cbd5e1; border-radius: 8px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: #94a3b8; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            background: #f8fafc url('') center/cover no-repeat;
+        }
+        .thumb-upload:hover { border-color: var(--primary); color: var(--primary); background-color: #f0fdf4;}
+        
+    </style>
+</head>
+<body>
+
+<div class="write-container">
+    <div class="header">
+        <h1><span id="boardNameTitle" style="color:var(--primary);"></span> 게시물 작성</h1>
+        <span style="color:var(--text-muted); font-size:14px; font-weight:600;">작성자: <span id="currentAuthor">관리자</span></span>
+    </div>
+
+    <!-- 1. 기본 정보 폼 -->
+    <div class="form-row">
+        <div class="form-group" style="flex: 0.2;">
+            <label class="form-label">카테고리</label>
+            <select class="form-control" id="categorySelect">
+                <!-- 동적으로 채워짐 -->
+            </select>
+        </div>
+        <div class="form-group" style="flex: 0.8;">
+            <label class="form-label">게시글 제목</label>
+            <input type="text" class="form-control" id="postTitle" placeholder="제목을 입력하세요">
+        </div>
+    </div>
+
+    <!-- 2. 확장 링크 폼 (유튜브/드라이브 전용) -->
+    <div class="link-inputs" id="mediaLinkSection">
+        <p class="link-desc">
+            <svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            영상 스킨(video_album) 및 자료실 스킨(file_album) 전용 간편 등록 필드입니다. HTML 복붙 없이 주소만 넣으세요.
+        </p>
+        
+        <div class="form-row" style="gap: 20px;">
+            <!-- 유튜브 링크 -->
+            <div class="form-group" id="ytbField" style="display:none; flex:1;">
+                <label class="form-label" style="color:#dc2626;">YouTube 영상 링크 (선택)</label>
+                <input type="text" class="form-control" id="ytbUrl" placeholder="예: https://youtu.be/...">
+            </div>
+        </div>
+        
+        <div class="form-row" style="gap: 20px;">
+            <!-- 드라이브 링크 -->
+            <div class="form-group" style="flex:1;">
+                <label class="form-label" style="color:#2563eb;">구글 드라이브 다운로드 링크 (선택)</label>
+                <input type="text" class="form-control" id="driveUrl" placeholder="예: https://drive.google.com/file/d/...">
+            </div>
+            <!-- 외부 외부 링크 -->
+            <div class="form-group" style="flex:1;">
+                <label class="form-label" style="color:#16a34a;">외부 참조 링크 (선택)</label>
+                <input type="text" class="form-control" id="extLinkUrl" placeholder="클릭 시 이동할 외부 URL을 입력하세요.">
+            </div>
+        </div>
+        
+        <!-- 썸네일 업로드 -->
+        <div class="form-group">
+            <label class="form-label">목록 노출용 대표 썸네일 (선택)</label>
+            <div class="thumb-upload" id="thumbBox" onclick="document.getElementById('thumbInput').click()">
+                <div style="font-size:24px; margin-bottom:8px;">📸</div>
+                이미지 클릭하여 첨부
+            </div>
+            <input type="file" id="thumbInput" style="display:none;" accept="image/*" onchange="previewThumb(this)">
+        </div>
+    </div>
+
+    <!-- 3. 본문 에디터 -->
+    <div class="form-group">
+        <label class="form-label">상세 본문 (선택)</label>
+        <textarea id="summernote"></textarea>
+    </div>
+
+    <div class="btn-wrap">
+        <button class="btn btn-cancel" onclick="history.back()">목록으로 취소</button>
+        <button class="btn btn-submit" onclick="submitPost()" id="btnSubmit">🚀 게시글 최종 등록</button>
+    </div>
+</div>
+
+<script>
+    // Summernote 초기화
+    $(document).ready(function() {
+        $('#summernote').summernote({
+            height: 400,
+            lang: 'ko-KR',
+            toolbar: [
+                ['style', ['style']],
+                ['font', ['bold', 'underline', 'clear']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol', 'paragraph']],
+                ['insert', ['link', 'picture']]
+            ],
+            placeholder: '게시물 본문을 자유롭게 작성하세요.'
+        });
+    });
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetBoardId = urlParams.get('board_id');
+    const editId = urlParams.get('edit_id');
+    
+    // 페이지 로드 시 게시판 정보 세팅
+    document.addEventListener('DOMContentLoaded', async () => {
+        if(!targetBoardId) {
+            alert('잘못된 접근입니다. 게시판이 지정되지 않았습니다.');
+            history.back();
+            return;
+        }
+
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(sb) {
+            const { data: bMeta } = await sb.from('boards').select('*').eq('board_id', targetBoardId).single();
+            if(bMeta) {
+                document.getElementById('boardNameTitle').innerText = bMeta.board_name;
+                
+                if(bMeta.categories) {
+                     const catArr = bMeta.categories.split(',').map(c=>c.trim());
+                     document.getElementById('categorySelect').innerHTML = catArr.map(c => `<option value="${c}">${c}</option>`).join('');
+                } else {
+                     document.getElementById('categorySelect').innerHTML = '<option value="전체">전체</option>';
+                }
+                
+                applySkinUI(bMeta.skin_type);
+            } else {
+                alert('게시판 정보를 불러오지 못했습니다.');
+                history.back();
+                return;
+            }
+
+            // 수정 모드인 경우 데이터 불러오기
+            if (editId) {
+                document.getElementById('btnSubmit').innerText = '🚀 게시글 수정 완료';
+                document.title = '게시글 수정 - 공실뉴스';
+                document.getElementById('boardNameTitle').innerText += ' (수정)';
+                
+                const { data: postData } = await sb.from('board_posts').select('*').eq('id', editId).single();
+                if (postData) {
+                    if (postData.category) document.getElementById('categorySelect').value = postData.category;
+                    if (postData.title) document.getElementById('postTitle').value = postData.title;
+                    if (postData.content) $('#summernote').summernote('code', postData.content);
+                    if (postData.youtube_url && document.getElementById('ytbUrl')) document.getElementById('ytbUrl').value = postData.youtube_url;
+                    if (postData.drive_url && document.getElementById('driveUrl')) document.getElementById('driveUrl').value = postData.drive_url;
+                    if (postData.ext_link && document.getElementById('extLinkUrl')) document.getElementById('extLinkUrl').value = postData.ext_link;
+                    if (postData.thumbnail_url) {
+                        autoYtbThumbUrl = postData.thumbnail_url;
+                        const box = document.getElementById('thumbBox');
+                        box.style.backgroundImage = `url(${postData.thumbnail_url})`;
+                        box.innerHTML = '';
+                    }
+                }
+            }
+        }
+    });
+
+    // 스킨 변경에 따른 UI 동적 변화 로직
+    function applySkinUI(skin) {
+        const mediaSection = document.getElementById('mediaLinkSection');
+        const ytbField = document.getElementById('ytbField');
+        
+        if(skin === 'video_album' || skin === 'file_album') {
+            // 비디오 앨범 및 자료실 앨범 모두 유튜브 + 드라이브 노출
+            mediaSection.classList.add('active');
+            ytbField.style.display = 'block';
+        } else {
+            // 일반 게시판 및 기타는 끄고 에디터만 씀
+            mediaSection.classList.remove('active');
+        }
+    }
+
+    // 썸네일 미리보기
+    let autoYtbThumbUrl = null;
+
+    // 유튜브 주소 입력 시 자동 썸네일 추출
+    document.getElementById('ytbUrl').addEventListener('input', function(e) {
+        const url = e.target.value.trim();
+        if(!url) {
+            autoYtbThumbUrl = null;
+            return;
+        }
+        // 정규식을 통해 유튜브 ID 추출
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        
+        if (match && match[2].length === 11) {
+            const videoId = match[2];
+            autoYtbThumbUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+            
+            // 사용자가 직접 첨부한 파일이 없을 경우에만 썸네일 박스 배경으로 보여주기
+            const thumbInput = document.getElementById('thumbInput');
+            if(!thumbInput.files || thumbInput.files.length === 0) {
+                const box = document.getElementById('thumbBox');
+                box.style.backgroundImage = `url(${autoYtbThumbUrl})`;
+                box.innerHTML = ''; 
+            }
+        }
+    });
+
+    function previewThumb(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const box = document.getElementById('thumbBox');
+                box.style.backgroundImage = `url(${e.target.result})`;
+                box.innerHTML = ''; 
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    // 등록 액션 (Supabase 연동 완료)
+    async function submitPost() {
+        const btnSubmit = document.getElementById('btnSubmit');
+        const boardId = targetBoardId;
+        const category = document.getElementById('categorySelect').value;
+        const title = document.getElementById('postTitle').value;
+        const content = $('#summernote').summernote('code');
+        const ytbUrl = document.getElementById('ytbUrl')?.value || null;
+        const driveUrl = document.getElementById('driveUrl')?.value || null;
+        const extLinkUrl = document.getElementById('extLinkUrl')?.value || null;
+        
+        if(!boardId) return alert('게시판 지정이 잘못되었습니다.');
+        if(!title) return alert('제목을 입력해주세요.');
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerText = '처리 중...';
+
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return alert('DB 클라이언트가 초기화되지 않았습니다.');
+
+        let currentUserId = '00000000-0000-0000-0000-000000000000'; // Fallback uuid
+        let currentUserName = '관리자';
+
+        const { data: { user } } = await sb.auth.getUser();
+        if(user) {
+            currentUserId = user.id;
+            const { data: profile } = await sb.from('users_profile').select('name').eq('id', user.id).single();
+            if(profile && profile.name) {
+                currentUserName = profile.name;
+            }
+        }
+
+        // 썸네일 업로드 처리
+        let finalThumbUrl = autoYtbThumbUrl; // 기본적으로 자동 유튜브 썸네일
+        const thumbInput = document.getElementById('thumbInput');
+        
+        if (thumbInput && thumbInput.files && thumbInput.files.length > 0) {
+            let file = thumbInput.files[0];
+            
+            // 이미지 WebP 압축 적용 (1200px 제한, 품질 80%)
+            try {
+                file = await compressImage(file, 1200, 0.8);
+            } catch (err) {
+                console.warn('이미지 압축 실패, 원본 업로드', err);
+            }
+
+            const fileExt = file.name.split('.').pop() || 'webp';
+            const fileName = `thumb_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            // user-photos 버킷은 보통 uid 직계 하위 폴더만 업로드 정책이 허용되어 있을 수 있으므로 하위 폴더 제거
+            const filePath = `${currentUserId}/board_thumb_${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+            // 업로드 시도 (contentType, upsert 추가)
+            const { error: uploadError } = await sb.storage.from('user-photos').upload(filePath, file, { 
+                upsert: true,
+                contentType: file.type 
+            });
+            
+            if (uploadError) {
+                console.warn('썸네일 업로드 에러(RLS 등) 발생. 편의상 Base64로 폴백합니다.', uploadError);
+                // 로컬 테스트 환경이나 RLS 권한 부족 시 오류로 막히지 않고 Base64로 대체 저장되도록 폴백 추가
+                finalThumbUrl = await new Promise((res) => {
+                    const r = new FileReader();
+                    r.onload = () => res(r.result);
+                    r.onerror = () => res(null);
+                    r.readAsDataURL(file);
+                });
+            } else {
+                const { data } = sb.storage.from('user-photos').getPublicUrl(filePath);
+                if (data && data.publicUrl) {
+                    finalThumbUrl = data.publicUrl;
+                }
+            }
+        }
+
+        const insertData = {
+            board_id: boardId,
+            author_id: currentUserId,
+            author_name: currentUserName,
+            category: category,
+            title: title,
+            content: content === '<p><br></p>' ? null : content,
+            youtube_url: ytbUrl,
+            drive_url: driveUrl,
+            ext_link: extLinkUrl,
+            thumbnail_url: finalThumbUrl 
+        };
+
+        let result;
+        if (editId) {
+            // 작성자 정보는 덮어쓰지 않도록 제거
+            delete insertData.author_id;
+            delete insertData.author_name;
+            result = await sb.from('board_posts').update(insertData).eq('id', editId);
+        } else {
+            result = await sb.from('board_posts').insert([insertData]);
+        }
+        
+        const { error } = result;
+
+        if (error) {
+            console.error(error);
+            alert('게시물 처리 중 오류가 발생했습니다: ' + error.message);
+        } else {
+            alert(editId ? '성공적으로 수정되었습니다!' : '성공적으로 등록되었습니다!');
+            window.location.href = editId ? `board_read.html?board_id=${boardId}&post_id=${editId}` : `board.html?id=${boardId}`;
+        }
+    }
+
+    // ========== 이미지 압축 유틸리티 ==========
+    function compressImage(file, maxWidth = 1200, quality = 0.8) {
+        return new Promise((resolve, reject) => {
+            if (!file.type.startsWith('image/')) {
+                resolve(file); // 이미지가 아니면 그대로 반환
+                return;
+            }
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = function(event) {
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > maxWidth) {
+                        height = Math.round((height * maxWidth) / width);
+                        width = maxWidth;
+                    }
+
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                            const compressedFile = new File([blob], newFileName, {
+                                type: 'image/webp',
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file);
+                        }
+                    }, 'image/webp', quality);
+                };
+                img.onerror = () => resolve(file);
+            };
+            reader.onerror = () => resolve(file);
+        });
+    }
+</script>
+
+</body>
+</html>

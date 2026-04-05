@@ -1,0 +1,833 @@
+:root {
+    --primary-color: #508bf5; /* 공실뉴스 주황색 */
+    --hover-color: #ffbf69;
+    --bg-color: #f8f9fa;
+    --text-color: #333;
+    --border-color: #eee;
+    --header-height: 60px;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    /* 모바일 브라우저 주소창 대응 */
+    overflow: hidden;
+    /* 스크롤 방지 */
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+}
+
+/* Header */
+.header {
+    height: var(--header-height);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border-color);
+    box-sizing: border-box;
+    position: relative;
+    z-index: 100;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.logo-group {
+    display: flex;
+    align-items: center;
+    margin-right: 15px;
+}
+
+.logo-img-link {
+    display: block;
+    text-decoration: none;
+}
+
+.logo-text-link {
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.logo-group img {
+    display: block;
+    height: 40px;
+    width: auto;
+}
+
+.logo::after {
+    /* 기존 텍스트 로고의 화살표 제거 */
+    content: none;
+}
+
+.beta-badge {
+    font-size: 11px;
+    color: #999;
+    margin-left: 6px;
+    font-weight: normal;
+    letter-spacing: -0.5px;
+    margin-top: 8px;
+    /* 이미지 하단 라인과 시각적 정렬 */
+}
+
+/* Navigation Tabs */
+.nav-tab {
+    text-decoration: none;
+    color: #666;
+    font-weight: 500;
+    margin-right: 20px;
+    font-size: 15px;
+    cursor: pointer;
+    padding-bottom: 19px;
+    /* 헤더 높이 맞춤 */
+    border-bottom: 2px solid transparent;
+    /* 기본 밑줄 투명 */
+    transition: color 0.2s, border-bottom 0.2s;
+}
+
+.nav-tab:hover {
+    color: var(--primary-color);
+}
+
+.nav-tab.active {
+    color: var(--primary-color);
+    font-weight: bold;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.header-right {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-login,
+.btn-biz {
+    background: white;
+    border: 1px solid #ddd;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    color: #555;
+    text-decoration: none;
+    /* 추가: a 태그 밑줄 제거 */
+    display: inline-block;
+    /* 추가: 블록 속성 */
+}
+
+.btn-login:hover,
+.btn-biz:hover {
+    background: #f5f5f5;
+    color: #333;
+    /* 호버 시 글자색 진하게 */
+}
+
+/* Main Layout */
+.main-container {
+    display: flex;
+    /* 헤더 높이를 뺀 나머지 전체 */
+    height: calc(100% - var(--header-height));
+    width: 100%;
+    position: relative;
+}
+
+/* Map Area */
+.map-wrapper {
+    flex: 1;
+    /* 가변 너비 (남은 공간) */
+    height: 100%;
+    /* 부모 높이 상속 */
+    position: relative;
+    min-width: 0;
+    /* flex 자식 오버플로우 방지 */
+    background-color: #eee;
+    /* 로딩 전 배경 */
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+}
+
+/* Search Overlay */
+/* Search Box (in Sidebar) */
+.search-box {
+    /* 원래 .search-overlay 였던 것 */
+    width: 100%;
+    margin-bottom: 20px;
+    background: white;
+    border: 2px solid var(--border-color);
+    /* 테두리 추가 */
+    border-radius: 8px;
+    /* 둥글게 */
+    display: flex;
+    padding: 2px;
+    box-sizing: border-box;
+}
+
+.search-box:focus-within {
+    border-color: var(--primary-color);
+    /* 포커스 시 강조 */
+}
+
+.search-input {
+    border: none;
+    outline: none;
+    padding: 8px;
+    flex: 1;
+    font-size: 14px;
+}
+
+.search-btn {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    width: 36px;
+    border-radius: 2px;
+    cursor: pointer;
+}
+
+/* Category Filters (Sidebar) */
+.category-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    white-space: nowrap;
+    padding-bottom: 4px;
+    /* 스크롤바 숨김 */
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+.category-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.category-btn {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    flex-shrink: 0;
+}
+
+.category-btn:hover {
+    background: #f5f5f5;
+    color: #333;
+    border-color: #ccc;
+}
+
+.category-btn.active {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* Sidebar (News List) */
+.sidebar {
+    width: 380px;
+    /* 고정 너비 */
+    min-width: 380px;
+    height: 100%;
+    background: white;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+}
+
+/* 우측 사이드바 레이아웃 (뉴스 페이지) */
+.main-container.sidebar-right .sidebar {
+    border-right: none;
+    border-left: 1px solid var(--border-color);
+}
+
+.sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.sidebar-header h2 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.news-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    -webkit-overflow-scrolling: touch;
+    /* 모바일 관성 스크롤 */
+}
+
+/* News Item Card */
+.news-card {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.news-card:hover {
+    background-color: #eff1f3;
+}
+
+.news-card.active {
+    background-color: #eaf4ff;
+    border-left: 4px solid var(--primary-color);
+}
+
+.news-card-title {
+    font-size: 15px;
+    font-weight: bold;
+    margin: 0 0 8px 0;
+    line-height: 1.4;
+    word-break: keep-all;
+}
+
+.news-tag {
+    font-size: 11px;
+    color: var(--primary-color);
+    font-weight: bold;
+    margin-bottom: 4px;
+    display: inline-block;
+}
+
+.news-desc {
+    font-size: 13px;
+    color: #666;
+    margin: 0 0 12px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-clamp: 2;
+}
+
+.news-meta {
+    font-size: 12px;
+    color: #999;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.news-link {
+    color: #3b82f6;
+    text-decoration: none;
+    font-size: 12px;
+}
+
+.loading-spinner {
+    padding: 20px;
+    text-align: center;
+    color: #888;
+}
+
+/* Scrollbar */
+.news-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.news-list::-webkit-scrollbar-thumb {
+    background-color: #ddd;
+    border-radius: 3px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+
+    /* 레이아웃: 맵을 전체 화면으로, 나머지는 오버레이 */
+    .main-container {
+        display: block;
+        /* Flex column 제거 */
+        position: relative;
+        height: calc(100vh - 50px);
+        /* 헤더 제외 높이 */
+        overflow: hidden;
+    }
+
+    /* 지도 영역 - 전체 배경으로 깔림 */
+    .map-wrapper {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        /* 기존 width/height/order override */
+        order: unset;
+    }
+
+    #map {
+        width: 100%;
+        height: 100%;
+    }
+
+    /* 사이드바 - 상단 검색/필터 + 하단 리스트로 분리 연출 */
+    .sidebar {
+        /* 사이드바 컨테이너는 하단 시트 역할 */
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 40%;
+        /* 하단 40% 차지 */
+        min-width: 0;
+        background: white;
+        border-top: none;
+        border-left: none;
+        box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        order: unset;
+    }
+
+    /* 상단 검색바 - 사이드바에서 탈출하여 상단 고정 */
+    .search-box {
+        position: fixed;
+        top: 60px;
+        /* 헤더(50px) 아래 */
+        left: 50%;
+        transform: translateX(-50%);
+        width: 92%;
+        /* 좌우 여백 고려 */
+        z-index: 101;
+        /* 지도보다 위 */
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        margin: 0;
+        padding: 4px;
+        height: 48px;
+        box-sizing: border-box;
+    }
+
+    /* 기사 보기 버튼(필터) - 검색바 아래 고정 */
+    .category-filters {
+        position: fixed;
+        top: 118px;
+        /* 검색바(60+48=108) + 여백 10 */
+        left: 0;
+        width: 100%;
+        z-index: 101;
+        padding-left: 20px;
+        padding-right: 20px;
+        box-sizing: border-box;
+        margin: 0;
+        overflow-x: auto;
+        white-space: nowrap;
+        background: transparent;
+        /* 스크롤바 숨기기 */
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .category-filters::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* 필터 버튼 스타일 조정 (모바일) */
+    .category-btn {
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.95);
+        border: 1px solid white;
+        padding: 6px 14px;
+        font-size: 13px;
+        margin-right: 6px;
+    }
+
+    .category-btn.active {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+
+    /* 하단 시트 헤더 (제목) */
+    .sidebar-header {
+        padding: 15px 20px 10px 20px;
+        border-bottom: 1px solid #f0f0f0;
+        background: white;
+        border-top-left-radius: 20px;
+        border-top-right-radius: 20px;
+        flex-shrink: 0;
+        /* 검색/필터가 빠져나갔으므로 높이 재조정 */
+        min-height: auto;
+    }
+
+    .sidebar-header h2 {
+        font-size: 16px;
+        color: #333;
+        margin: 0;
+    }
+
+    /* 뉴스 리스트 */
+    .news-list {
+        flex: 1;
+        overflow-y: auto;
+        background: white;
+        padding-bottom: 20px;
+    }
+
+    /* 헤더 스타일 유지 */
+    .header {
+        position: sticky;
+        top: 0;
+        z-index: 1000;
+        height: 50px;
+        padding: 0 16px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .header-left {
+        gap: 12px;
+        flex: 1;
+    }
+
+    .logo-img-link img {
+        height: 28px;
+    }
+
+    .beta-badge {
+        font-size: 10px;
+        margin-top: 4px;
+    }
+
+    /* 네비게이션 탭 (뉴스기사 등) */
+    .nav {
+        margin-left: auto;
+        overflow-x: auto;
+        white-space: nowrap;
+        flex: 1;
+        max-width: none;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-tab {
+        font-size: 14px;
+        margin-right: 0;
+        padding-bottom: 15px;
+    }
+
+    .header-right {
+        display: none;
+    }
+
+    /* 오버레이 팝업 스타일 (지도 마커 클릭시) */
+    .overlay-wrap {
+        bottom: 42%;
+        /* 하단 시트(40%) 바로 위 */
+        width: 85%;
+        left: 50%;
+        transform: translateX(-50%);
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        padding: 16px;
+    }
+
+    .overlay-title {
+        font-size: 15px;
+    }
+
+    .overlay-desc {
+        font-size: 12px;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+    }
+}
+
+/* ---------------------------------------------------- */
+/* Custom Overlay (Map Info Window) Style */
+/* ---------------------------------------------------- */
+/* ---------------------------------------------------- */
+/* Custom Overlay (Map Info Window) Style - Original Compact */
+/* ---------------------------------------------------- */
+.overlay-wrap {
+    position: absolute;
+    bottom: 55px;
+    /* 마커 꼬리 위치 고려 */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 320px;
+    background-color: #ffffff !important;
+    padding: 25px;
+    /* 여백 증가 */
+    border-radius: 20px;
+    /* 더 둥글게 */
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2), 0 5px 15px rgba(0, 0, 0, 0.1);
+    /* 깊이감 있는 이중 그림자 */
+    z-index: 1000;
+    font-family: 'Pretendard', sans-serif;
+    box-sizing: border-box;
+    text-align: left;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    /* 아주 연한 테두리 */
+}
+
+/* 말풍선 꼬리 */
+.overlay-wrap::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    margin-left: -10px;
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: #ffffff transparent transparent transparent;
+}
+
+.overlay-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.overlay-title {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+    margin: 0;
+    line-height: 1.3;
+    width: 240px;
+    /* 닫기 버튼 공간 제외 */
+
+    /* 제목은 2줄까지 허용하거나 한줄로 자름 */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.overlay-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    color: #999;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    margin-left: 10px;
+}
+
+.overlay-close:hover {
+    color: #333;
+}
+
+.overlay-body {
+    font-size: 13px;
+    color: #555;
+}
+
+/* 설명글은 숨기거나 짧게 처리 (오리지널에는 없을 수도 있음) */
+.overlay-desc {
+    display: none;
+    /* 깔끔함을 위해 설명글 숨김 (선택 사항) */
+}
+
+.overlay-meta {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
+}
+
+.overlay-link {
+    display: block;
+    /* 블록 요소로 변경하여 우측 정렬 용이하게 */
+    text-align: right;
+    font-size: 14px;
+    color: #3b82f6;
+    /* 오리지널 파란색 */
+    text-decoration: none;
+    font-weight: 600;
+    margin-top: 10px;
+}
+
+.overlay-link:hover {
+    text-decoration: underline;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, 10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+/* 부동산 문의하기 버튼 */
+.estate-btn {
+    display: block;
+    text-align: center;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.estate-btn:hover {
+    background: var(--hover-color);
+}
+
+/* ---------------------------------------------------- */
+/* News Portal Grid Mode (Powered by Antigravity) */
+/* ---------------------------------------------------- */
+.portal-mode .map-wrapper { display: none !important; }
+.portal-mode .sidebar { 
+    width: 100% !important; 
+    max-width: 1200px !important; 
+    margin: 0 auto !important; 
+    border-right: none !important; 
+    position: relative !important; 
+    background: #fff !important; 
+    overflow-y: visible !important; 
+    padding: 40px 10px !important; 
+}
+.portal-mode .news-list { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)) !important; 
+    gap: 30px !important; 
+    padding: 20px !important; 
+}
+.portal-mode .news-card { 
+    border: 1px solid #e0e0e0 !important; 
+    border-radius: 16px !important; 
+    padding: 0 !important; 
+    overflow: hidden !important; 
+    height: 100% !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+    transition: all 0.3s ease !important;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+    background: #fff !important;
+}
+.portal-mode .news-card:hover { 
+    transform: translateY(-8px) !important; 
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important; 
+    border-color: #508bf5 !important; 
+}
+.portal-mode .card-img-wrap { 
+    width: 100% !important; 
+    height: 200px !important; 
+    overflow: hidden !important; 
+    background: #f8f9fa !important; 
+    position: relative !important;
+}
+.portal-mode .card-img { 
+    width: 100% !important; 
+    height: 100% !important; 
+    object-fit: cover !important; 
+    transition: transform 0.3s ease !important;
+}
+.portal-mode .news-card:hover .card-img {
+    transform: scale(1.05) !important;
+}
+.portal-mode .card-body { 
+    padding: 24px !important; 
+    flex: 1 !important; 
+    display: flex !important; 
+    flex-direction: column !important; 
+}
+.portal-mode .news-tag { 
+    margin-top: 0 !important; 
+    margin-bottom: 12px !important; 
+    background: #fff8f1 !important;
+    padding: 4px 10px !important;
+    border-radius: 4px !important;
+    font-size: 11px !important;
+}
+.portal-mode .news-card-title { 
+    font-size: 20px !important; 
+    line-height: 1.4 !important; 
+    font-weight: 800 !important;
+    margin-bottom: 15px !important; 
+    color: #111 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    height: 56px !important;
+}
+.portal-mode .news-desc { 
+    font-size: 14px !important; 
+    line-height: 1.6 !important;
+    color: #666 !important;
+    margin-bottom: 20px !important; 
+    display: -webkit-box !important;
+    -webkit-line-clamp: 3 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+}
+.portal-mode .news-meta {
+    margin-top: auto !important;
+    border-top: 1px solid #f1f3f5 !important;
+    padding-top: 15px !important;
+}/* ���� �Ź� ī�� ���� ��Ÿ�� (gongsil.html, index.html) */
+.property-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 16px 20px 16px 16px;
+    border-left: 4px solid transparent;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+}
+.property-card:hover {
+    background-color: #eff1f3;
+}
+.property-card.active {
+    background-color: #eaf4ff;
+    border-left-color: var(--primary-color);
+}
+.property-info {
+    flex: 1;
+    padding-right: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+}
+.card-prop-title { font-size: 14px; font-weight: bold; color: #111; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.3; }
+.card-price { font-size: 16px; font-weight: 800; color: var(--primary-color); margin-bottom: 2px; line-height: 1.3; }
+.card-prop-sub { font-size: 13px; color: #555; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2; }
+.card-prop-rooms { font-size: 12px; color: #666; margin-bottom: 6px; display: -webkit-box; -webkit-line-clamp: 1; line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.2; }
+.card-prop-footer { display: flex; align-items: center; gap: 8px; margin-top: auto; }
+.card-prop-date { font-size: 11px; color: #aaa; }
+.tag-confirm { display: inline-block; font-size: 11px; color: #508bf5; font-weight: bold; border: 1px solid #508bf5; border-radius: 3px; padding: 2px 6px; }
+.property-image { width: 90px; height: 90px; border-radius: 6px; overflow: hidden; background-color: #f0f0f0; flex-shrink: 0; margin-left: 5px; }
+.property-image img { width: 100%; height: 100%; object-fit: cover; }

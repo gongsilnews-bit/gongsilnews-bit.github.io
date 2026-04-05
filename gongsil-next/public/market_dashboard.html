@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>전국데이터지수 대시보드 - 공실뉴스</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --brand-blue: #0A2540;
+            --brand-light: #F6F9FC;
+            --up-color: #d32f2f;
+            --down-color: #1976d2;
+            --text-muted: #666;
+            --border-light: #eaeaea;
+        }
+        * { box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { margin: 0; background-color: var(--brand-light); color: #333; line-height: 1.6; }
+
+        /* Top bar */
+        .topbar { background: #fff; padding: 15px 30px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .topbar .logo { font-size: 20px; font-weight: 800; color: var(--brand-blue); text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .back-btn { padding: 8px 16px; background: var(--brand-blue); color: #fff; text-decoration: none; border-radius: 4px; font-size: 14px; font-weight: 600; transition: .2s; }
+        .back-btn:hover { background: #000; }
+
+        .dashboard-container { max-width: 1400px; margin: 40px auto; padding: 0 20px; }
+
+        /* Dashboard Header + Region Selector ON TOP */
+        .dashboard-header { margin-bottom: 28px; }
+        .header-row { display: flex; justify-content: space-between; align-items: flex-end; }
+        .dashboard-header h1 { font-size: 30px; font-weight: 800; margin: 0; color: #111; display: flex; align-items: center; gap: 10px; }
+        .dashboard-header p { margin: 6px 0 0; color: var(--text-muted); font-size: 15px; }
+        .last-update { font-size: 13px; color: #888; background: #fff; padding: 6px 12px; border-radius: 20px; border: 1px solid #ddd; white-space: nowrap; }
+
+        /* Region Selector Bar */
+        .region-bar { background: #fff; border: 1px solid var(--border-light); border-radius: 10px; padding: 18px 24px; margin-top: 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+        .region-bar label { font-size: 14px; font-weight: 700; color: var(--brand-blue); white-space: nowrap; }
+        .region-bar select { padding: 9px 14px; border-radius: 6px; border: 2px solid var(--brand-blue); font-size: 15px; font-weight: 600; background: #fff; outline: none; cursor: pointer; color: var(--brand-blue); }
+        .region-bar select:focus { border-color: #1976d2; }
+        .region-hint { font-size: 13px; color: #aaa; }
+
+        /* Summary Cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 36px; }
+        .card { background: #fff; padding: 25px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.05); }
+        .card.selected { border: 2px solid var(--brand-blue); background: #f0f4fa; }
+        .card-icon { width: 44px; height: 44px; border-radius: 50%; background: var(--brand-light); display: flex; align-items: center; justify-content: center; font-size: 20px; margin-bottom: 14px; color: var(--brand-blue); }
+        .card-title { font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 8px; }
+        .card-value { font-size: 26px; font-weight: 800; letter-spacing: -.5px; margin: 0; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-change { font-size: 13px; font-weight: 600; padding: 3px 7px; border-radius: 4px; display: inline-flex; align-items: center; gap: 3px; }
+        .change-up { color: var(--up-color); background: rgba(211,47,47,.1); }
+        .change-down { color: var(--down-color); background: rgba(25,118,210,.1); }
+        .card-region-label { font-size: 12px; color: var(--brand-blue); font-weight: 700; margin-bottom: 4px; background: rgba(10,37,64,.08); display: inline-block; padding: 2px 8px; border-radius: 20px; }
+
+        /* Charts */
+        .charts-section { display: grid; grid-template-columns: 2fr 1fr; gap: 28px; margin-bottom: 36px; }
+        .chart-box { background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; }
+        .chart-title { font-size: 18px; font-weight: 700; margin: 0; }
+        .canvas-container { position: relative; height: 340px; width: 100%; }
+
+        /* Table */
+        .table-section { background: #fff; padding: 28px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+        .table-title { font-size: 18px; font-weight: 700; margin: 0 0 18px; display: flex; align-items: center; gap: 8px; }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table th { background: var(--brand-light); padding: 13px 15px; font-weight: 600; color: var(--text-muted); border-bottom: 2px solid #ddd; text-align: left; }
+        .data-table td { padding: 13px 15px; border-bottom: 1px solid #eee; font-size: 14px; }
+        .data-table tr:hover { background: #fafafa; }
+        .region-name { font-weight: 700; color: #111; }
+        .val-up { color: var(--up-color); font-weight: 600; }
+        .val-down { color: var(--down-color); font-weight: 600; }
+
+        @media (max-width: 1024px) {
+            .summary-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-section { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 640px) {
+            .summary-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <a href="index.html" class="logo">
+        <img src="logo.png" style="height:28px;" alt="공실뉴스" onerror="this.style.display='none'">
+        전국데이터지수 대시보드
+    </a>
+    <a href="index.html" class="back-btn">메인으로 돌아가기</a>
+</div>
+
+<div class="dashboard-container">
+
+    <!-- Header + Region Selector -->
+    <div class="dashboard-header">
+        <div class="header-row">
+            <div>
+                <h1>
+                    부동산 시장 종합 분석
+                </h1>
+                <p>전국 지역별 매매·전세 가격지수 일간 트렌드 (중개사 전용 패널)</p>
+            </div>
+            <div class="last-update">
+                <i class="fa-regular fa-clock"></i> 최종 업데이트: <span id="update-time">Today 09:00</span>
+            </div>
+        </div>
+
+        <!-- Region Selector Bar - MOVED TO TOP -->
+        <div class="region-bar">
+            <label><i class="fa-solid fa-map-location-dot"></i> 지역 선택</label>
+            <div>
+                <select id="select-region-1"></select>
+            </div>
+            <span class="region-hint">* 선택 지역의 지수를 전국·수도권·서울과 비교합니다</span>
+        </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="summary-grid">
+        <div class="card">
+            <div class="card-icon" style="background:#e8eaf6;color:#3949ab;"><i class="fa-solid fa-city"></i></div>
+            <div class="card-title">매매지수 (전국)</div>
+            <div class="card-value" id="sum-sale-nat">—</div>
+        </div>
+        <div class="card">
+            <div class="card-icon" style="background:#e3f2fd;color:#1976d2;"><i class="fa-solid fa-house"></i></div>
+            <div class="card-title">전세지수 (전국)</div>
+            <div class="card-value" id="sum-rent-nat">—</div>
+        </div>
+        <div class="card selected">
+            <div class="card-icon" style="background:#fce4ec;color:#c62828;"><i class="fa-solid fa-building"></i></div>
+            <div class="card-region-label" id="label-reg1">—</div>
+            <div class="card-title">선택 지역 매매지수</div>
+            <div class="card-value" id="sum-reg1-sale">—</div>
+        </div>
+        <div class="card selected">
+            <div class="card-icon" style="background:#e8f5e9;color:#2e7d32;"><i class="fa-solid fa-house-chimney"></i></div>
+            <div class="card-region-label" id="label-reg1-b">—</div>
+            <div class="card-title">선택 지역 전세지수</div>
+            <div class="card-value" id="sum-reg1-rent">—</div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-section">
+        <div class="chart-box">
+            <div class="chart-header">
+                <h2 class="chart-title">30일 매매지수 트렌드 (지역 비교)</h2>
+            </div>
+            <div class="canvas-container">
+                <canvas id="mainTrendChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-box">
+            <div class="chart-header">
+                <h2 class="chart-title">매매·전세 비교현황</h2>
+            </div>
+            <div class="canvas-container">
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-section">
+        <h2 class="table-title"><i class="fa-solid fa-list-check"></i> 전국 시도별 지수 현황보드</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>지역</th>
+                    <th>매매지수</th>
+                    <th>전세지수</th>
+                    <th>매매 전일대비</th>
+                    <th>전세 전일대비</th>
+                    <th>30일 매매추세</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+</div>
+
+<script>
+    const regionsAll = ['전국', '수도권', '서울', '경기', '인천', '부산', '대구', '광주', '대전', '울산', '세종', '강원', '충북', '충남', '전북', '전남', '경북', '경남', '제주'];
+
+    // ── 시계열 데이터 생성 ───────────────────────────────────────────
+    const genHistory = (base, vol) => {
+        let hist = [], cur = base;
+        for (let i = 30; i >= 0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            cur += (Math.random() * vol * 2 - vol);
+            hist.push({ x: d.toISOString().split('T')[0], y: parseFloat(cur.toFixed(2)) });
+        }
+        return hist;
+    };
+
+    const saleData = {}, rentData = {};
+    regionsAll.forEach((reg, i) => {
+        saleData[reg] = genHistory(102 - i * 0.6 + Math.random() * 3, 0.18);
+        rentData[reg] = genHistory(100 - i * 0.4 + Math.random() * 2, 0.14);
+    });
+
+    const lastVal = hist => hist[hist.length - 1].y;
+    const prevVal = hist => hist[hist.length - 2].y;
+    const changeHTML = hist => {
+        const cur = lastVal(hist), prev = prevVal(hist);
+        const up = cur >= prev;
+        const diff = Math.abs(cur - prev).toFixed(2);
+        const cls = up ? 'change-up' : 'change-down';
+        const ico = up ? 'fa-arrow-up' : 'fa-arrow-down';
+        return `<span class="card-change ${cls}"><i class="fa-solid ${ico}"></i> ${diff}%</span>`;
+    };
+
+    // ── 드롭다운 초기화 ─────────────────────────────────────────────
+    const sel1 = document.getElementById('select-region-1');
+    regionsAll.forEach(reg => {
+        sel1.add(new Option(reg, reg));
+    });
+    sel1.value = '부산';
+
+    // ── 전국 카드 초기화 ─────────────────────────────────────────────
+    document.getElementById('sum-sale-nat').innerHTML = `${lastVal(saleData['전국'])} ${changeHTML(saleData['전국'])}`;
+    document.getElementById('sum-rent-nat').innerHTML = `${lastVal(rentData['전국'])} ${changeHTML(rentData['전국'])}`;
+
+    // ── Chart: 30일 트렌드 선그래프 ──────────────────────────────────
+    const ctxLine = document.getElementById('mainTrendChart').getContext('2d');
+    const lineChart = new Chart(ctxLine, {
+        type: 'line',
+        data: {
+            datasets: [
+                { label: '전국',   data: saleData['전국'],   borderColor: '#bbb',    backgroundColor: 'transparent',        borderWidth: 1.5, tension: 0.3, pointRadius: 0 },
+                { label: '수도권', data: saleData['수도권'], borderColor: '#90caf9', backgroundColor: 'transparent',        borderWidth: 1.5, tension: 0.3, pointRadius: 0 },
+                { label: '서울',   data: saleData['서울'],   borderColor: '#0A2540', backgroundColor: 'rgba(10,37,64,.08)', borderWidth: 2.5, fill: true,  tension: 0.3, pointRadius: 0 },
+                { label: '부산',   data: saleData['부산'],   borderColor: '#e53935', backgroundColor: 'transparent',        borderWidth: 2.5, borderDash: [8, 6], tension: 0.3, pointRadius: 4, pointStyle: 'circle', pointBackgroundColor: '#e53935', pointBorderColor: '#fff', pointBorderWidth: 2 },
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                x: { type: 'category', labels: saleData['전국'].map(d => d.x) },
+                y: { min: 80, max: 112 }
+            }
+        }
+    });
+
+    // ── Chart: 우측 막대 ─────────────────────────────────────────────
+    const ctxBar = document.getElementById('barChart').getContext('2d');
+    const barChart = new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: [],
+            datasets: [
+                { label: '매매지수', data: [], backgroundColor: '#0A2540',  borderRadius: 4 },
+                { label: '전세지수', data: [], backgroundColor: '#1976d2',  borderRadius: 4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: { y: { min: 80 } }
+        }
+    });
+
+    // ── 테이블 생성 ──────────────────────────────────────────────────
+    const tableBody = document.getElementById('table-body');
+    regionsAll.forEach(reg => {
+        const sv = lastVal(saleData[reg]).toFixed(1);
+        const rv = lastVal(rentData[reg]).toFixed(1);
+        const sUp = sv >= prevVal(saleData[reg]);
+        const rUp = rv >= prevVal(rentData[reg]);
+        const sDiff = Math.abs(sv - prevVal(saleData[reg])).toFixed(2);
+        const rDiff = Math.abs(rv - prevVal(rentData[reg])).toFixed(2);
+        tableBody.innerHTML += `
+        <tr>
+            <td class="region-name">${reg}</td>
+            <td style="font-weight:700">${sv}</td>
+            <td style="font-weight:700">${rv}</td>
+            <td class="${sUp ? 'val-up':'val-down'}"><i class="fa-solid ${sUp?'fa-arrow-up':'fa-arrow-down'}"></i> ${sDiff}%</td>
+            <td class="${rUp ? 'val-up':'val-down'}"><i class="fa-solid ${rUp?'fa-arrow-up':'fa-arrow-down'}"></i> ${rDiff}%</td>
+            <td><div style="width:100%;height:8px;background:#eee;border-radius:4px"><div style="width:${Math.min(sv,100)}%;height:100%;background:${sUp?'var(--up-color)':'var(--down-color)'};border-radius:4px"></div></div></td>
+        </tr>`;
+    });
+
+    // ── 업데이트 로직 ────────────────────────────────────────────────
+    const updateDashboard = () => {
+        const r1 = sel1.value;
+
+        // Cards 3 & 4
+        document.getElementById('label-reg1').textContent = r1;
+        document.getElementById('label-reg1-b').textContent = r1;
+        document.getElementById('sum-reg1-sale').innerHTML = `${lastVal(saleData[r1])} ${changeHTML(saleData[r1])}`;
+        document.getElementById('sum-reg1-rent').innerHTML = `${lastVal(rentData[r1])} ${changeHTML(rentData[r1])}`;
+
+        // 선 그래프 datasets 3 갱신 (선택 지역 1개)
+        lineChart.data.datasets[3].label = r1;
+        lineChart.data.datasets[3].data  = saleData[r1];
+        lineChart.data.datasets[3].borderColor = '#e53935';
+        lineChart.data.datasets[3].pointBackgroundColor = '#e53935';
+        lineChart.update();
+
+        // 막대 그래프 - 선택 지역 주황색 배경 + 두꼸 테두리
+        const compareRegions = [...new Set(['전국', '수도권', '서울', r1])];
+        barChart.data.labels = compareRegions;
+        
+        // 매매: 선택 지역은 빨간, 나머지는 네이비
+        barChart.data.datasets[0].data = compareRegions.map(r => lastVal(saleData[r]));
+        barChart.data.datasets[0].backgroundColor = compareRegions.map(r => r === r1 ? 'rgba(229,57,53,0.85)' : '#0A2540');
+        barChart.data.datasets[0].borderColor = compareRegions.map(r => r === r1 ? '#b71c1c' : '#0A2540');
+        barChart.data.datasets[0].borderWidth = compareRegions.map(r => r === r1 ? 3 : 0);
+        
+        // 전세: 선택 지역은 주황색, 나머지는 하늘색
+        barChart.data.datasets[1].data = compareRegions.map(r => lastVal(rentData[r]));
+        barChart.data.datasets[1].backgroundColor = compareRegions.map(r => r === r1 ? 'rgba(255,152,0,0.85)' : '#1976d2');
+        barChart.data.datasets[1].borderColor = compareRegions.map(r => r === r1 ? '#e65100' : '#1976d2');
+        barChart.data.datasets[1].borderWidth = compareRegions.map(r => r === r1 ? 3 : 0);
+        
+        barChart.update();
+    };
+
+    sel1.addEventListener('change', updateDashboard);
+    updateDashboard(); // 초기 실행
+</script>
+</body>
+</html>

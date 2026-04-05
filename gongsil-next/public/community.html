@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실뉴스 - 스터디 커뮤니티</title>
+    <!-- 기본 스타일 -->
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: var(--primary-color);       
+            --primary-dark: #E65C00;
+            --accent-brand-blue: var(--primary-color); 
+            --text-main: #1f2937;     
+            --text-sub: #6b7280;      
+            --bg-gray: #f8fafc;       
+            --border: #e2e8f0;
+        }
+
+        html, body {
+            margin: 0; padding: 0; background-color: #ffffff;
+            font-family: 'Pretendard', sans-serif; color: var(--text-main);
+        }
+
+        /* 스터디 공통 네비게이션 (헤더 아래) */
+        .study-nav-bar {
+            background: #fff; border-bottom: 1px solid var(--border);
+            z-index: 50; position: relative;
+        }
+        .study-tier1 {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 20px; max-width: 1240px; margin: 0 auto;
+        }
+        .study-tab-item {
+            font-size: 16px; font-weight: 700; color: #475569;
+            cursor: pointer; padding: 18px 4px; position: relative;
+            text-decoration: none; transition: color 0.2s;
+        }
+        .study-tab-item:hover { color: var(--primary); }
+        .study-tab-item.active { color: var(--primary); }
+        .study-tab-item.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0;
+            width: 100%; height: 3px; background: var(--primary);
+        }
+
+        /* 최상단 라운드 필터 (풀사이즈 테두리 바) */
+        .study-filter-bar {
+            background: #fff; border-bottom: 1px solid #e0e0e0;
+        }
+        .study-filter-row {
+            display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+            max-width: 1240px; margin: 0 auto; padding: 10px 20px;
+        }
+        .t-filter {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 6px 14px; border-radius: 20px; border: 1px solid #ccc;
+            background: #fff; color: #333; font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all 0.2s; white-space: nowrap; font-family: inherit;
+        }
+        .t-filter:hover { background: #f9fafb; border-color: #999; color: #333; }
+        .t-filter.active {
+            background: #fff8f1; border-color: var(--primary); color: var(--primary); font-weight: 700;
+        }
+        .chk-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; display: none; }
+        .t-filter.active .chk-icon { display: block; }
+
+        /* 커뮤니티 메인 컨테이너 */
+        .materials-container {
+            max-width: 1240px; margin: 40px auto 100px; padding: 0 20px;
+        }
+        
+        /* 2-단 레이아웃 (좌측 사이드바, 우측 컨텐츠) */
+        .materials-layout {
+            display: flex; align-items: flex-start; gap: 40px;
+        }
+
+        /* 좌측 사이드바 메뉴 */
+        .m-sidebar {
+            width: 220px; flex-shrink: 0; position: sticky; top: 20px;
+        }
+        .side-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #1f2937;
+        }
+        .side-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .side-search-icon {
+            cursor: pointer; color: var(--text-sub); transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            padding: 4px; border-radius: 4px;
+        }
+        .side-search-icon:hover { color: var(--primary); background: rgba(255, 123, 0, 0.1); }
+        .side-search-box {
+            overflow: hidden; transition: max-height 0.3s ease, margin-bottom 0.3s ease, opacity 0.3s ease;
+            max-height: 0; opacity: 0; margin-bottom: 0;
+            display: flex; gap: 6px;
+        }
+        .side-search-box.open {
+            max-height: 50px; opacity: 1; margin-bottom: 16px;
+        }
+        .side-search-input {
+            flex: 1; background: #fff; border: 1px solid var(--border); border-radius: 6px;
+            padding: 8px 12px; font-size: 14px; outline: none; min-width: 0;
+        }
+        .side-search-input:focus { border-color: var(--primary); }
+        .side-search-submit {
+            background: var(--text-main); color: #fff; border: none; border-radius: 6px;
+            padding: 0 12px; font-size: 13px; font-weight: bold; cursor: pointer;
+        }
+
+        .side-menu { list-style: none; padding: 0; margin: 0; }
+        .side-menu li {
+            font-size: 15px; font-weight: 600; color: var(--text-sub);
+            padding: 14px 16px; border-radius: 8px; cursor: pointer;
+            transition: 0.2s ease; margin-bottom: 4px; display: flex; justify-content: space-between;
+        }
+        .side-menu li:hover { background: var(--bg-gray); color: var(--text-main); }
+        .side-menu li.active { background: var(--primary); color: #fff; font-weight: 700; box-shadow: 0 4px 12px rgba(255, 123, 0, 0.2); }
+        .side-menu li.active::after { content: '>'; font-weight:800; }
+
+        /* 우측 메인 컨텐츠 영역 */
+        .m-content { flex: 1; min-width: 0; }
+
+        .top10-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;
+        }
+        .top10-title { font-size: 20px; font-weight: 800; color: var(--text-main); margin: 0; }
+        .btn-write-post {
+            background: var(--primary); color: #fff; border: none; border-radius: 8px;
+            padding: 12px 24px; font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: background 0.2s, box-shadow 0.2s; display: flex; align-items: center; gap: 6px;
+            box-shadow: 0 4px 12px rgba(255, 123, 0, 0.2);
+        }
+        .btn-write-post:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(255, 123, 0, 0.3); }
+
+        .section-divider { border: 0; height: 1px; background: var(--border); margin: 0 0 30px 0; }
+
+        /* 커뮤니티 리스트형 게시판 (Text-driven Style) */
+        .community-list { display: flex; flex-direction: column; }
+        .c-post-row {
+            display: flex; justify-content: space-between; gap: 30px;
+            padding: 24px 0; border-bottom: 1px solid var(--border);
+            cursor: pointer; transition: background 0.2s;
+        }
+        .c-post-row:hover { background: #fafafa; }
+        
+        /* 공지 스타일 (박스형) */
+        .c-post-notice {
+            background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:24px;
+            margin-bottom: 10px; border-bottom: none;
+        }
+        .c-post-notice:hover { background:#f1f5f9; }
+
+        .c-post-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        
+        .c-post-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+        .m-badge { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 0.5px; }
+        .b-notice { background: #ef4444; color: #fff; }
+        .b-hot { background: #fee2e2; color: #ef4444; }
+        .b-new { background: #e0f2fe; color: #0284c7; }
+        .c-post-category { font-size: 13px; font-weight: 700; color: var(--text-sub); }
+
+        .c-post-title {
+            font-size: 17px; font-weight: 800; color: var(--text-main);
+            margin: 0 0 8px 0; line-height: 1.4;
+            display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .c-post-snippet {
+            font-size: 14px; color: #475569; line-height: 1.6; margin: 0 0 16px 0;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+
+        .m-meta {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: 13px; color: var(--text-sub);
+        }
+        .m-author { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #334155; }
+        .avatar-temp { width: 24px; height: 24px; border-radius: 50%; background: #e2e8f0; display: flex; align-items: center; justify-content: center; font-size: 12px; }
+        
+        .c-post-stats { display: flex; align-items: center; gap: 14px; font-size: 13px; color: #94a3b8; font-weight: 600; }
+        .stat-item { display: flex; align-items: center; gap: 4px; }
+        .stat-icon { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; }
+        .stat-red { color: #ef4444; }
+        .stat-brand-blue { color: var(--primary); }
+
+        .c-post-thumb {
+            width: 140px; height: 100px; flex-shrink: 0; overflow: hidden; border-radius: 8px;
+            background: #f1f5f9; display: flex; align-items: center; justify-content: center;
+            align-self: flex-start; margin-top: 10px;
+        }
+        .c-post-thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .c-post-row:hover .c-post-thumb img { transform: scale(1.05); }
+
+        /* 이달의 인기글 레이아웃 */
+        .popular-section {
+            margin: 30px 0; padding-top: 30px; border-top: 2px solid #1f2937;
+        }
+        .pop-title { font-size: 18px; font-weight: 800; margin-bottom: 24px; color: var(--text-main); }
+        .pop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; }
+        .pop-item:hover .pop-text { text-decoration: underline; }
+        .pop-num { font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2; }
+        .pop-num.rank-1 { color: var(--primary); }
+        .pop-num.rank-2 { color: #ef4444; }
+        .pop-num.rank-3 { color: #f59e0b; }
+        .pop-content { flex: 1; min-width: 0; }
+        .pop-text { font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pop-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 8px; }
+
+        /* 페이징 */
+        .pagination { display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 50px; }
+        .page-btn {
+            width: 36px; height: 36px; display: flex; align-items: center; justify-content: center;
+            border-radius: 6px; border: 1px solid var(--border); background: #fff;
+            color: var(--text-sub); font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.2s;
+        }
+        .page-btn:hover { background: var(--bg-gray); color: var(--text-main); }
+        .page-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .materials-layout { flex-direction: column; }
+            .m-sidebar { width: 100%; position: static; margin-bottom: 20px; }
+            .side-menu { display: flex; flex-wrap: wrap; gap: 10px; padding-bottom: 10px; border-bottom: 1px solid var(--border); }
+            .side-menu li { margin-bottom: 0; }
+            .side-menu li.active::after { display: none; }
+            .pop-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .c-post-row { flex-direction: column-reverse; gap: 16px; }
+            .c-post-thumb { width: 100%; height: auto; aspect-ratio: 16 / 9; margin-top: 0; }
+            .c-post-snippet { -webkit-line-clamp: 3; }
+        }
+    </style>
+
+    <!-- Supabase & Auth Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+
+</head>
+<body>
+
+    <!-- 공통 헤더 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-group">
+                <a href="./" class="logo-img-link">
+                    <img src="logo.png" alt="공실뉴스" style="height: 28px;">
+                </a>
+            </div>
+            <nav class="nav">
+                <a href="gongsil" class="nav-tab">공실열람</a>
+                <a href="news" class="nav-tab">뉴스기사</a>
+                <a href="study" class="nav-tab active">공실스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 0 4px; margin-left: 10px; vertical-align: middle;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </nav>
+        </div>
+        <div class="header-right" style="display: flex; align-items: center;">
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-right: 15px;">
+                <span id="userNameDisplay" style="font-size: 14px; font-weight: bold; color: #333;">이름</span>
+                <span id="userRoleBadge" style="font-size: 11px; padding: 3px 6px; border-radius: 4px; background: #f0f0f0; color: #555;">로딩중</span>
+                <a href="#" id="headerLogoutBtn" class="btn-login" style="background:#666; color:white; border:none;">로그아웃</a>
+            </div>
+            <a href="#" class="btn-login" style="background:var(--primary-color, #ff9f1c); color:white; border:none; margin-right:10px;">스터디등록</a>
+            <a href="#" id="headerLoginBtn" class="btn-login">구글 로그인</a>
+            <a href="https://smartstore.naver.com/mygongsil/products/10361563253" target="_blank" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
+        </div>
+    </header>
+
+    <!-- 스터디 네비게이션 -->
+    <div class="study-nav-bar">
+        <div class="study-tier1">
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <a href="study" class="study-tab-item">스터디</a>
+                <a href="materials" class="study-tab-item">자료실</a>
+                <a href="community" class="study-tab-item active">커뮤니티</a>
+                <a href="my_study" class="study-tab-item">MY스터디</a>
+            </div>
+            <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                내 스터디
+                <div style="width:28px; height:28px; border-radius:50%; background:#e2e8f0; display:flex; align-items:center; justify-content:center;">👤</div>
+            </a>
+        </div>
+    </div>
+
+    <!-- 글로벌 검색 입력 패널 (기본 숨김) -->
+    <div id="globalSearchPanel" style="display: none; background-color: #0f141e; width: 100%; padding: 30px 0; text-align: center; position: absolute; top: 60px; left: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <div style="position: relative; display: inline-block; width: 500px; max-width: 90%; vertical-align: middle;">
+            <input type="text" id="globalKeywordInput" placeholder="검색어를 입력해주세요" style="width: 100%; padding: 16px 20px; padding-right: 50px; font-size: 16px; border: none; border-radius: 4px; outline: none; box-sizing: border-box;" onkeypress="if(event.key==='Enter') window.executeGlobalSearch()">
+            <button onclick="window.executeGlobalSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <button onclick="window.toggleGlobalSearchPanel()" style="background: none; border: none; cursor: pointer; vertical-align: middle; margin-left: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+
+    <!-- 2차 메뉴 필터바 (풀 사이즈 라인) -->
+    <div class="study-filter-bar">
+        <div class="study-filter-row">
+            <button class="t-filter active">
+                <svg class="chk-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg> 자유게시판
+            </button>
+            <button class="t-filter">질문/답변</button>
+            <button class="t-filter">스터디원 모집</button>
+            <button class="t-filter">합격/수강 후기</button>
+            <button class="t-filter">공지사항</button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="materials-container">
+        
+        <!-- 레이아웃 시작 (사이드바 + 콘텐츠) -->
+        <div class="materials-layout">
+            
+            <!-- 좌측 사이드바 -->
+            <aside class="m-sidebar">
+                <div class="side-header">
+                    <h3 class="side-title">커뮤니티 메뉴</h3>
+                    <div class="side-search-icon" onclick="toggleSideSearch()" title="게시글 검색">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </div>
+                </div>
+                <!-- 검색 입력창 (기본 숨김) -->
+                <div class="side-search-box" id="sideSearchBox">
+                    <input type="text" class="side-search-input" placeholder="검색어 입력">
+                    <button class="side-search-submit">검색</button>
+                </div>
+
+                <div style="background: var(--primary); color: #fff; padding: 14px 16px; border-radius: 8px; font-weight: 700; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-size: 15px;">
+                    최신 전체보기
+                    <span style="font-size: 12px; font-weight: 800;">&gt;</span>
+                </div>
+                <ul class="side-menu">
+                    <li><span style="color:#ef4444; margin-right:6px; font-size: 14px;">🔥</span> 공지 베스트</li>
+                    <li>꿀팁 카테고리</li>
+                    <li>고민상담</li>
+                    <li>나의 활동내역</li>
+                </ul>
+            </aside>
+
+            <!-- 우측 메인 컨텐츠 -->
+            <main class="m-content">
+                
+                <!-- 상단 타이틀 및 글쓰기 버튼 -->
+                <div class="top10-header">
+                    <h2 class="top10-title">최신 게시글</h2>
+                    <button class="btn-write-post">📝 새 글 쓰기</button>
+                </div>
+
+                <hr class="section-divider">
+
+                <!-- 일반 게시글 리스트 -->
+                <div class="community-list" style="display: flex; flex-direction: column;">
+                    
+                    <!-- 게시글 1: 공지 -->
+                    <div class="c-post-row" style="padding: 24px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; margin-bottom: 24px; cursor: pointer;">
+                        <div class="c-post-header" style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span style="background: #ef4444; color: #fff; font-size: 11px; font-weight: 800; padding: 3px 8px; border-radius: 4px;">필독</span>
+                            <span style="font-size: 13px; font-weight: 700; color: #64748b;">공지사항</span>
+                        </div>
+                        <h3 style="font-size: 17px; font-weight: 800; color: #0f172a; margin: 0 0 8px 0;">[필독] 커뮤니티 게시물 작성 가이드 및 매너 수칙 안내</h3>
+                        <p style="font-size: 14px; color: #475569; margin: 0 0 16px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">공실뉴스 커뮤니티에 오신 것을 환영합니다. 공인중개사, 분양 상담사 등 모든 회원분들이 서로 배려하며 활동할 수 있도록 몇 가지 아주 중요한 이용 수칙을 안내해 드립니다...</p>
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #94a3b8;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 20px; height: 20px; border-radius: 50%; background: #cbd5e1; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #fff; font-weight: 800;">운</div>
+                                <span style="font-weight: 600; color: #334155;">운영자</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 16px;">
+                                <span style="display:flex; align-items:center; gap:4px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 2.4k</span>
+                                <span style="display:flex; align-items:center; gap:4px; color:#ef4444;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 152</span>
+                                <span style="display:flex; align-items:center; gap:4px; color:var(--primary);"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 34</span>
+                                <span>2024.03.20</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 게시글 2 -->
+                    <div class="c-post-row" style="padding: 24px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 24px; cursor: pointer; transition: background 0.2s;">
+                        <div class="c-post-info" style="flex: 1; min-width: 0;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#475569;">이</div>
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:14px; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">이소장 <span style="font-size:10px; font-weight:800; color:#0ea5e9; background:#e0f2fe; padding:2px 6px; border-radius:4px;">NEW</span></div>
+                                    <div style="font-size:12px; color:#64748b; margin-top:2px;">수익형 부동산 공통의제 · 3시간 전</div>
+                                </div>
+                            </div>
+                            <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">일반 임대차에서 중개 보수료 계산 시 주의사항!</h3>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">2024년 4월 1일부터 개정된 사항을 반영한 내용입니다. 부동산중개법인 등 유의하시기 바랍니다. 특히 세금계산서 발급 시 주의하셔야 할 점이 여러 가지 있습니다.</p>
+                            <div style="display:flex; gap:16px; color:#94a3b8; font-size:13px; align-items:center;">
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 0</span>
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 2</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 게시글 3 -->
+                    <div class="c-post-row" style="padding: 24px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 24px; cursor: pointer; transition: background 0.2s;">
+                        <div class="c-post-info" style="flex: 1; min-width: 0;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:#f1f5f9; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#475569;">박</div>
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:14px; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">박수장 <span style="font-size:10px; font-weight:800; color:#ef4444; background:#fee2e2; padding:2px 6px; border-radius:4px;">BEST</span></div>
+                                    <div style="font-size:12px; color:#64748b; margin-top:2px;">수익형 부동산 관련 문의 · 5시간 전</div>
+                                </div>
+                            </div>
+                            <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">원룸 임대차 중개 보수료 계산 시 주의사항!</h3>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">2024년 4월 1일부터 개정된 방침을 자세히 보려면 국토부 공식 문건을 참고하세요. 최근 다가구 주택 관리비 산정 방식 변경 건으로 임대인과 마찰이 발생할 수 있습니다.</p>
+                            <div style="display:flex; gap:16px; color:#94a3b8; font-size:13px; align-items:center;">
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 12</span>
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 게시글 4 (우측 하단 작은 썸네일 포함 형태) -->
+                    <div class="c-post-row" style="padding: 24px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 24px; cursor: pointer; transition: background 0.2s;">
+                        <div class="c-post-info" style="flex: 1; min-width: 0;">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                                <div style="width:36px; height:36px; border-radius:50%; background:#0f172a; display:flex; align-items:center; justify-content:center; font-size:15px; font-weight:700; color:#fff;">I</div>
+                                <div style="display:flex; flex-direction:column; justify-content:center;">
+                                    <div style="font-size:14px; font-weight:700; color:#1e293b; display:flex; align-items:center; gap:6px;">IP Studio Lab</div>
+                                    <div style="font-size:12px; color:#64748b; margin-top:2px;">앱(APP) 자료 · 1일 전</div>
+                                </div>
+                            </div>
+                            <h3 style="font-size: 17px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">유튜브 장비 세팅, 조명이 생명입니다. 직접 구성한 제 사무실 보여드립니다.</h3>
+                            <p style="font-size: 15px; color: #475569; margin: 0 0 16px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">사무실에 기본 조명만 있는데 화질이 구리다면 카메라 문제가 아닙니다. 무조건 핀조명 2개 놓으세요. 카메라가 안좋아도 스튜디오처럼 연출할 수 있습니다.</p>
+                            <div style="display:flex; gap:16px; color:#94a3b8; font-size:13px; align-items:center;">
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg> 88</span>
+                                <span style="display:flex; align-items:center; gap:4px;"><svg style="width:16px; height:16px; fill:none; stroke:currentColor; stroke-width:2;" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 32</span>
+                            </div>
+                        </div>
+                        <div style="width: 140px; height: 96px; border-radius: 8px; overflow: hidden; flex-shrink: 0; align-self: center;">
+                            <img src="https://images.unsplash.com/photo-1611162617474-5b21e879e113?auto=format&fit=crop&q=80&w=400" alt="썸네일" style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                    </div>
+
+                    <!-- 이번주 인기글 삽입 (하단부) -->
+                    <div class="popular-section" style="margin: 40px 0 10px 0; padding-top: 30px; border-top: 2px solid #1e293b;">
+                        <h3 class="pop-title" style="font-size: 18px; font-weight: 800; margin-bottom: 24px; color: #0f172a;">이번주 인기글</h3>
+                        <div class="pop-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px 40px;">
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: var(--primary); line-height: 1.2;">1</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">[꿀팁] 블로그 최적화 노하우, 상위노출 비결 대공개</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>강남김소장</span> <span>👁 14.5k</span> <span>💬 156</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #ef4444; line-height: 1.2;">2</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">초보 중개사 명함 제작할 때 반드시 피해야 할 실수</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>디자인랩</span> <span>👁 12.1k</span> <span>💬 84</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #f59e0b; line-height: 1.2;">3</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">상가 중개 권리금 계약 시 이것만은 꼭 챙기세요</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>권소장</span> <span>👁 9.8k</span> <span>💬 52</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">4</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">[질문] 매도인이 갑자기 계약 파기하면 복비는 어떻게 되나요?</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>초보중개사</span> <span>👁 7.2k</span> <span>💬 108</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">5</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">가계약 입금 후 단순 변심, 배액배상인가요?</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>박변호사</span> <span>👁 6.5k</span> <span>💬 47</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">6</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">요즘 유튜브 쇼츠로 매물 홍보 효력 있나요?</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>마케터진</span> <span>👁 5.9k</span> <span>💬 65</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">7</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">사무실 오픈 위치 선정, 1층 vs 2층 심층 비교 분석</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>창업도우미</span> <span>👁 5.2k</span> <span>💬 31</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">8</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">공동중개 시 상대방이 연락 두절일 때 대처법</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>매너가사람을</span> <span>👁 4.8k</span> <span>💬 72</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">9</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">오늘 처음 계약서 썼습니다! 드디어 첫 개시! 🎉</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>병아리중개사</span> <span>👁 4.1k</span> <span>💬 125</span></div>
+                                </div>
+                            </div>
+                            <div class="pop-item" style="display: flex; align-items: flex-start; gap: 12px; cursor: pointer;">
+                                <div style="font-size: 16px; font-weight: 800; width: 18px; text-align: center; color: #94a3b8; line-height: 1.2;">10</div>
+                                <div style="flex: 1; min-width: 0;">
+                                    <div style="font-size: 14px; font-weight: 700; color: #334155; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">디스코 앱이랑 밸류맵 어떤거 창 띄워놓고 브리핑하시나요?</div>
+                                    <div style="font-size: 12px; color: #94a3b8; display: flex; gap: 8px;"><span>프롭테크</span> <span>👁 3.7k</span> <span>💬 41</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 이번주 인기글 끝 -->
+                    
+                </div> <!-- community-list ends -->
+
+                <!-- 하단 페이징 -->
+                <div class="pagination">
+                    <button class="page-btn">←</button>
+                    <button class="page-btn active">1</button>
+                    <button class="page-btn">2</button>
+                    <button class="page-btn">3</button>
+                    <button class="page-btn">4</button>
+                    <button class="page-btn">5</button>
+                    <button class="page-btn">→</button>
+                </div>
+
+            </main>
+        </div>
+    </div> <!-- container ends -->
+
+    <script>
+        // 최상단 둥근 필터 활성화
+        document.querySelectorAll('.t-filter').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.t-filter').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 좌측 사이드바 탭 활성화
+        document.querySelectorAll('.side-menu li').forEach(li => {
+            li.addEventListener('click', function() {
+                document.querySelectorAll('.side-menu li').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // 좌측 사이드바 검색 토글
+        function toggleSideSearch() {
+            document.getElementById('sideSearchBox').classList.toggle('open');
+        }
+
+        // 글로벌 검색기능 토글
+        window.toggleGlobalSearchPanel = function() {
+            const panel = document.getElementById('globalSearchPanel');
+            const iconClosed = document.getElementById('iconSearchClosed');
+            const iconOpened = document.getElementById('iconSearchOpened');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if(iconClosed) iconClosed.style.display = 'none';
+                if(iconOpened) iconOpened.style.display = 'inline-block';
+                setTimeout(() => document.getElementById('globalKeywordInput').focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if(iconClosed) iconClosed.style.display = 'inline-block';
+                if(iconOpened) iconOpened.style.display = 'none';
+                document.getElementById('globalKeywordInput').value = '';
+            }
+        };
+        window.executeGlobalSearch = function() {
+            const kw = document.getElementById('globalKeywordInput').value.trim();
+            if(!kw) {
+                alert("검색어를 입력해주세요.");
+                return;
+            }
+            alert("[" + kw + "] 내용을 검색합니다.");
+            window.toggleGlobalSearchPanel();
+        };
+    </script>
+
+    <script type="module" src="supabase_auth.js"></script>
+    <!-- 공실챗봇 스크립트 로드 -->
+    <script src="gongsil_chatbot.js?v=20260329"></script>
+
+</body>
+</html>

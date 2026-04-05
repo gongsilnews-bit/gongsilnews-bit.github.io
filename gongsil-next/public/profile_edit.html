@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>정보수정 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <style>
+        :root {
+            --primary-color: #4285f4;
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #e1e4e8;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --input-bg: #fff;
+            --danger-color: #dc2626;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px;
+            margin: 0;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .admin-card {
+            background-color: var(--bg-card);
+            border-radius: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            min-height: 600px;
+        }
+
+        /* ── 헤더 ── */
+        .card-header {
+            margin-bottom: 32px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 16px;
+        }
+        .card-header h2 {
+            margin: 0;
+            font-size: 22px;
+            font-weight: 700;
+            color: #111;
+        }
+
+        /* ── 공통 알림 영역 ── */
+        .banner {
+            background-color: #f0f4fc;
+            padding: 16px 20px;
+            border-radius: 8px;
+            margin-bottom: 32px;
+            border-left: 4px solid #4285f4;
+            font-size: 14px;
+            color: #1e40af;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* ── 섹션 제목 ── */
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #111827;
+            margin: 10px 0 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* ── 입력 폼 레이아웃 ── */
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-group.full {
+            grid-column: span 2;
+        }
+
+        .label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+        .label .required { color: var(--danger-color); margin-left: 2px; }
+
+        .input-text {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background-color: var(--input-bg);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .input-text:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(66, 133, 244, 0.1);
+        }
+        .input-text:disabled {
+            background-color: #f9fafb;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        /* ── 저장 버튼 구역 ── */
+        .form-footer {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-action {
+            padding: 12px 32px;
+            font-size: 15px;
+            font-weight: 700;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+            border: 1px solid #d1d5db;
+        }
+
+        .btn-cancel {
+            background-color: #fff;
+            color: #4b5563;
+        }
+        .btn-cancel:hover { background-color: #f9fafb; }
+
+        .btn-save {
+            background-color: var(--primary-color);
+            color: #fff;
+            border: none;
+        }
+        .btn-save:hover { background-color: #3367d6; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+
+        /* ── 부동산 정보 섹션 (조건부 표시) ── */
+        #realtorSection { display: none; }
+
+        .image-preview-container {
+            display: flex;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .img-box {
+            width: 120px;
+            height: 120px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background-color: #f1f3f5;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .img-box span {
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            padding: 5px;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 5px 12px;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <div class="card-header">
+        <h2 id="pageTitle">회원 정보 수정</h2>
+    </div>
+
+    <!-- 안내 문구 -->
+    <div class="banner">
+        <span>⚙️</span>
+        <span>최신 정보를 입력해 주세요. 등록하신 정보는 서비스 이용 시 중요하게 사용됩니다.</span>
+    </div>
+
+    <!-- 반려 안내 배너 (기본 숨김) -->
+    <div id="rejectionBanner" class="banner" style="display:none; background-color: #fee2e2; border-left-color: #ef4444; color: #b91c1c;">
+        <span style="font-size: 20px;">🚨</span>
+        <div style="flex: 1;">
+            <strong style="font-size: 15px; display:block; margin-bottom: 4px;">부동산 인증 보완 요청</strong>
+            <span id="rejectionNote" style="font-size: 14px;"></span>
+        </div>
+    </div>
+
+    <form id="profileForm">
+        <!-- 기본 정보 섹션 -->
+        <div class="section-title">👤 기본 정보</div>
+        <div class="form-grid">
+            <div class="form-group full">
+                <label class="label">이메일(아이디)</label>
+                <input type="email" id="userEmail" class="input-text" disabled>
+            </div>
+            <div class="form-group">
+                <label class="label">가입자명 <span class="required">*</span></label>
+                <input type="text" id="userName" class="input-text" placeholder="본명 또는 닉네임을 입력하세요." required>
+            </div>
+            <div class="form-group">
+                <label class="label">휴대폰 번호 <span class="required">*</span></label>
+                <input type="tel" id="userPhone" class="input-text" placeholder="010-0000-0000" required>
+            </div>
+        </div>
+
+        <!-- 부동산 회원 전용 섹션 -->
+        <div id="realtorSection">
+            <div class="section-title">🏘️ 부동산 / 기업 정보</div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label class="label">상호명 <span class="required">*</span></label>
+                    <input type="text" id="companyName" class="input-text" placeholder="부동산 상호명">
+                </div>
+                <div class="form-group">
+                    <label class="label">중개등록번호</label>
+                    <input type="text" id="companyRegNo" class="input-text" placeholder="예: 11680-202X-XXXXX">
+                </div>
+                <div class="form-group">
+                    <label class="label">대표자명</label>
+                    <input type="text" id="ceoName" class="input-text" placeholder="대표이사 성함">
+                </div>
+                <div class="form-group">
+                    <label class="label">사업자등록번호</label>
+                    <input type="text" id="bizRegNo" class="input-text" placeholder="000-00-00000">
+                </div>
+                <div class="form-group">
+                    <label class="label">일반번호</label>
+                    <input type="tel" id="telNum" class="input-text" placeholder="02-000-0000">
+                </div>
+                <div class="form-group">
+                    <label class="label">휴대번호</label>
+                    <input type="tel" id="cellNum" class="input-text" placeholder="010-0000-0000">
+                </div>
+                
+                <div class="form-group full">
+                    <label class="label">부동산주소 <span class="required">*</span></label>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <input type="text" id="zipcode" class="input-text" placeholder="우편번호" style="width: 120px;" readonly>
+                        <button type="button" class="btn-action" style="padding: 0 16px; font-size: 13px; height: 38px;" onclick="execDaumPostcode()">주소찾기</button>
+                    </div>
+                    <input type="text" id="address" class="input-text" placeholder="기본 주소" style="margin-bottom: 8px;" readonly>
+                    <input type="text" id="addressDetail" class="input-text" placeholder="상세 주소를 입력하세요.">
+                </div>
+
+                <div class="form-group full">
+                    <label class="label">업체상세소개</label>
+                    <textarea id="companyIntro" class="input-text" rows="5" style="resize: vertical; height: auto;" placeholder="업체에 대한 상세한 설명을 입력해 주세요. (예: 공실 전문 부동산, OO동 전문 등)"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="label">사업자등록증 사진</label>
+                    <div class="img-box" id="licenseImgBox">
+                        <span>이미지 없음</span>
+                    </div>
+                    <label class="file-input-label" for="licenseFile">사진 변경</label>
+                    <input type="file" id="licenseFile" accept="image/*" style="display:none;">
+                </div>
+
+                <div class="form-group">
+                    <label class="label">중개등록증 사진</label>
+                    <div class="img-box" id="brokerLicenseImgBox">
+                        <span>이미지 없음</span>
+                    </div>
+                    <label class="file-input-label" for="brokerLicenseFile">사진 변경</label>
+                    <input type="file" id="brokerLicenseFile" accept="image/*" style="display:none;">
+                </div>
+            </div>
+            </div>
+        </div>
+
+
+        <!-- 하단 버튼 -->
+        <div class="form-footer">
+            <button type="button" class="btn-action btn-cancel" onclick="history.back()">취소</button>
+            <button type="submit" class="btn-action btn-save">수정완료</button>
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+
+<script>
+    // 다음 우편번호 서비스 함수를 글로벌하게 정의 (onclick에서 접근 가능하도록)
+    function execDaumPostcode() {
+        new daum.Postcode({
+            oncomplete: function(data) {
+                var addr = ''; 
+                if (data.userSelectedType === 'R') { 
+                    addr = data.roadAddress;
+                } else { 
+                    addr = data.jibunAddress;
+                }
+                document.getElementById('zipcode').value = data.zonecode;
+                document.getElementById("address").value = addr;
+                document.getElementById("addressDetail").focus();
+            }
+        }).open();
+    }
+</script>
+
+<script type="module">
+    const supabase = window.gongsiClient;
+
+    async function loadProfile() {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            alert("로그인이 필요합니다.");
+            window.location.href = './index.html';
+            return;
+        }
+
+        const user = session.user;
+        document.getElementById('userEmail').value = user.email;
+
+        // DB에서 추가 정보 가져오기
+        const { data: profile, error } = await supabase
+            .from('members')
+            .select('*')
+            .eq('id', user.id)
+            .maybeSingle();
+
+        if (error) console.error("프로필 로드 에러:", error);
+
+        if (profile) {
+            window.currentProfileRole = profile.role;
+            window.currentProfileStatus = profile.verification_status;
+
+            document.getElementById('userName').value = profile.name || user.user_metadata.full_name || '';
+            document.getElementById('userPhone').value = profile.phone || '';
+
+            // 회원 구분에 따른 UI 변경
+            if (profile.role === 'realtor') {
+                document.getElementById('pageTitle').textContent = '부동산 회원 정보 수정';
+                document.getElementById('realtorSection').style.display = 'block';
+
+                if (profile.verification_status === 'rejected') {
+                    document.getElementById('rejectionBanner').style.display = 'flex';
+                    document.getElementById('rejectionNote').textContent = profile.admin_note || "서류나 정보가 누락되어 검토가 반려되었습니다. 올바르게 수정 후 다시 저장해주세요.";
+                }
+                
+                document.getElementById('companyName').value = profile.company_name || '';
+                document.getElementById('companyRegNo').value = profile.company_reg_no || '';
+                document.getElementById('ceoName').value = profile.ceo_name || '';
+                document.getElementById('bizRegNo').value = profile.biz_reg_no || '';
+                document.getElementById('telNum').value = profile.tel_num || '';
+                document.getElementById('cellNum').value = profile.cell_num || '';
+                document.getElementById('zipcode').value = profile.zipcode || '';
+                document.getElementById('address').value = profile.address || '';
+                document.getElementById('addressDetail').value = profile.address_detail || '';
+                document.getElementById('companyIntro').value = profile.company_intro || '';
+                
+                if (profile.license_image) {
+                    document.getElementById('licenseImgBox').innerHTML = `<img src="${profile.license_image}" alt="사업자등록증">`;
+                }
+                if (profile.license_image_brokerage) {
+                    document.getElementById('brokerLicenseImgBox').innerHTML = `<img src="${profile.license_image_brokerage}" alt="중개등록증">`;
+                }
+
+                // 필수 체크
+                const realtorReqs = ['companyName', 'companyRegNo', 'ceoName', 'bizRegNo', 'telNum', 'cellNum', 'zipcode', 'address'];
+                realtorReqs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.required = true;
+                });
+            } else if (profile.role === 'admin') {
+                document.getElementById('pageTitle').textContent = '관리자 정보 수정';
+            } else {
+                document.getElementById('pageTitle').textContent = '일반 회원 정보 수정';
+            }
+        }
+    }
+
+    // 파일 선택 시 미리보기
+    document.getElementById('licenseFile').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                document.getElementById('licenseImgBox').innerHTML = `<img src="${ev.target.result}" style="opacity:0.6;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('brokerLicenseFile').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = ev => {
+                document.getElementById('brokerLicenseImgBox').innerHTML = `<img src="${ev.target.result}" style="opacity:0.6;">`;
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
+
+        const updateData = {
+            name: document.getElementById('userName').value,
+            phone: document.getElementById('userPhone').value,
+        };
+
+        const realtorSection = document.getElementById('realtorSection');
+        if (realtorSection.style.display === 'block') {
+            updateData.company_name = document.getElementById('companyName').value;
+            updateData.company_reg_no = document.getElementById('companyRegNo').value;
+            updateData.ceo_name = document.getElementById('ceoName').value;
+            updateData.biz_reg_no = document.getElementById('bizRegNo').value;
+            updateData.tel_num = document.getElementById('telNum').value;
+            updateData.cell_num = document.getElementById('cellNum').value;
+            updateData.zipcode = document.getElementById('zipcode').value;
+            updateData.address = document.getElementById('address').value;
+            updateData.address_detail = document.getElementById('addressDetail').value;
+            updateData.company_intro = document.getElementById('companyIntro').value;
+
+            // 이미지 업로드 처리
+            const lFile = document.getElementById('licenseFile').files[0];
+            const bFile = document.getElementById('brokerLicenseFile').files[0];
+
+            if (lFile) {
+                const options = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+                const compressed = await imageCompression(lFile, options);
+                const fileName = `${session.user.id}/${Date.now()}_license.${compressed.name.split('.').pop()}`;
+                const { error: uploadError } = await supabase.storage.from('member_documents').upload(fileName, compressed);
+                if (uploadError) {
+                    console.error("사업자등록증 업로드 에러:", uploadError);
+                    alert("사업자등록증 업로드 중 오류가 발생했습니다.");
+                    return;
+                }
+                const { data: { publicUrl } } = supabase.storage.from('member_documents').getPublicUrl(fileName);
+                updateData.license_image = publicUrl;
+            }
+
+            if (bFile) {
+                const options = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+                const compressed = await imageCompression(bFile, options);
+                const fileName = `${session.user.id}/${Date.now()}_broker_license.${compressed.name.split('.').pop()}`;
+                const { error: uploadError } = await supabase.storage.from('member_documents').upload(fileName, compressed);
+                if (uploadError) {
+                    console.error("중개등록증 업로드 에러:", uploadError);
+                    alert("중개등록증 업로드 중 오류가 발생했습니다.");
+                    return;
+                }
+                const { data: { publicUrl } } = supabase.storage.from('member_documents').getPublicUrl(fileName);
+                updateData.license_image_brokerage = publicUrl;
+            }
+
+            // 반려 상태이거나 알 수 없는 상태에서 수정한 경우 -> 심사대기로 핑퐁
+            if (window.currentProfileStatus === 'rejected' || !window.currentProfileStatus || window.currentProfileStatus === 'pending') {
+                updateData.verification_status = 'manual_required'; // 심사대기 상태로 변경
+            }
+        }
+
+        try {
+            // member_logs 로그 기록
+            let myIp = 'unknown';
+            try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); myIp = d.ip; } catch(e){}
+            
+            let details = '회원 본인이 직접 정보 수정';
+            if (realtorSection.style.display === 'block') details = '회원 본인이 부동산/기업 정보 및 서류 수정';
+
+            await supabase.from('member_logs').insert({
+                target_uid: session.user.id, target_email: session.user.email, action_type: '회원정보수정',
+                details: details, actor_uid: session.user.id, actor_email: session.user.email, ip_address: myIp
+            });
+
+            const { error } = await supabase
+                .from('members')
+                .update(updateData)
+                .eq('id', session.user.id);
+
+            if (error) throw error;
+
+            if (updateData.verification_status === 'manual_required') {
+                alert("정보가 정상적으로 수정되었으며, 관리자에게 심사(재심사)가 요청되었습니다.");
+            } else {
+                alert("정보가 성공적으로 수정되었습니다.");
+            }
+            
+            // 중첩 로딩 방지: 전체 창을 새로고침하거나 부모창의 로드 함수 호출
+            if (window.parent && typeof window.parent.loadPage === 'function') {
+                window.parent.loadPage(null, '매물관리', 'admin.html');
+            } else {
+                window.top.location.href = 'user_admin.html';
+            }
+        } catch (err) {
+            console.error(err);
+            alert("저장 중 오류가 발생했습니다: " + err.message);
+        }
+    });
+
+    loadProfile();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>강의 미리보기 - 공실뉴스 Admin</title>
+    <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        :root {
+            --primary: #ff9f1c;
+            --blue: #3b82f6;
+            --green: #16a34a;
+            --red: #ef4444;
+            --border: #e5e7eb;
+            --bg: #f4f5f7;
+            --text: #222;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard Variable', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .btn-toolbar {
+            padding: 6px 14px; border-radius: 5px; border: 1px solid var(--border);
+            font-size: 13px; font-weight: 600; cursor: pointer; background: #fff; color: #444; transition: all .15s;
+        }
+        .btn-toolbar:hover { background: #f3f4f6; }
+
+        /* 디바이스 탭 버튼 */
+        .device-btns { display: flex; gap: 4px; background: #f3f4f6; padding: 4px; border-radius: 6px; }
+        .device-btn {
+            padding: 4px 10px; border-radius: 4px; border: none;
+            background: transparent; cursor: pointer; font-size: 16px; transition: background .15s;
+        }
+        .device-btn.active, .device-btn:hover { background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+
+        /* 디바이스 목업 프레임 */
+        .preview-frame {
+            width: 100%; height: 750px; margin: 0 auto;
+            transition: max-width 0.3s ease, border-radius 0.3s ease, box-shadow 0.3s ease, border 0.3s ease;
+            background: #fff; position: relative; overflow: hidden;
+            border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); border: 1px solid #ddd;
+        }
+        .preview-frame.tablet { max-width: 768px !important; border: 12px solid #333; height: 850px; }
+        .preview-frame.mobile { max-width: 375px !important; border: 14px solid #333; border-radius: 36px; height: 750px; }
+        .preview-frame iframe { width: 100%; height: 100%; border: none; }
+        
+        .page-body { padding: 24px; max-width: 1400px; margin: 0 auto; }
+        
+        /* 사이드바 */
+        .sidebar-card {
+            background: #fff; border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06);
+            padding: 20px; margin-bottom: 16px; font-size: 13px;
+        }
+        .sidebar-title { font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #111; }
+        .log-item { display: flex; gap: 8px; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
+        .log-item:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
+        .log-num { font-weight: 800; color: var(--primary); }
+    </style>
+</head>
+<body>
+
+<div class="page-body">
+    <div style="display:flex; gap:30px; width:100%; margin:0 auto; align-items:flex-start;">
+        
+        <!-- 좌측: 플레이어 미리보기 영역 -->
+        <div style="flex:1; min-width:0; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); overflow:hidden;">
+            
+            <!-- 툴바가 Iframe 안으로 이관됨으로써 공백 구조만 남김 -->
+            <div id="courseTitleDisplay" class="hidden" style="display:none;"></div>
+
+            <!-- 디바이스 버튼 -->
+            <div style="display:flex; justify-content:center; padding:15px; border-bottom:1px solid #f0f0f0; background:#f8fafc; border-top-left-radius:10px; border-top-right-radius:10px;">
+                <div class="device-btns">
+                    <button class="device-btn active" id="devPC" data-dev="pc" onclick="setDevice(this.dataset.dev)" title="PC" style="background:#0bc2c2; color:#fff; font-size:18px;">🖥️</button>
+                    <button class="device-btn" id="devTB" data-dev="tablet" onclick="setDevice(this.dataset.dev)" title="태블릿" style="font-size:18px;">📱</button>
+                    <button class="device-btn" id="devMB" data-dev="mobile" onclick="setDevice(this.dataset.dev)" title="모바일" style="font-size:18px;">📲</button>
+                </div>
+            </div>
+
+            <!-- 아이프레임 뷰어 -->
+            <div style="padding: 40px; background: #f1f5f9;">
+                <div class="preview-frame" id="previewFrame">
+                    <iframe id="playerFrame" src="about:blank"></iframe>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- 우측: 사이드바 로그 기록 -->
+        <div style="width:300px; flex-shrink:0;">
+            <div class="sidebar-card">
+                <div class="sidebar-title">🎓 [공실스터디] 관리자 노트 및 개선 기록</div>
+                <div>
+                    <textarea id="logMemoInput" placeholder="강의 내용 기획, 수강생 피드백, 보충해야 할 요소 등 관리용 메모를 자유롭게 기록하세요..." style="width:100%; height:90px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; resize:none; font-family:inherit; margin-bottom:8px;"></textarea>
+                    <div style="text-align:right;">
+                        <button onclick="addLog()" style="padding:6px 16px; background:#334155; color:#fff; border:none; border-radius:4px; font-weight:600; cursor:pointer;">등록</button>
+                    </div>
+                </div>
+                <div id="logList" style="margin-top:16px;">
+                    <div style="text-align:center; color:#94a3b8; padding:10px;">로그를 불러오는 중입니다...</div>
+                </div>
+            </div>
+
+            <!-- 강제 숨김 처리 (현재는 로그 메모에 모두 담기므로 별도 이력은 제외 권장) -->
+            <div class="sidebar-card" style="display:none;">
+                <div class="sidebar-title">🕐 강의 최근 변경 이력</div>
+                <div>
+                    <!-- 추후 확장용 -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const courseId = urlParams.get('id');
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        if (!courseId) {
+            document.getElementById('courseTitleDisplay').innerText = `⚠️ 접근 오류: 잘못된 강의 ID입니다.`;
+            return;
+        }
+
+        const sb = window.gongsiClient;
+        if (!sb) return;
+
+        // 1. 코스 기본정보(제목) 불러오기
+        const { data: course, error } = await sb.from('study_courses').select('title').eq('id', courseId).single();
+        if (course) {
+            document.getElementById('courseTitleDisplay').innerText = `📚 ${course.title}`;
+        }
+
+        // 2. Iframe 에 해당 코스 ID 전달 (watch 페이지가 실제 데이터 불러올 때 사용)
+        document.getElementById('playerFrame').src = `study_watch.html?id=${courseId}&preview=true`;
+
+        // 3. 우측 메모 로그 조회
+        loadLogs();
+    });
+
+    // 🔥 내부 Iframe에서 쏘아올린 신호(버튼 클릭, 전체 높이 등) 수신 🔥
+    window.addEventListener('message', (e) => {
+        if (e.data === 'goList') window.parent.loadPage(null, '스터디관리', 'study_admin.html');
+        if (e.data === 'goEdit') goToEdit();
+        if (e.data === 'goPreview') window.open('study_detail.html?id=' + courseId, '_blank'); // 실제화면 새차
+        if (e.data && e.data.type === 'resize') {
+            const frame = document.getElementById('previewFrame');
+            // PC 환경에서만 iframe 컨테이너 길이를 실제 높이에 맞게 쭉 늘리고 (스크롤 중복 제거)
+            if(!frame.classList.contains('mobile') && !frame.classList.contains('tablet')) {
+                frame.style.height = (e.data.height + 60) + 'px';
+            }
+        }
+    });
+
+    function goToEdit() {
+        if(!courseId) return;
+        window.parent.loadPage(null, '강의수정', `study_write.html?id=${courseId}`);
+    }
+
+    async function loadLogs() {
+        if(!courseId) return;
+        const sb = window.gongsiClient;
+        const list = document.getElementById('logList');
+        
+        // 작성자 이름 조인 제외 (오류 방지)
+        const { data, error } = await sb.from('study_logs')
+            .select(`message, created_at, author_id`)
+            .eq('course_id', courseId)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            list.innerHTML = `<div style="text-align:center; color:red; padding:10px;">로그를 불러오지 못했습니다. (${error.message})</div>`;
+            return;
+        }
+
+        if (!data || data.length === 0) {
+            list.innerHTML = `<div style="text-align:center; color:#94a3b8; padding:10px;">등록된 서비스 로그 메모가 없습니다.</div>`;
+            return;
+        }
+
+        list.innerHTML = data.map((log, idx) => {
+            const dateStr = new Date(log.created_at).toLocaleString('ko-KR', {
+                year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+            });
+            const author = '관리자'; // 단순화
+            
+            return `
+            <div class="log-item">
+                <div class="log-num" style="color:#475569;">${data.length - idx}</div>
+                <div>
+                    <div style="font-weight:600; margin-bottom:4px; line-height:1.4;">${log.message.replace(/\n/g, '<br>')}</div>
+                    <div style="color:#64748b; font-size:12px;">${author} | ${dateStr}</div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    async function addLog() {
+        if(!courseId) return alert("강의 정보가 없습니다.");
+        const input = document.getElementById('logMemoInput');
+        const msg = input.value.trim();
+        if(!msg) return alert("메모 내용을 입력하세요.");
+
+        const sb = window.gongsiClient;
+        const ud = JSON.parse(localStorage.getItem('gongsil_user') || '{}');
+        const authorId = ud.profile ? ud.profile.id : null;
+
+        const btn = event.currentTarget;
+        const originalText = btn.innerText;
+        btn.innerText = "등록중...";
+        btn.disabled = true;
+
+        const { error } = await sb.from('study_logs').insert([{
+            course_id: courseId,
+            author_id: authorId,
+            message: msg
+        }]);
+
+        btn.innerText = originalText;
+        btn.disabled = false;
+
+        if (error) {
+            alert("로그 메모 등록 중 오류가 발생했습니다: " + error.message);
+        } else {
+            input.value = "";
+            loadLogs(); // 등록 직후 목록 재로딩 (실시간)
+        }
+    }
+
+    // 디바이스 목업 변환 버튼 동작
+    function setDevice(type) {
+        ['pc','tablet','mobile'].forEach(d => {
+            const btn = document.getElementById('dev' + d.toUpperCase().replace('TABLET','TB').replace('MOBILE','MB').replace('PC','PC'));
+            if(btn) {
+                btn.classList.remove('active');
+                if(d === 'pc') btn.style = ''; // reset
+            }
+        });
+        
+        const activeBtn = document.getElementById({pc:'devPC',tablet:'devTB',mobile:'devMB'}[type]);
+        activeBtn.classList.add('active');
+        activeBtn.style.background = '#0bc2c2';
+        activeBtn.style.color = '#fff';
+
+        const frame = document.getElementById('previewFrame');
+        if(type === 'pc') {
+            frame.className = 'preview-frame';
+            frame.style.height = '1500px'; 
+        } else {
+            frame.className = 'preview-frame ' + type;
+            frame.style.height = type === 'tablet' ? '850px' : '750px';
+        }
+
+        // 하위 프레임(watch 페이지) 에 현재 기기 상태를 쏴서 반응형이 꺾이지 않도록 통제
+        const player = document.getElementById('playerFrame');
+        if (player && player.contentWindow) {
+            player.contentWindow.postMessage({type: 'device', mode: type}, '*');
+        }
+    }
+</script>
+
+</body>
+</html>

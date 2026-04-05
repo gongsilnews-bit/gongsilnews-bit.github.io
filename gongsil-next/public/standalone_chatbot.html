@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>공실챗봇 PC버전</title>
+    <!-- Supabase 연동 정보 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    
+    <!-- 동일한 챗봇 핵심 로직 사용 (웹과 100% 동일한 인공지능) -->
+    <script>
+        // Electron 환경에서만 IPC를 활성화하여 창 최소화/닫기 기능을 네이티브 윈도우에 연동
+        const isElectron = typeof require !== 'undefined' && window.process && window.process.type;
+        window.ELECTRON_MODE = isElectron;
+        
+        let ipcRenderer = null;
+        if (isElectron) {
+            ipcRenderer = require('electron').ipcRenderer;
+        }
+
+        // 웹용 챗봇 함수를 Electron 창 제어용으로 덮어씀
+        window.overrideAppControls = function() {
+            window.toggleAIChat = function() {
+                if(ipcRenderer) ipcRenderer.send('window-controls', 'close');
+            };
+            window.toggleAiFullscreen = function() {
+                if(ipcRenderer) ipcRenderer.send('window-controls', 'minimize');
+            };
+        };
+    </script>
+    <script src="gongsil_chatbot.js"></script>
+    
+    <style>
+        /* 껍데기를 챗봇 창으로 완전히 덮고 기존 버튼, 여백 숨김 */
+        body, html { margin:0; padding:0; width:100vw; height:100vh; overflow:hidden; background:transparent; font-family:"Pretendard", sans-serif; }
+        
+        #aiBotBtn { display: none !important; }
+        
+        .ai-chat-window {
+            position: fixed !important; top:0 !important; left:0 !important; right:0 !important; bottom:0 !important;
+            width: 100vw !important; height: 100vh !important; 
+            max-width: none !important; max-height: none !important;
+            border-radius: 12px !important; border: 1px solid rgba(0,0,0,0.1) !important; 
+            display: flex !important; transform: none !important; resize: none !important;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.3) !important;
+        }
+        
+        /* 윗부분을 마우스로 잡고 창을 이동할 수 있도록(Drag) 설정 */
+        .chat-header { -webkit-app-region: drag; }
+        /* 버튼들은 눌러야 하므로 드래그에서 제외 */
+        .win-controls { -webkit-app-region: no-drag; }
+        
+        /* 최소화/닫기를 윈도우 컨트롤러와 연결 (전체보기 기호는 최소화 기호로 교체) */
+        .win-max { font-size: 16px; margin-top:-2px; }
+    </style>
+    <script>
+        window.onload = () => {
+            sessionStorage.setItem('aiChatOpen', 'true');
+            if(window.overrideAppControls) window.overrideAppControls();
+
+            // □ 버튼을 최소화 버튼으로 텍스트 변경
+            const maxBtn = document.getElementById('chatMaxBtn');
+            if (maxBtn) {
+                maxBtn.innerText = '−'; 
+                maxBtn.title = '창 아래로 내리기';
+                
+                // 기존 - 버튼은 숨김 (공간 깔끔하게)
+                const minBtn = document.querySelector('.win-min');
+                if(minBtn) minBtn.style.display = 'none';
+            }
+        };
+    </script>
+</head>
+<body>
+    <!-- 본문 내용물은 없고 JS에서 동적 렌더링 됩니다 -->
+</body>
+</html>

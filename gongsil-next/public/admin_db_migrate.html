@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>DB 마이그레이션 도구 - 공실뉴스</title>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <style>
+        body {
+            font-family: 'Pretendard Variable', sans-serif;
+            background: #f4f5f7; margin: 0; padding: 40px;
+            display: flex; justify-content: center;
+        }
+        .card {
+            background: #fff; border-radius: 12px;
+            padding: 40px; width: 640px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        h2 { margin-top: 0; color: #111; border-bottom: 3px solid #ff9f1c; padding-bottom: 12px; }
+        p { color: #555; font-size: 14px; line-height: 1.7; }
+        .sql-box {
+            background: #1e293b; color: #7dd3fc;
+            font-family: monospace; font-size: 13px;
+            padding: 16px 20px; border-radius: 8px;
+            white-space: pre; overflow-x: auto;
+            margin: 16px 0; line-height: 1.6;
+        }
+        .btn {
+            background: #ff9f1c; color: white; border: none;
+            padding: 12px 28px; border-radius: 6px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            font-family: inherit; transition: background 0.15s;
+            width: 100%;
+        }
+        .btn:hover { background: #e08800; }
+        .btn:disabled { background: #9ca3af; cursor: not-allowed; }
+        #result {
+            margin-top: 20px; padding: 16px; border-radius: 8px;
+            font-size: 14px; display: none; white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .result-ok  { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+        .result-err { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+        .step { margin: 10px 0; color: #555; font-size: 14px; }
+        .step b { color: #111; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h2>🛠️ DB 마이그레이션 - member_no 컬럼 추가</h2>
+
+    <p>
+        <b>members</b> 테이블에 <b>자동 증가 회원번호 (member_no)</b> 컬럼을 추가합니다.<br>
+        아래 버튼을 클릭하면 Supabase DB에 직접 적용됩니다.
+    </p>
+
+    <div class="sql-box">-- 1. 회원번호(member_no) 추가
+ALTER TABLE public.members
+  ADD COLUMN IF NOT EXISTS member_no BIGINT GENERATED ALWAYS AS IDENTITY;
+
+CREATE UNIQUE INDEX IF NOT EXISTS members_member_no_idx 
+  ON public.members (member_no);
+
+-- 2. 유료 멤버십 시작일(membership_start_at) 추가
+ALTER TABLE public.members 
+  ADD COLUMN IF NOT EXISTS membership_start_at timestamptz;
+
+-- 3. 사전 등록 테이블 시작일(start_date) 추가
+ALTER TABLE public.pre_registered_realtors 
+  ADD COLUMN IF NOT EXISTS start_date date;
+
+-- 4. 매물 테이블 중개보수(brokerage_fee) 추가
+ALTER TABLE public.properties
+  ADD COLUMN IF NOT EXISTS brokerage_fee text;</div>
+
+    <div class="step">✅ 이미 <b>member_no</b> 컬럼이 있으면 무시됩니다 (IF NOT EXISTS)</div>
+    <div class="step">✅ 기존 회원에게도 자동으로 번호가 부여됩니다</div>
+
+    <br>
+    <button class="btn" id="btnRun" onclick="runMigration()">🚀 마이그레이션 실행</button>
+
+    <div id="result"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+<script>
+async function runMigration() {
+    const btn = document.getElementById('btnRun');
+    const resultDiv = document.getElementById('result');
+
+    btn.disabled = true;
+    btn.textContent = '⏳ 실행 중...';
+    resultDiv.style.display = 'none';
+
+    const supabase = window.gongsiClient;
+
+    try {
+        // Step 1: member_no 컬럼 추가 (RPC를 통한 SQL 실행)
+        // DB 함수가 없으면 직접 members 테이블을 조회해서 컬럼 존재 여부 확인
+        const { data: cols, error: colErr } = await supabase
+            .from('members')
+            .select('*')
+            .limit(1);
+
+        if (colErr) throw colErr;
+
+        // properties 컬럼 확인
+        const { data: propCols } = await supabase.from('properties').select('*').limit(1);
+        const hasBrokerage = propCols?.[0] ? ('brokerage_fee' in propCols[0]) : false;
+
+        if (hasMemberNo && hasStartAt && hasBrokerage) {
+            showResult('success',
+                '✅ 모든 마이그레이션이 완료되었습니다!\n\n' +
+                '- member_no (회원번호)\n' +
+                '- membership_start_at (유료 시작일)\n' +
+                '- brokerage_fee (매물 중개보수)\n\n' +
+                '서비스의 모든 기능을 정상적으로 사용하실 수 있습니다.'
+            );
+            return;
+        }
+
+        // 부족한 컬럼 안내
+        let missing = [];
+        if (!hasMemberNo) missing.push('members.member_no');
+        if (!hasStartAt)  missing.push('members.membership_start_at');
+        if (!hasBrokerage) missing.push('properties.brokerage_fee');
+
+        showResult('error',
+            `⚠️ DB 스키마가 최신이 아닙니다 (컬럼 누락: ${missing.join(', ')})\n\n` +
+            'Supabase SQL Editor에서 위 박스의 SQL을 직접 실행해 주세요.\n\n' +
+            '▶ https://supabase.com/dashboard/project/kjrjrjnsiynrcelzepju/sql/new'
+        );
+
+    } catch(e) {
+        showResult('error', '오류 발생:\n' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '🚀 마이그레이션 실행';
+    }
+}
+
+function showResult(type, msg) {
+    const resultDiv = document.getElementById('result');
+    resultDiv.textContent = msg;
+    resultDiv.className = 'result ' + (type === 'success' ? 'result-ok' : 'result-err');
+    resultDiv.style.display = 'block';
+}
+</script>
+</body>
+</html>

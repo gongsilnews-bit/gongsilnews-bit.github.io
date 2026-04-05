@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=1200">
+    <title>공실뉴스 - 자료실 게시판</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+        
+        :root {
+            --brand-navy: #102c57;
+            --brand-blue: #508bf5;
+            --border-light: #e5e5e5;
+            --text-dark: #222222;
+            --text-gray: #777777;
+            --bg-body: #ffffff;
+            --bg-gray: #f8f9fa;
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            min-width: 1200px;
+            overflow-x: auto;
+            overflow-y: scroll !important;
+        }
+        ul, li { list-style: none; }
+        a { text-decoration: none; color: inherit; }
+        button { border: none; background: none; cursor: pointer; font-family: inherit; }
+
+        /* Container */
+        .container {
+            width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 1. Top Nav Bar */
+        .top-bar {
+            position: relative;
+            z-index: 10000000;
+            background-color: var(--brand-navy);
+            height: 60px;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 50px;
+            min-width: 1200px;
+        }
+        .top-bar-left { 
+            display: flex; 
+            align-items: center; 
+        }
+        .top-logo {
+            font-size: 24px;
+            font-weight: 900;
+            font-style: italic;
+            margin-right: 20px;
+            letter-spacing: -1px;
+            cursor: pointer;
+        }
+        .top-desc {
+            font-size: 14px;
+            font-weight: 400;
+            opacity: 0.9;
+            letter-spacing: -0.5px;
+        }
+        .top-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+        }
+        .top-bar-right svg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            stroke: #fff;
+            opacity: 0.9;
+            transition: opacity 0.2s, stroke 0.2s;
+        }
+        .top-bar-right svg:hover {
+            opacity: 1;
+        }
+        
+        /* Expanding Search Bar */
+        .top-search-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+        }
+        .top-search-input {
+            width: 0;
+            opacity: 0;
+            padding: 0;
+            border: none;
+            outline: none;
+            border-radius: 4px;
+            height: 26px;
+            font-size: 13px;
+            background: #fff;
+            color: #333;
+            transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease, padding 0.3s ease, margin 0.3s;
+        }
+        .top-search-wrap.active .top-search-input {
+            width: 180px;
+            opacity: 1;
+            padding: 0 10px;
+            margin-right: 10px;
+        }
+
+        /* 2. Main Header */
+        .header {
+            background: rgba(255, 255, 255, 1);
+            border-bottom: 2px solid #111111;
+            padding-top: 24px;
+            position: sticky;
+            top: -1px;
+            z-index: 9999999;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky {
+            padding-top: 10px;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+            border-bottom: 2px solid #111111;
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-top {
+            margin-bottom: 12px;
+        }
+        .header img.ht-logo {
+            height: 50px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky img.ht-logo {
+            height: 32px;
+        }
+        .ht-left, .ht-right { flex: 1; }
+        .ht-right { display: flex; justify-content: flex-end; }
+        .ht-center { flex: 0 0 auto; }
+        
+        .free-banner {
+            color: #508bf5;
+            font-weight: 800;
+            font-size: 18px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        .header-bottom {
+            padding-bottom: 16px;
+            transition: all 0.5s cubic-bezier(0.68, -0.2, 0.265, 1.55);
+        }
+        .header.is-sticky .header-bottom {
+            padding-bottom: 10px;
+        }
+        .gnb-new {
+            display: flex;
+            justify-content: space-between;
+            font-size: 16px;
+            font-weight: 800;
+            color: #222;
+            align-items: center;
+        }
+        .gnb-new a { transition: color 0.2s; }
+        .gnb-new a:hover { color: var(--brand-blue); }
+        .gnb-new .divider {
+            width: 1px; height: 16px; background: #ddd; margin: 0 5px;
+        }
+
+        /* Component: Section Title */
+        .sec-title-wrap {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .sec-title-wrap::before {
+            content: '';
+            display: inline-block;
+            width: 4px;
+            height: 18px;
+            background-color: var(--brand-blue);
+            margin-right: 10px;
+        }
+        .sec-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--brand-blue);
+            letter-spacing: -0.5px;
+        }
+
+        /* Grey Box Placeholder */
+        .box-placeholder {
+            background-color: #e2e2e2;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* Layout Spaces */
+        .mt-50 { margin-top: 50px; }
+        .mb-50 { margin-bottom: 50px; }
+        .py-60 { padding-top: 60px; padding-bottom: 60px; }
+        .px-20 { padding-left: 20px; padding-right: 20px; }
+
+        /* 3. Hero Section */
+        .hero-section {
+            display: flex;
+            gap: 24px;
+            position: relative;
+        }
+        .hero-left {
+            flex: 2; /* takes more space */
+            position: relative;
+        }
+        .app-mock { 
+            width: 360px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(5px);
+            border-radius: 12px;
+            padding: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            height: 100%;
+        }
+        .app-search {
+            display: flex; align-items: center; background: #f1f3f5; border-radius: 8px; padding: 12px; margin-bottom: 5px; cursor: text;
+        }
+        .app-search input { border: none; background: transparent; outline: none; font-size: 14px; width: 100%; color: #333; margin-left: 8px; }
+        .app-item { display: flex; gap: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 15px; }
+        .app-item:last-child { border-bottom: none; padding-bottom: 0; }
+        .app-img { width: 80px; height: 80px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .app-txt h3 { font-size: 15px; margin-bottom: 8px; font-weight: 700; color: #111; letter-spacing: -0.5px; }
+        .app-txt p { font-size: 14px; color: #c00; font-weight: 800; }
+        .app-txt span { font-size: 12px; color: #888; display: block; margin-top: 4px; }
+        
+        .map-btn {
+            position: absolute; top: 15px; left: calc(50% + 140px); transform: translateX(-50%); background: #1a4282; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 700; box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: none; cursor: pointer; z-index: 99999; 
+        }
+
+        .hero-right {
+            flex: 1; /* roughly 380px */
+            display: flex;
+            flex-direction: column;
+        }
+        .hn-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid #1a4282; padding-bottom: 10px;}
+        .hn-header h2 { font-size: 18px; font-weight: 800; color: #1a4282; }
+        .hn-header a { font-size: 12px; color: #666; font-weight: 600; }
+        .hn-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+        .hn-item { display: flex; gap: 12px; align-items: flex-start; cursor: pointer; }
+        .hn-img { width: 90px; height: 65px; background: #ddd; border-radius: 6px; flex-shrink: 0; }
+        .hn-txt h4 { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 6px; color: #111; word-break: keep-all; }
+        .hn-txt span { font-size: 12px; color: #999; }
+        .hn-ad { flex: 1; background: #e2e2e2; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #999; font-size: 13px; font-weight: bold;}
+        
+        /* Floating Quick Menu */
+        .quick-menu {
+            position: fixed;
+            top: 250px;
+            left: 50%;
+            margin-left: 620px;
+            width: 70px;
+            background: #fff;
+            border: 1px solid var(--border-light);
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            text-align: center;
+            z-index: 9999;
+            overflow: hidden;
+        }
+        .qm-item { padding: 12px 5px; font-size: 12px; color: #555; border-bottom: 1px solid #eee; font-weight: 600; cursor:pointer;}
+        .qm-item:last-child { border-bottom: none; }
+        .qm-item span { display: block; font-size: 18px; margin-bottom: 4px; color: var(--brand-blue); }
+
+        /* 4. Ticker Section */
+        .ticker {
+            display: flex;
+            justify-content: space-between;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .ticker-item {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            color: #333;
+        }
+        .ticker-val { color: #d32f2f; }
+        .ticker-val.down { color: #1976d2; }
+
+        /* 5. Hot Issue Section */
+        .hot-issue-wrap {
+            display: flex;
+            gap: 40px;
+        }
+        .hi-left { flex: 1; }
+        .hi-list { display: flex; flex-direction: column; gap: 20px; }
+        .hi-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .hi-item img { width: 140px; height: 100px; background: #ddd; object-fit: cover; border-radius: 4px; }
+        .hi-txt h3 { font-size: 18px; font-weight: 700; margin-bottom: 10px; line-height: 1.4; color: #111; }
+        .hi-txt p { font-size: 14px; color: #666; line-height: 1.5; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;}
+        
+        .hi-right { flex: 1; height: 260px; }
+
+        /* 6. Video News Section */
+        .video-wrap { border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+        .vid-item { cursor: pointer; }
+        .vid-thumb { height: 220px; background: #222; position: relative; border-radius: 4px; margin-bottom: 15px; }
+        .vid-play { position: absolute; top:50%; left:50%; transform: translate(-50%, -50%); width: 44px; height: 44px; background: rgba(0,0,0,0.6); border-radius: 50%; border: 2px solid #fff;}
+        .vid-play::after { content:''; display:block; border-left:12px solid #fff; border-top:8px solid transparent; border-bottom:8px solid transparent; margin-left:18px; margin-top:12px; }
+        .vid-title { font-size: 16px; font-weight: 700; line-height: 1.4; color:#111; }
+
+        /* 7. Premium Section (Dark Blue) */
+        .premium-bg { background-color: var(--brand-navy); color: #fff; padding: 60px 0; }
+        .premium-bg .sec-title { color: #fff; }
+        .premium-bg .sec-title-wrap::before { background-color: #f97316; }
+        .prem-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+        }
+        .prem-card { cursor: pointer; }
+        .prem-img { height: 180px; background: #555; margin-bottom: 15px; border-radius: 4px; }
+        .prem-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+        .prem-desc { font-size: 13px; color: #aaa; line-height: 1.4; }
+
+        /* 8. Expert Section */
+        .expert-wrap { display: flex; gap: 40px; }
+        .expert-left { flex: 1; border-top: 2px solid #222; padding-top: 20px;}
+        .ex-item { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 20px 0; }
+        .ex-img { width: 100px; height: 100px; background: #ddd; border-radius: 50%; }
+        .ex-txt h3 { font-size: 17px; font-weight: 700; margin-bottom: 10px; }
+        .ex-txt p { font-size: 14px; color: #666; line-height: 1.6; }
+        .expert-right { flex: 1; height: 300px; padding-top: 20px; }
+
+        /* 9. Study Section */
+        .study-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .study-card { border: 1px solid var(--border-light); border-radius: 8px; overflow: hidden; }
+        .st-img { height: 180px; background: #e2e2e2; position: relative; }
+        .st-badge { position: absolute; top:0; left:0; padding:6px 12px; color:#fff; font-size:12px; font-weight:bold; }
+        .st-badge.brand-blue { background: #ff9800; }
+        .st-badge.red { background: #f44336; }
+        .st-badge.black { background: #222; }
+        .st-txt { padding: 20px; }
+        .st-title { font-size: 16px; font-weight: 700; line-height: 1.4; margin-bottom: 10px; }
+        .st-info { font-size: 13px; color: #888; display: flex; justify-content: space-between; border-top: 1px solid #f0f0f0; padding-top: 15px; margin-top: 15px;}
+        .st-price { font-size: 15px; font-weight: 700; color: #ff5722; }
+
+        /* 10. Knowhow & Notice Section */
+        .bottom-wrap { display: flex; gap: 40px; border-top: 1px solid var(--border-light); padding-top: 40px; }
+        .bm-left { flex: 2; }
+        .kh-item { display: flex; gap: 20px; align-items: center; border-bottom: 1px solid #eee; padding: 15px 0; }
+        .kh-item img { width: 120px; height: 80px; background: #ddd; border-radius: 4px; }
+        .kh-txt h3 { font-size: 16px; font-weight: 700; margin-bottom: 6px; }
+        .kh-txt p { font-size: 14px; color: #666; }
+        .bm-right { flex: 1; height: 400px; }
+
+        /* 11. Chatbot Banner */
+        .chat-banner {
+            background-color: #fafafa;
+            border-top: 1px solid var(--border-light);
+            text-align: center;
+            padding-top: 50px;
+        }
+        .chat-title { font-size: 20px; font-weight: 800; color: #f97316; margin-bottom: 5px; }
+        .chat-sub { font-size: 28px; font-weight: 800; color: #111; margin-bottom: 40px; letter-spacing: -1px; }
+        .chat-mockup { width: 300px; height: 450px; background: #ddd; margin: 0 auto; border-radius: 30px 30px 0 0; position:relative; overflow:hidden;}
+        
+        /* 12. Footer */
+        .footer {
+            background: #fff;
+            padding: 40px 0;
+            border-top: 1px solid var(--border-light);
+        }
+        .f-logos { display: flex; gap: 20px; justify-content: center; margin-bottom: 30px; }
+        .f-logo { border: 1px solid #ddd; padding: 10px 20px; color: #555; font-size: 14px; font-weight: bold; border-radius: 4px; }
+        .f-info { text-align: center; font-size: 13px; color: #666; line-height: 1.8; margin-bottom: 20px; }
+        .f-links { text-align: center; margin-bottom: 20px; }
+        .f-links a { font-size: 14px; font-weight: 700; color: #333; margin: 0 10px; }
+        .f-copyright { text-align: center; font-size: 12px; color: #999; }
+    </style>
+<style>
+        .icon-tooltip-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-tooltip-wrap::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            margin-top: 8px;
+            background-color: #ffffff;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid #e2e8f0;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            pointer-events: none;
+            z-index: 10000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .icon-tooltip-wrap:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Top Nav Bar -->
+    <div class="top-bar">
+        <div class="top-bar-left">
+            <div class="top-logo" onclick="window.location.href='index.html'">공실뉴스</div>
+            <div class="top-desc">11만 부동산을 위한 무료 정보 채널</div>
+        </div>
+        <div class="top-bar-right">
+            <!-- Search -->
+            <div class="top-search-wrap" id="topSearchWrap">
+                <input type="text" class="top-search-input" id="topSearchInput" placeholder="검색어를 입력하세요">
+                <div class="icon-tooltip-wrap" data-tooltip="검색">
+                <svg onclick="document.getElementById('topSearchWrap').classList.toggle('active'); document.getElementById('topSearchInput').focus();" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="검색"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            </div>
+            
+            <!-- Login/User -->
+            <!-- Login/User -->
+            <div id="headerLoginBtn" class="headerLoginBtn" style="display: flex; align-items: center; gap: 24px;">
+                <div class="icon-tooltip-wrap" data-tooltip="회원가입">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'signup')" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="회원가입"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div class="icon-tooltip-wrap" data-tooltip="로그인">
+                    <svg style="cursor: pointer;" onclick="window.handleLoginClick && window.handleLoginClick(event, 'login')" id="headerLoginOnlyBtn" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" title="로그인"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                </div>
+            </div>
+            
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-left:10px;">
+                <span id="userRoleBadge" style="font-size: 11px; padding: 2px 6px; border-radius: 4px; background: rgba(255,255,255,0.2); color: white;"></span>
+                <span id="headerLogoutBtn" style="cursor:pointer; font-size:12px; color:#aaa;" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#aaa'">로그아웃</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Main Header -->
+    <header class="header">
+        <div class="container px-20">
+            <div class="header-top">
+                <div class="ht-left"></div>
+                <div class="ht-center">
+                    <img src="logo.png" class="ht-logo" alt="부동산 정보채널 공실뉴스" onclick="window.location.href='index.html'" onerror="this.src='https://via.placeholder.com/200x50?text=GONGSIL+NEWS'">
+                </div>
+                <div class="ht-right">
+                    <div class="txt-banner-container" id="txt-banner-container" style="position: relative; display: inline-block;">
+                        <!-- The scrolling ticker -->
+                        <div class="txt-banner-wrap" style="height: 24px; overflow: hidden; position: relative; display: inline-flex; justify-content: flex-end; align-items: center; width: 100%;">
+                            <ul id="txt-banner-list" style="list-style: none; margin: 0; padding: 0; text-align: right; width: 100%;">
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">AI 전계부터, 한경ALICE</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">국내 최대 투자 축제, KIW</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">한경지수, KEDI 오픈</a></li>
+                                <li style="height: 24px; display: flex; align-items: center; justify-content: flex-end;"><a href="#" class="free-banner">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                        
+                        <!-- The dropdown on hover -->
+                        <div class="txt-dropdown" style="display: none; position: absolute; top: 34px; right: 0; width: 260px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: left;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">AI 전계부터, 한경ALICE</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">국내 최대 투자 축제, KIW</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">한경지수, KEDI 오픈</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="#" style="display: block; padding: 12px 16px; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">두뇌를 깨울 시간, ALICE Q</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <nav class="gnb-new">
+                    <a href="news_all.html">전체뉴스</a>
+                    <a href="news.html">우리동네뉴스</a>
+                    <a href="news_finance.html">부동산·주식·재테크</a>
+                    <a href="news_politics.html">정치·경제·사회</a>
+                    <a href="news_law.html">세무·법률</a>
+                    <a href="news_life.html">여행·건강·생활</a>
+                    <a href="news_etc.html">기타</a>
+                    <span class="divider"></span>
+                    <a href="gongsil/index.html">공실열람</a>
+                    <div style="position: relative; display: inline-block;" onmouseover="this.querySelector('.gnb-dropdown').style.display='block'" onmouseout="this.querySelector('.gnb-dropdown').style.display='none'">
+                        <a href="board.html" style="padding: 10px 0; color: #508bf5; font-weight: 800;">자료실</a>
+                        <div class="gnb-dropdown" style="display: none; position: absolute; top: 30px; left: 50%; transform: translateX(-50%); width: 140px; background: #fff; border: 1px solid #333; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 999999; border-radius: 4px; overflow: hidden; padding: 0;">
+                            <ul style="list-style: none; margin: 0; padding: 0; text-align: center;">
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=drone" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">드론영상</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=app" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">APP(앱)</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=design" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">디자인</a></li>
+                                <li style="border-bottom: 1px solid #eee;"><a href="board.html?id=sound" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">음원</a></li>
+                                <li><a href="board.html?id=doc" style="display: block; padding: 12px 0; font-size: 14px; color: #222; text-decoration: none; transition: background 0.2s;" onmouseover="this.style.background='#f4f6fa'; this.style.color='#508bf5'; this.style.fontWeight='bold'" onmouseout="this.style.background='#fff'; this.style.color='#222'; this.style.fontWeight='normal'">계약서/양식</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <a href="index.html#special-lecture" onclick="if(window.location.pathname.includes('index.html') || window.location.pathname === '/') { const target = document.getElementById('special-lecture'); if(target){ target.scrollIntoView({behavior: 'smooth'}); history.pushState(null, null, '#special-lecture'); return false; } }">부동산특강</a>
+                    <a href="#">중개업소무료가입</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    
+    <style>
+        .news-layout {
+            display: flex;
+            gap: 40px;
+            margin-top: 30px;
+            margin-bottom: 60px;
+        }
+        /* Left: List */
+        .news-list-area {
+            flex: 1;
+        }
+        .list-header {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: var(--brand-navy);
+            border-bottom: 2px solid #222;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .an-card {
+            display: flex;
+            gap: 20px;
+            border-bottom: 1px solid #eee;
+            padding: 24px 10px;
+            align-items: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+        }
+        .an-card:hover {
+            background: #f9f9f9;
+        }
+        .an-img {
+            width: 160px;
+            height: 100px;
+            border-radius: 6px;
+            object-fit: cover;
+            background: #f4f6fa;
+            flex-shrink: 0;
+        }
+        .an-body {
+            flex: 1;
+        }
+        .an-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #111;
+            margin-bottom: 8px;
+            line-height: 1.4;
+            cursor: pointer;
+        }
+        .an-title:hover {
+            color: var(--brand-blue);
+            text-decoration: underline;
+        }
+        .an-desc {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.5;
+            margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .an-meta {
+            font-size: 13px;
+            color: #999;
+        }
+        
+        /* Pagination */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 40px;
+            gap: 10px;
+        }
+        .page-btn {
+            border: 1px solid #ddd;
+            background: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+            cursor: pointer;
+        }
+        .page-btn:hover { background: #f9f9f9; }
+        .page-info { font-size: 14px; color: #333; font-weight: bold; margin: 0 10px;}
+        
+        /* Right: Sidebar */
+        .news-sidebar {
+            width: 320px;
+            flex-shrink: 0;
+        }
+        .sb-banner {
+            width: 100%;
+            height: 200px;
+            background: #e2e2e2;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+            color: #888;
+            margin-bottom: 40px;
+        }
+        .sb-widget {
+            margin-bottom: 40px;
+        }
+        .sb-title {
+            font-size: 16px;
+            font-weight: 800;
+            color: #111;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+        .sb-title-more {
+            font-size: 12px;
+            color: #888;
+            font-weight: 400;
+            cursor: pointer;
+        }
+        
+        /* Popular List */
+        .pop-list { list-style: none; margin: 0; padding: 0; }
+        .pop-item { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; cursor:pointer;}
+        .pop-item:hover .pop-title { text-decoration: underline; color: var(--brand-blue); }
+        .pop-ranking { font-size: 18px; font-weight: 900; color: #111; width: 14px; font-style: italic;}
+        .pop-title { font-size: 14px; color: #333; line-height: 1.4; font-weight: 600; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        /* Prop List */
+        .prop-item { display: flex; gap: 15px; margin-bottom: 20px; cursor: pointer; padding-bottom: 15px; border-bottom: 1px solid #f2f2f2;}
+        .prop-item:hover .prop-title { text-decoration: underline; color: var(--brand-blue); }
+        .prop-info { flex: 1; }
+        .prop-title { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 4px; line-height: 1.3;}
+        .prop-price { font-size: 14px; font-weight: 900; color: #1a73e8; margin-bottom: 4px;}
+        .prop-meta { font-size: 11px; color: #777; line-height: 1.4;}
+        .prop-img-wrapper { width: 80px; height: 80px; flex-shrink: 0; border-radius: 6px; overflow: hidden; background: #eee;}
+        .prop-img { width: 100%; height: 100%; object-fit: cover; }
+        .prop-badge { font-size: 10px; color:#e74c3c; border:1px solid #e74c3c; border-radius:3px; padding:1px 4px; display:inline-block; margin-top:4px;}
+
+    </style>
+
+    
+    <main class="container px-20 relative">
+        <style>
+            .board-header { margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 2px solid #222; padding-bottom: 15px; }
+            .board-title { font-size: 24px; font-weight: 800; color: var(--brand-navy); }
+            .board-search-write { display: flex; gap: 15px; align-items: center; }
+            .b-search { display: flex; border: 1px solid #ccc; border-radius: 4px; overflow: hidden; }
+            .b-search input { border: none; padding: 8px 12px; outline: none; width: 220px; font-size: 14px; }
+            .b-search button { background: #f8f9fa; border-left: 1px solid #ccc; padding: 0 15px; font-weight: bold; color: #555; }
+            .b-write-btn { background: var(--brand-blue); color: #fff; padding: 8px 16px; border-radius: 4px; font-weight: bold; font-size: 14px; cursor: pointer; transition: background 0.2s; }
+            .b-write-btn:hover { background: #16407b; }
+
+            .board-tabs { display: flex; gap: 10px; margin-top: 20px; }
+            .b-tab { border: 1px solid #ddd; background: #fff; padding: 8px 16px; border-radius: 20px; font-size: 14px; color: #666; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+            .b-tab:hover { border-color: var(--brand-blue); color: var(--brand-blue); }
+            .b-tab.active { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+
+            .news-layout { display: flex; gap: 40px; margin-top: 20px; margin-bottom: 60px; }
+            .news-list-area { flex: 1; }
+            
+            .an-card { display: flex; gap: 20px; border-bottom: 1px solid #eee; padding: 24px 10px; align-items: center; cursor: pointer; transition: background 0.2s; border-radius: 8px; }
+            .an-card:hover { background: #f9f9f9; }
+            .an-img { width: 140px; height: 90px; border-radius: 6px; object-fit: cover; background: #f4f6fa; flex-shrink: 0; }
+            .an-body { flex: 1; }
+            .an-title { font-size: 16px; font-weight: 700; color: #111; margin-bottom: 8px; line-height: 1.4; }
+            .an-title:hover { color: var(--brand-blue); text-decoration: underline; }
+            .an-desc { font-size: 13px; color: #555; line-height: 1.5; margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+            .an-meta { font-size: 12px; color: #999; display: flex; align-items: center; gap: 10px; }
+            .board-badge { background: #eee; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #555; font-size: 11px; }
+
+            .news-sidebar { width: 320px; flex-shrink: 0; }
+            .sb-banner { width: 100%; height: 200px; background: #e2e2e2; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: #888; margin-bottom: 40px; }
+            
+            /* Write Modal */
+            .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; z-index: 9999999; align-items: center; justify-content: center; backdrop-filter: blur(5px); }
+            .modal-content { background: #fff; width: 640px; border-radius: 12px; padding: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+            .mod-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px; }
+            .mod-title { font-size: 20px; font-weight: bold; color: var(--brand-navy); }
+            .mod-close { font-size: 24px; cursor: pointer; color: #999; }
+            .mod-close:hover { color: #333; }
+            .mod-row { margin-bottom: 15px; }
+            .mod-label { display: block; font-size: 14px; font-weight: bold; margin-bottom: 8px; color: #333; }
+            
+            .header-tags { display: flex; gap: 8px; flex-wrap: wrap; }
+            .h-tag { border: 1px solid #ddd; background: #fdfdfd; padding: 8px 14px; border-radius: 4px; font-size: 13px; color: #555; cursor: pointer; user-select: none; transition: all 0.2s;}
+            .h-tag:hover { background: #f0f0f0; }
+            .h-tag.selected { background: var(--brand-blue); color: #fff; border-color: var(--brand-blue); font-weight: bold; }
+            
+            .mod-input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; transition: border 0.2s;}
+            .mod-input:focus { border-color: var(--brand-blue); }
+            .mod-textarea { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; outline: none; height: 180px; resize: none; transition: border 0.2s;}
+            .mod-textarea:focus { border-color: var(--brand-blue); }
+            .mod-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+            .btn-cancel { padding: 10px 20px; border-radius: 4px; border: 1px solid #ccc; background: #fff; font-weight: bold; cursor: pointer; }
+            .btn-submit { padding: 10px 20px; border-radius: 4px; border: none; background: var(--brand-navy); color: #fff; font-weight: bold; cursor: pointer; }
+            
+            .h-tag-display { color: var(--brand-blue); font-weight: 800; margin-right: 4px;}
+        </style>
+
+        <style>
+            .board-search-write {
+                display: flex;
+                align-items: center;
+                gap: 15px;
+            }
+        </style>
+        <div class="board-header">
+            <div class="board-title" id="boardTitleEl">드론영상 <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(자료실)</span></div>
+            <div class="b-search" style="display:flex; border:1px solid #ccc; border-radius:4px; overflow:hidden;">
+                <input type="text" id="boardSearchInput" placeholder="제목 검색" style="border:none; padding:8px 12px; outline:none; width:220px; font-size:14px;" onkeydown="if(event.key==='Enter') doSearch()">
+                <button style="background:#f8f9fa; border:none; border-left:1px solid #ccc; padding:0 15px; font-weight:bold; color:#555; cursor:pointer;" onclick="doSearch()">검색</button>
+            </div>
+        </div>
+
+        <div class="board-tabs">
+            <div class="b-tab active">전체</div>
+            <div class="b-tab">드론</div>
+            <div class="b-tab">아파트</div>
+            <div class="b-tab">빌딩</div>
+            <div class="b-tab">단독/다가구/빌라</div>
+            <div class="b-tab">도로</div>
+        </div>
+
+        <div class="news-layout">
+            <!-- 좌측 게시판 리스트 -->
+            <div class="news-list-area">
+                <div style="padding:40px; text-align:center;">게시글을 불러오고 있습니다...</div>
+            </div>
+            
+            <!-- 우측 사이드바 -->
+            <div class="news-sidebar">
+                <div class="sb-banner">
+                    배너 1
+                </div>
+                
+                <div class="sb-widget">
+                    <div class="sb-title">인기 게시물</div>
+                    <ul class="pop-list">
+                        <li class="pop-item"><span class="pop-ranking">1</span><span class="pop-title">강남역 사거리 대로변 빌딩 조망권</span></li>
+                        <li class="pop-item"><span class="pop-ranking">2</span><span class="pop-title">서초구 일대 4K 드론 촬영 원본</span></li>
+                        <li class="pop-item"><span class="pop-ranking">3</span><span class="pop-title">송파구 재건축단지 항공뷰(드론)</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Write Modal -->
+        <div class="modal-overlay" id="writeModal">
+            <div class="modal-content">
+                <div class="mod-head">
+                    <div class="mod-title">자료실 게시글 작성</div>
+                    <div class="mod-close" onclick="closeWriteModal()">&times;</div>
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">머리글 선택 (필수)</label>
+                    <div class="header-tags" id="headerTags">
+                        <div class="h-tag" onclick="toggleTag(this)">드론</div>
+                        <div class="h-tag" onclick="toggleTag(this)">아파트</div>
+                        <div class="h-tag" onclick="toggleTag(this)">빌딩</div>
+                        <div class="h-tag" onclick="toggleTag(this)">단독/다가구/빌라</div>
+                        <div class="h-tag" onclick="toggleTag(this)">도로</div>
+                    </div>
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">제목</label>
+                    <input type="text" class="mod-input" id="postTitle" placeholder="제목을 입력하세요 자동으로 머리글이 추가될 수 있습니다.">
+                </div>
+                
+                <div class="mod-row">
+                    <label class="mod-label">썸네일 이미지 파일 (옵션)</label>
+                    <input type="file" class="mod-input" style="padding: 9px; cursor: pointer;">
+                </div>
+
+                <div class="mod-row" style="margin-bottom:0;">
+                    <label class="mod-label">내용</label>
+                    <textarea class="mod-textarea" placeholder="내용 및 영상 다운로드 링크 등을 자유롭게 입력하세요."></textarea>
+                </div>
+                
+                <div class="mod-footer">
+                    <button class="btn-cancel" onclick="closeWriteModal()">취소</button>
+                    <button class="btn-submit" onclick="submitPost()">등록</button>
+                </div>
+            </div>
+        </div>
+        <script>
+            function openWriteModal() {
+                document.getElementById('writeModal').style.display = 'flex';
+            }
+            function closeWriteModal() {
+                document.getElementById('writeModal').style.display = 'none';
+            }
+            
+            // 머리글 토글
+            function toggleTag(el) {
+                el.classList.toggle('selected');
+                updateTitleWithTags();
+            }
+
+            function updateTitleWithTags() {
+                const tags = document.querySelectorAll('.h-tag.selected');
+                let tagStr = '';
+                tags.forEach(t => {
+                    tagStr += `[${t.innerText}] `;
+                });
+                
+                const titleInput = document.getElementById('postTitle');
+                // 기존 태그 부분 제거
+                let curTitle = titleInput.value.replace(/^(?:\[[^\]]+\]\s*)+/, '');
+                titleInput.value = tagStr + curTitle;
+            }
+
+            function submitPost() {
+                alert('게시글 등록이 완료되었습니다. (디자인 목업)');
+                closeWriteModal();
+            }
+
+            // 상단 탭 클릭시 (필터 기능 목업)
+            document.querySelectorAll('.b-tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    document.querySelectorAll('.b-tab').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        </script>
+    </main>
+
+
+    <!-- Supabase 등 공통 스크립트 로드 -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <script src="supabase_auth.js"></script>
+    
+    <script>
+    const ITEMS_PER_PAGE = 10;
+    let currentPage = 1;
+    let totalItems = 0;
+    let currentBoardId = 'bbs_drone'; // 기본 게시판
+    let currentSkin = 'video_album'; // 기본 스킨
+    let boardMeta = null;
+    let currentCategory = ''; // 현재 선택된 카테고리 탭 (빈 문자열 = 전체)
+    let currentSearchKeyword = ''; // 검색 키워드
+
+    function doSearch() {
+        const kw = (document.getElementById('boardSearchInput').value || '').trim();
+        currentSearchKeyword = kw;
+        currentPage = 1;
+        loadBoardPosts();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        if(urlParams.get('id')) currentBoardId = urlParams.get('id');
+        // 상세페이지에서 탭 클릭 시 넘어오는 카테고리 파라미터
+        if(urlParams.get('cat')) currentCategory = urlParams.get('cat');
+
+        await initBoardSystem();
+        await loadPopularSidebarNews();
+    });
+
+    async function initBoardSystem() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return showError('DB 연결이 셋팅되지 않았습니다.');
+        
+        // 1. 게시판 메타 정보 불러오기
+        const { data: boardData, error: boardErr } = await sb.from('boards').select('*').eq('board_id', currentBoardId).single();
+        
+        boardMeta = boardData;
+        if (boardErr || !boardData) {
+            const { data: firstBoardData } = await sb.from('boards').select('board_id').order('created_at', { ascending: true }).limit(1);
+            const firstBoard = firstBoardData && firstBoardData.length > 0 ? firstBoardData[0] : null;
+            
+            if (!urlParams.get('id')) {
+                // 주소창에 명시적 id가 없는데 (예: board.html 이동) 기본값이 DB에 없을 경우 -> 조용히 첫 게시판으로 점프
+                if(firstBoard) location.href = `board.html?id=${firstBoard.board_id}`;
+                return;
+            } else {
+                // 주소창에 id를 명시했는데 그게 없을 경우 -> 경고 후 첫 게시판 점프
+                alert('존재하지 않거나 삭제된 게시판입니다.');
+                if(firstBoard) location.href = `board.html?id=${firstBoard.board_id}`;
+                return;
+            }
+        }
+
+        currentSkin = boardMeta.skin_type;
+        
+        // UI 타이틀 및 탭 변경
+        document.querySelector('.board-title').innerHTML = `${boardMeta.board_name} <span style="font-size: 16px; font-weight: 500; color: #666; margin-left: 10px;">(${boardMeta.subtitle || ''})</span>`;
+        
+        const tabsContainer = document.querySelector('.board-tabs');
+        if (boardMeta.categories) {
+            const cats = boardMeta.categories.split(',').map(c => c.trim()).filter(c => c);
+            tabsContainer.innerHTML = 
+                `<div class="b-tab ${!currentCategory ? 'active' : ''}" data-cat="">전체</div>` +
+                cats.map(cat => `<div class="b-tab ${currentCategory === cat ? 'active' : ''}" data-cat="${cat}">${cat}</div>`).join('');
+        } else {
+            tabsContainer.innerHTML = `<div class="b-tab active" data-cat="">전체</div>`;
+        }
+        
+        // 탭 클릭 이벤트 바인딩
+        tabsContainer.querySelectorAll('.b-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                tabsContainer.querySelectorAll('.b-tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+                currentCategory = this.dataset.cat || '';
+                currentPage = 1;
+                loadBoardPosts();
+            });
+        });
+
+        // 2. 게시글 목록 불러오기
+        await loadBoardPosts();
+    }
+    
+    async function loadBoardPosts() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        const container = document.querySelector('.news-list-area');
+        
+        // 기존 뼈대 초기화 (페이지네이션은 남김)
+        container.innerHTML = '<div style="padding:40px; text-align:center;">게시글을 불러오고 있습니다...</div>';
+
+        let query = sb.from('board_posts')
+            .select('*')
+            .eq('board_id', currentBoardId)
+            .order('created_at', { ascending: false });
+        
+        // 카테고리 탭 필터 적용 (전체일 때는 필터 없음)
+        if (currentCategory) {
+            query = query.eq('category', currentCategory);
+        }
+        
+        // 제목 키워드 검색 필터
+        if (currentSearchKeyword) {
+            query = query.ilike('title', `%${currentSearchKeyword}%`);
+        }
+        
+        const { data: postsData, error: postsErr } = await query;
+
+        let posts = postsData || [];
+        
+        if (postsErr) {
+            container.innerHTML = `<div style="padding:40px; text-align:center; color:red;">게시글을 불러오지 못했습니다. (${postsErr.message})</div>`;
+            return;
+        }
+
+        if (posts.length === 0) {
+            const emptyMsg = currentCategory
+                ? `[${currentCategory}] 카테고리에 등록된 게시글이 없습니다.`
+                : '등록된 게시글이 없습니다. 우측 하단의 글쓰기 버튼을 눌러 첫 글을 작성해보세요!';
+            container.innerHTML = `
+            <div style="padding:100px 0; text-align:center; color:#9ca3af;">
+                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom:16px; margin-left:auto; margin-right:auto;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                <div style="font-size:16px;">${emptyMsg}</div>
+            </div>`;
+        } else {
+            container.innerHTML = '';
+
+            // 스킨에 따른 렌더링 분기
+            if (boardMeta.skin_type === 'video_album') {
+                renderVideoAlbum(container, posts);
+            } else if (boardMeta.skin_type === 'file_album') {
+                renderFileAlbum(container, posts);
+            } else if (boardMeta.skin_type === 'faq_album') {
+                renderFaqList(container, posts);
+            } else if (boardMeta.skin_type === 'qna_1on1') {
+                render1on1List(container, posts);
+            } else {
+                renderDefaultBbs(container, posts);
+            }
+        }
+        
+        // 하단 영역(페이지네이션 + 글쓰기 버튼) 덧붙이기
+        let bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                <div style="flex:1;"></div>
+        `;
+
+        if (posts.length > 0) {
+            bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 40px; margin-bottom: 20px;">
+                <div style="flex: 1; display:flex; justify-content:flex-end; padding-right:10px;">
+                    <div class="pagination" style="margin-top:0;">
+                        <button class="page-btn" disabled>&lt; 이전</button>
+                        <span class="page-info">1 / 1</span>
+                        <button class="page-btn" disabled>다음 &gt;</button>
+                    </div>
+                </div>
+            `;
+        } else {
+            bottomHTML = `
+            <div style="display: flex; align-items: center; margin-top: 20px; margin-bottom: 20px;">
+                <div style="flex: 1;"></div>
+            `;
+        }
+
+        bottomHTML += `
+                <div style="margin-left: auto;">
+                    <button class="b-write-btn" style="background:#102c57; color:#fff; padding:10px 24px; border-radius:4px; font-weight:bold; font-size:14px; cursor:pointer;" onclick="location.href='board_write.html?board_id=' + currentBoardId">글쓰기</button>
+                </div>
+            </div>
+        `;
+
+        container.innerHTML += bottomHTML;
+    }
+
+    /* 렌더러: 동영상 앨범형 스킨 */
+    function renderVideoAlbum(container, posts) {
+        // 관리자가 설정한 가로 갯수를 가져옵니다. 기본값은 3개.
+        let cols = boardMeta.gallery_columns || 3;
+        let html = `<div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:15px;">`;
+        posts.forEach(p => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <div class="vid-card" style="border:1px solid #eee; border-radius:8px; overflow:hidden; cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:140px; background:#222; position:relative; overflow:hidden;">
+                        <img src="${p.thumbnail_url || 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?w=320&q=80'}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;">
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); width:44px; height:44px; background:rgba(0,0,0,0.6); border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center;"><svg width="20" height="20" fill="#fff" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div>
+                    </div>
+                    <div style="padding:15px;">
+                        ${p.category ? `<div style="display:inline-block; font-size:11px; font-weight:700; color:#508bf5; background:rgba(80,139,245,0.1); border-radius:4px; padding:2px 7px; margin-bottom:7px;">[${p.category}]</div>` : ''}
+                        <div style="font-size:15px; font-weight:700; color:#111; margin-bottom:8px; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">${p.title}</div>
+                        <div style="font-size:13px; color:#777; display:flex; justify-content:space-between;">
+                            <span>${p.author_name}</span>
+                            <span>조회 ${p.view_count || 0} · ${dateStr}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML += html;
+    }
+
+    /* 렌더러: 자료실 썸네일형 스킨 */
+    function renderFileAlbum(container, posts) {
+        let cols = boardMeta.gallery_columns || 3;
+        let html = `<div style="display:grid; grid-template-columns:repeat(${cols}, 1fr); gap:15px;">`;
+        posts.forEach(p => {
+            html += `
+                <div class="file-card" style="cursor:pointer;" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <div style="height:140px; background:#f0f4f8; border:1px solid #e2e8f0; border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                        ${p.thumbnail_url 
+                            ? `<img src="${p.thumbnail_url}" style="width:100%; height:100%; object-fit:cover;">` 
+                            : `<div style="font-size:40px;">📄</div>`
+                        }
+                    </div>
+                    ${p.category ? `<div style="display:inline-block; font-size:11px; font-weight:700; color:#508bf5; background:rgba(80,139,245,0.1); border-radius:4px; padding:2px 7px; margin-bottom:6px;">[${p.category}]</div>` : ''}
+                    <div style="font-size:14px; font-weight:700; color:#222; margin-bottom:4px; text-overflow:ellipsis; white-space:nowrap; overflow:hidden;">${p.title}</div>
+                    <div style="font-size:12px; color:#888;">${p.author_name} · 조회 ${p.view_count||0}</div>
+                </div>
+            `;
+        });
+        html += '</div>';
+        container.innerHTML += html;
+    }
+
+    /* 렌더러: 일반 리스트형 스킨 (자유게시판) */
+    function renderDefaultBbs(container, posts) {
+        let html = '<table style="width:100%; border-collapse:collapse; border-top:2px solid #111;">';
+        html += `
+            <tr style="border-bottom:1px solid #ccc; background:#f9fafb;">
+                <th style="padding:12px; font-size:14px; width:60px;">번호</th>
+                <th style="padding:12px; font-size:14px; text-align:left;">제목</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성자</th>
+                <th style="padding:12px; font-size:14px; width:100px;">작성일</th>
+                <th style="padding:12px; font-size:14px; width:60px;">조회</th>
+            </tr>
+        `;
+        posts.forEach((p, idx) => {
+            const dateStr = new Date(p.created_at).toLocaleDateString();
+            html += `
+                <tr style="border-bottom:1px solid #eee; cursor:pointer;" onmouseover="this.style.background='#fdfdfd'" onmouseout="this.style.background='transparent'" onclick="window.location.href='board_read.html?post_id=${p.id}&board_id=${currentBoardId}'">
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.id || (idx+1)}</td>
+                    <td style="padding:12px; font-size:15px; font-weight:600; color:#222;">${p.title}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#555;">${p.author_name}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${dateStr}</td>
+                    <td style="padding:12px; font-size:13px; text-align:center; color:#888;">${p.view_count || 0}</td>
+                </tr>
+            `;
+        });
+        html += '</table>';
+        container.innerHTML += html;
+    }
+
+    function showError(msg) {
+        document.querySelector('.news-list-area').innerHTML = `<div style="padding:40px; text-align:center; color:#dc2626; font-weight:bold;">[시스템 오류] ${msg}</div>`;
+    }
+
+    // 텍스트 배너, 헤더 스크롤 등 기존 UI 기능 유지
+    document.addEventListener("scroll", () => {
+        const header = document.querySelector('.header');
+        if (header) {
+            header.classList.toggle('is-sticky', window.scrollY > 40);
+        }
+    });
+
+    // 사이드바 인기 게시물 (뉴스 정보 가져옴)
+    async function loadPopularSidebarNews() {
+        const sb = window.gongsiClient || window.supabaseClient;
+        if(!sb) return;
+        const { data } = await sb.from('articles').select('id, title, view_count').eq('status', 'published').order('view_count', { ascending: false }).limit(5);
+        const c = document.querySelector('.pop-list');
+        if(data && c) {
+            c.innerHTML = data.map((item, i) => `
+                <li class="pop-item" onclick="window.location.href='news_read.html?article_id=${item.id}'">
+                    <span class="pop-ranking">${i+1}</span>
+                    <span class="pop-title">${item.title}</span>
+                </li>
+            `).join('');
+        }
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실뉴스 - 공실스터디</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Swiper CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/swiper@10/swiper-bundle.min.js"></script>
+    <!-- Supabase & Auth Logic -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        :root {
+            --study-green: var(--primary-color); /* 통일된 오렌지 색상 */
+            --study-light-green: #d8f3dc;
+            --study-accent: #2d6a4f;
+        }
+
+        html, body {
+            overflow: auto !important;
+            height: auto !important;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        /* 헤더 네비게이션 활성화 상태 */
+        .nav-tab.active {
+            color: var(--study-green);
+            border-bottom-color: var(--study-green);
+        }
+
+        /* 스터디 전용 네비게이션 */
+        .study-nav-bar {
+            background: #fff;
+            border-bottom: 1px solid #ddd;
+            z-index: 50;
+            position: sticky;
+            top: 0;
+        }
+        .study-tier1 {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            padding: 0 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .study-tab-item {
+            font-size: 16px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+            padding: 16px 4px;
+            position: relative;
+            text-decoration: none;
+            white-space: nowrap;
+            transition: color 0.2s;
+        }
+        .study-tab-item:hover {
+            color: var(--study-green);
+        }
+        .study-tab-item.active {
+            color: var(--study-green);
+        }
+        .study-tab-item.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--study-green);
+        }
+
+        /* 메인 그리드 레이아웃 */
+        .study-container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .section-title {
+            font-size: 22px;
+            font-weight: 800;
+            color: #111;
+        }
+        .view-all {
+            font-size: 14px;
+            color: #666;
+            text-decoration: none;
+        }
+
+        /* 강의 카드 그리드 */
+        .lecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .lecture-card {
+            background: #fff;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+        .lecture-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .lecture-thumb {
+            width: 100%;
+            height: 180px;
+            background: #eee;
+            position: relative;
+        }
+        .lecture-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .badge-new {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--study-green);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        .bookmark-btn {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            color: rgba(255,255,255,0.8);
+            font-size: 20px;
+        }
+
+        .lecture-info {
+            padding: 16px;
+        }
+        .lecture-cat {
+            font-size: 11px;
+            color: var(--study-green);
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        .lecture-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #222;
+            line-height: 1.4;
+            height: 44px;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            margin-bottom: 12px;
+        }
+        .lecture-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: #888;
+        }
+        .instructor {
+            font-weight: 600;
+            color: #444;
+        }
+        .rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            color: #ff9f1c; /* 별점은 노란색 유지 */
+        }
+
+        /* ----- 새롭게 추가되는 디자인 영역 ----- */
+        /* Hero Section (Banner + Pictograms) */
+        .hero-section {
+            display: flex;
+            gap: 24px;
+            margin-bottom: 32px;
+            height: 280px; /* 고정 높이 */
+        }
+        .hero-banner-wrapper {
+            flex: 1; /* 가변 넓이 */
+            border-radius: 16px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            position: relative;
+        }
+        .swiper-main-banner {
+            width: 100%;
+            height: 100%;
+        }
+        .swiper-main-banner .swiper-slide {
+            display: flex;
+            align-items: center;
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 40px;
+            box-sizing: border-box;
+            position: relative;
+        }
+        .swiper-main-banner .swiper-slide::after {
+            content:''; position:absolute; top:0; left:0; right:0; bottom:0;
+            background: linear-gradient(to right, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 100%);
+        }
+        .banner-text-content {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+        }
+        .banner-badge {
+            display: inline-block;
+            background: var(--study-green);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 800;
+            margin-bottom: 12px;
+        }
+        .banner-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin: 0 0 10px 0;
+            line-height: 1.3;
+        }
+        .banner-desc {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+        .swiper-button-next, .swiper-button-prev { color: #fff; transform: scale(0.6); }
+        .swiper-pagination-bullet { background: #fff; opacity: 0.5; }
+        .swiper-pagination-bullet-active { opacity: 1; background: var(--study-green); }
+
+        /* Pictogram Categories */
+        .hero-categories {
+            width: 480px; /* 픽토그램 영역 고정 넓이 */
+            flex-shrink: 0;
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(2, 1fr);
+            gap: 16px 10px;
+            align-content: center;
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+        .cat-icon-link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: #333;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .cat-icon-link:hover {
+            transform: translateY(-3px);
+        }
+        .icon-circle {
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
+            background: #f8fafc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 8px;
+            transition: background 0.3s;
+        }
+        .cat-icon-link:hover .icon-circle {
+            background: #fff7ed;
+        }
+        .cat-icon-text {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: center;
+            line-height: 1.2;
+            word-break: keep-all;
+            color: #475569;
+        }
+
+        /* Text Category Bar */
+        .text-category-bar {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            padding-bottom: 12px;
+            margin-bottom: 40px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .text-category-bar::-webkit-scrollbar { display: none; } /* 숨기기 */
+        .text-cat-link {
+            font-size: 15px;
+            font-weight: 700;
+            color: #64748b;
+            text-decoration: none;
+            padding: 8px 4px;
+            white-space: nowrap;
+            position: relative;
+            transition: color 0.2s;
+        }
+        .text-cat-link:hover {
+            color: #0f172a;
+        }
+        .text-cat-link.active {
+            color: #0f172a;
+        }
+        .text-cat-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: #0f172a;
+        }
+
+        /* 반응형 */
+        @media (max-width: 1024px) {
+            .hero-section { flex-direction: column; height: auto; }
+            .hero-categories { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <!-- 공통 헤더 -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo-group">
+                <a href="./" class="logo-img-link">
+                    <img src="logo.png" alt="공실뉴스" style="height: 28px;">
+                </a>
+            </div>
+            <nav class="nav">
+                <!-- 탭 버튼 -->
+                <a href="gongsil" class="nav-tab">공실열람</a>
+                <a href="news" class="nav-tab">뉴스기사</a>
+                <a href="study" class="nav-tab active">공실스터디</a>
+                <button class="btn-global-search" id="btnGlobalSearchToggle" style="background: none; border: none; cursor: pointer; padding: 0 4px; margin-left: 10px; vertical-align: middle;" onclick="window.toggleGlobalSearchPanel()">
+                    <svg id="iconSearchClosed" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <svg id="iconSearchOpened" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff9f1c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </nav>
+        </div>
+        <div class="header-right" style="display: flex; align-items: center;">
+            <div id="userProfile" style="display: none; align-items: center; gap: 10px; margin-right: 15px;">
+                <span id="userNameDisplay" style="font-size: 14px; font-weight: bold; color: #333;">이름</span>
+                <span id="userRoleBadge" style="font-size: 11px; padding: 3px 6px; border-radius: 4px; background: #f0f0f0; color: #555;">로딩중</span>
+                <a href="#" id="headerLogoutBtn" class="btn-login" style="background:#666; color:white; border:none;">로그아웃</a>
+            </div>
+            <a href="#" class="btn-login" style="background:var(--primary-color, #ff9f1c); color:white; border:none; margin-right:10px;">스터디등록</a>
+            <a href="#" id="headerLoginBtn" class="btn-login">구글 로그인</a>
+            <a href="https://smartstore.naver.com/mygongsil/products/10361563253" target="_blank" class="btn-biz">중개사무소 가입 및 상품문의 ></a>
+        </div>
+    </header>
+
+    <!-- 글로벌 검색 입력 패널 (기본 숨김) -->
+    <div id="globalSearchPanel" style="display: none; background-color: #0f141e; width: 100%; padding: 30px 0; text-align: center; position: absolute; top: 110px; left: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+        <div style="position: relative; display: inline-block; width: 500px; max-width: 90%; vertical-align: middle;">
+            <input type="text" id="globalKeywordInput" placeholder="검색어를 입력해주세요" style="width: 100%; padding: 16px 20px; padding-right: 50px; font-size: 16px; border: none; border-radius: 4px; outline: none; box-sizing: border-box;" onkeypress="if(event.key==='Enter') window.executeGlobalSearch()">
+            <button onclick="window.executeGlobalSearch()" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 5px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+        </div>
+        <button onclick="window.toggleGlobalSearchPanel()" style="background: none; border: none; cursor: pointer; vertical-align: middle; margin-left: 15px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
+
+    <!-- 스터디 네비게이션 -->
+    <div class="study-nav-bar">
+        <div class="study-tier1" style="justify-content: space-between;">
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <a href="study" class="study-tab-item active">스터디</a>
+                <a href="materials" class="study-tab-item">자료실</a>
+                <a href="community" class="study-tab-item">커뮤니티</a>
+                <a href="my_study" class="study-tab-item">MY스터디</a>
+            </div>
+            
+            <a href="#" class="study-tab-item" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                내 스터디
+                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e9ecef; overflow: hidden; display: flex; align-items: center; justify-content: center;">
+                    <svg viewBox="0 0 24 24" style="width:20px; height:20px; fill:#adb5bd;"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <main class="study-container">
+        
+        <!-- 0. 메인 배너 및 픽토그램 카테고리 -->
+        <div class="hero-section">
+            <!-- 롤링 프로모션 배너 (Swiper) -->
+            <div class="hero-banner-wrapper">
+                <div class="swiper swiper-main-banner">
+                    <div class="swiper-wrapper">
+                        <!-- 배너 1 -->
+                        <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&q=80&w=1000');">
+                            <div class="banner-text-content">
+                                <span class="banner-badge">단독 런칭</span>
+                                <h2 class="banner-title">상위 1% 공인중개사의<br>마음을 훔치는 클로징 기술</h2>
+                                <p class="banner-desc">가계약금 입금을 이끌어내는 마법의 스크립트 특강</p>
+                            </div>
+                        </div>
+                        <!-- 배너 2 -->
+                        <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=1000');">
+                            <div class="banner-text-content">
+                                <span class="banner-badge" style="background:#ef4444;">실무 마스터</span>
+                                <h2 class="banner-title">세무사가 직접 푸는<br>2026 양도소득세 절세법</h2>
+                                <p class="banner-desc">법인 설립부터 증여 플랜까지, 절세 특강</p>
+                            </div>
+                        </div>
+                        <!-- 배너 3 -->
+                        <div class="swiper-slide" style="background-image: url('https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=1000');">
+                            <div class="banner-text-content">
+                                <span class="banner-badge" style="background:#8b5cf6;">건물주 비밀</span>
+                                <h2 class="banner-title">공실률 0%에 도전하는<br>꼬마빌딩 밸류업 노하우</h2>
+                                <p class="banner-desc">하자 보수부터 우량 임차인 유치까지</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-pagination"></div>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                </div>
+            </div>
+
+            <!-- 우측 픽토그램 카테고리 (2줄 x 5열) -->
+            <div class="hero-categories">
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🏢</div><span class="cat-icon-text">상가/토지<br>중개 실무</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">📸</div><span class="cat-icon-text">마케팅<br>블로그/SNS</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">✍️</div><span class="cat-icon-text">계약/클로징<br>심리전</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🏚️</div><span class="cat-icon-text">꼬마빌딩<br>성공사례</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">⚖️</div><span class="cat-icon-text">세무/절세<br>완벽 해설</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🔨</div><span class="cat-icon-text">경매/특수<br>권리분석</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">😡</div><span class="cat-icon-text">명도/소송<br>분쟁 해결</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🛏️</div><span class="cat-icon-text">공간 대여업<br>에어비앤비</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🛠️</div><span class="cat-icon-text">건물 관리<br>건축/하자</span></a>
+                <a href="#" class="cat-icon-link"><div class="icon-circle">🏗️</div><span class="cat-icon-text">재개발<br>특수 투자</span></a>
+            </div>
+        </div>
+
+        <!-- 텍스트 카테고리 메뉴바 -->
+        <div class="text-category-bar">
+            <a href="#" class="text-cat-link active">전체</a>
+            <a href="#" class="text-cat-link">급매추천</a>
+            <a href="#" class="text-cat-link">아파트추천</a>
+            <a href="#" class="text-cat-link">사진영상</a>
+            <a href="#" class="text-cat-link">경매</a>
+            <a href="#" class="text-cat-link">세무</a>
+            <a href="#" class="text-cat-link">법률</a>
+            <a href="#" class="text-cat-link">에어비앤비</a>
+            <a href="#" class="text-cat-link">감정평가</a>
+            <a href="#" class="text-cat-link">인테리어팁</a>
+            <a href="#" class="text-cat-link">DB모집강의</a>
+            <a href="#" class="text-cat-link">빌딩투자</a>
+        </div>
+
+        <!-- 기존 인기 섹션 -->
+        <div class="section-header">
+            <h2 class="section-title">2026 대비, 라이브 무료 특강 🔥</h2>
+            <a href="#" class="view-all">전체보기 〉</a>
+        </div>
+
+        <div class="lecture-grid" id="frontendLectureGrid">
+            <div style="grid-column: 1 / -1; text-align:center; padding: 100px 0; color:#64748b; font-size:16px; font-weight:600;">
+                현재 등록된 강의 데이터를 불러오는 중입니다...
+            </div>
+        </div>
+    </main>
+
+    <script>
+        window.toggleGlobalSearchPanel = function() {
+            const panel = document.getElementById('globalSearchPanel');
+            const iconClosed = document.getElementById('iconSearchClosed');
+            const iconOpened = document.getElementById('iconSearchOpened');
+
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                if(iconClosed) iconClosed.style.display = 'none';
+                if(iconOpened) iconOpened.style.display = 'inline-block';
+                setTimeout(() => document.getElementById('globalKeywordInput').focus(), 100);
+            } else {
+                panel.style.display = 'none';
+                if(iconClosed) iconClosed.style.display = 'inline-block';
+                if(iconOpened) iconOpened.style.display = 'none';
+                document.getElementById('globalKeywordInput').value = '';
+                if(window.executeGlobalSearch) window.executeGlobalSearch();
+            }
+        };
+
+        window.executeGlobalSearch = function() {
+            const keyword = document.getElementById('globalKeywordInput') ? document.getElementById('globalKeywordInput').value.trim() : '';
+            const cards = document.querySelectorAll('.lecture-card');
+            if(cards.length === 0) return;
+            let matchCount = 0;
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                if (!keyword || text.includes(keyword.toLowerCase())) {
+                    card.style.display = '';
+                    matchCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            if (keyword) {
+                alert(matchCount > 0 ? '검색결과 ' + matchCount + '건' : '검색 결과가 없습니다.');
+            }
+        };
+
+        // 간단한 탭 클릭 이벤트 (텍스트 카테고리)
+        document.querySelectorAll('.text-cat-link').forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.text-cat-link').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // 2차 메뉴 클릭 이벤트
+        document.querySelectorAll('.study-tab-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.study-tab-item').forEach(el => el.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        // -------- 🌟 프론트엔드 실데이터 연동 로직 🌟 --------
+        async function loadFrontendCourses() {
+            const grid = document.getElementById('frontendLectureGrid');
+            if(!window.gongsiClient) {
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:red;padding:40px;">DB 서버 연결 상태를 확인해주세요.</div>`;
+                return;
+            }
+
+            try {
+                // 관리자가 '판매중'으로 승인한 데이터만 최신순으로 가져오기
+                const { data, error } = await window.gongsiClient
+                    .from('study_courses')
+                    .select('*')
+                    .eq('status', 'published')
+                    .order('created_at', { ascending: false });
+
+                if(error) throw error;
+
+                if(!data || data.length === 0) {
+                    grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:100px 0;color:#94a3b8;font-size:16px;">현재 신청 가능한 오픈 스터디가 없습니다.<br>관리자가 강의를 승인하면 이곳에 표시됩니다.</div>`;
+                    return;
+                }
+
+                // 멋진 썸네일을 위한 고화질 기본 랜덤 이미지 풀
+                const defaultImages = [
+                    'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1611162617213-7d7a39e9b1d7?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1454165833767-0e96ef4a3771?auto=format&fit=crop&q=80&w=400',
+                    'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&q=80&w=400'
+                ];
+
+                let html = '';
+                data.forEach((course, idx) => {
+                    // 실제 썸네일이 업로드되어 있다면 사용, 없다면 랜덤 배정
+                    const imgUrl = (course.thumbnail_urls && course.thumbnail_urls.length > 0) ? course.thumbnail_urls[0] : defaultImages[idx % defaultImages.length];
+                    
+                    const priceText = course.price > 0 ? course.price.toLocaleString() + ' P' : '✨ 무료 수강';
+                    const isNew = idx < 3 ? '<span class="badge-new">NEW🔥</span>' : ''; // 최근 3개만 NEW 뱃지 부착
+                    
+                    // 가상의 카테고리/강사 할당
+                    const catArr = ['실무/마케팅', '경매/특수물건', '재개발/투자', '세무/법률', '계약실무'];
+                    const mockCat = catArr[idx % catArr.length];
+
+                    html += `
+                    <div class="lecture-card" onclick="location.href='study_detail.html?id=${course.id}'">
+                        <div class="lecture-thumb">
+                            <img src="${imgUrl}" alt="스터디 썸네일 사진" loading="lazy">
+                            ${isNew}
+                            <div class="bookmark-btn">🔖</div>
+                        </div>
+                        <div class="lecture-info">
+                            <div class="lecture-cat">${mockCat}</div>
+                            <h3 class="lecture-title" style="word-break:keep-all;">${course.title}</h3>
+                            <div class="lecture-meta" style="justify-content:space-between; margin-bottom:12px;">
+                                <span class="instructor">공실마스터 직강</span>
+                                <div class="rating">★ 4.9 (${Math.floor(Math.random() * 200 + 10)})</div>
+                            </div>
+                            <div style="font-weight:800; color:#111; font-size:17px; background:#f8fafc; padding:10px 14px; border-radius:8px; display:inline-block;">
+                                ${priceText}
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+
+                grid.innerHTML = html;
+
+            } catch(e) {
+                console.error(e);
+                grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;color:red;padding:40px;">데이터 통신 오류: ${e.message}</div>`;
+            }
+        }
+
+        // DOM 및 Swiper 배너 초기화
+        document.addEventListener('DOMContentLoaded', function() {
+            // 프론트엔드 실시간 강의 로딩 트리거!
+            setTimeout(() => { loadFrontendCourses(); }, 150);
+            var swiper = new Swiper('.swiper-main-banner', {
+                loop: true,
+                autoplay: {
+                    delay: 4000,
+                    disableOnInteraction: false,
+                },
+                pagination: {
+                    el: '.swiper-pagination',
+                    clickable: true,
+                },
+                navigation: {
+                    nextEl: '.swiper-button-next',
+                    prevEl: '.swiper-button-prev',
+                },
+            });
+        });
+    </script>
+    <script type="module" src="supabase_auth.js"></script>
+    <!-- 공실챗봇 스크립트 로드 -->
+    <script src="gongsil_chatbot.js?v=20260329"></script>
+</body>
+</html>

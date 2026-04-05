@@ -1,0 +1,309 @@
+
+var sb = window.gongsiClient;
+var articleId = null;
+var articleData = null;
+var mediaList   = [];
+var commentList = [];
+
+// ── 기기 미리보기 ──────────────────────────────────
+function setDevice(type) {
+    ['pc','tablet','mobile'].forEach(function(d) {
+        document.getElementById('dev'+d.toUpperCase().replace('TABLET','TB').replace('MOBILE','MB').replace('PC','PC')).classList.remove('active');
+    });
+    document.getElementById({pc:'devPC',tablet:'devTB',mobile:'devMB'}[type]).classList.add('active');
+    var frame = document.getElementById('previewFrame');
+    if (frame) {
+        frame.className = 'preview-frame ' + (type !== 'pc' ? type : '');
+    }
+}
+
+// ── 페이지 진입 ───────────────────────────────────
+async function init() {
+    var params = new URLSearchParams(window.location.search);
+    articleId = parseInt(params.get('id'));
+    if (!articleId) {
+        document.getElementById('loadingMsg').textContent = '기사 ID가 없습니다.';
+        return;
+    }
+
+    // Supabase 대기
+    await waitForSb();
+
+    // 기사 로드
+    var res = await sb.from('articles').select('*').eq('id', articleId).single();
+    if (res.error || !res.data) {
+        document.getElementById('loadingMsg').textContent = '기사를 불러올 수 없습니다: ' + (res.error ? res.error.message : '');
+        return;
+    }
+    articleData = res.data;
+
+    // 미디어 로드
+    var mRes = await sb.from('article_media').select('*').eq('article_id', articleId).order('sort_order');
+    mediaList = mRes.data || [];
+
+    // 조회수 1 증가 (fire-and-forget)
+    sb.from('articles').update({ view_count: (articleData.view_count || 0) + 1 }).eq('id', articleId);
+
+    render();
+}
+
+function waitForSb() {
+    return new Promise(function(resolve) {
+        var t = setInterval(function() {
+            if (window.gongsiClient) { sb = window.gongsiClient; clearInterval(t); resolve(); }
+        }, 100);
+    });
+}
+
+// ── 메인 렌더 ─────────────────────────────────────
+function render() {
+    var a = articleData;
+    var statusMap = {
+        published: { cls: 'status-published', label: '승인' },
+        pending:   { cls: 'status-pending',   label: '승인신청' },
+        draft:     { cls: 'status-draft',     label: '작성중' },
+        hidden:    { cls: 'status-hidden',    label: '반려' }
+    };
+    var si = statusMap[a.status] || { cls: 'status-draft', label: a.status };
+
+    // ── 조립용 날짜/시간 포맷: "2026.03.19 11:04" 스타일 ──
+    function fmt(dateStr) {
+        if (!dateStr) return '';
+        var d = new Date(dateStr);
+        var pad = function(n){ return n<10?'0'+n:n; };
+        return d.getFullYear()+'.'+pad(d.getMonth()+1)+'.'+pad(d.getDate())+' '+pad(d.getHours())+':'+pad(d.getMinutes());
+    }
+
+    var pubDate = fmt(a.created_at) || '-';
+
+    // 브레드크럼 (홈 아이콘 추가)
+    var crumb = '<span style="color:#555;"><svg style="vertical-align:text-bottom;margin-right:4px;" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>HOME</span>'
+        + (a.section1 ? ' <span style="margin:0 8px;color:#ccc;">›</span> <span style="color:#888;">' + escHtml(a.section1) + '</span>' : '')
+        + (a.section2 ? ' <span style="margin:0 8px;color:#ccc;">›</span> <span style="color:#888;">' + escHtml(a.section2) + '</span>' : '');
+
+    // 본문 빌드
+    var bodyHtml = a.content || '';
+    if (!bodyHtml && mediaList.length) {
+        bodyHtml = mediaList.map(function(m) {
+            if (m.media_type === 'image') {
+                return '<figure><img src="'+escHtml(m.url)+'" alt=""><figcaption>'+(m.caption||'')+'</figcaption></figure>';
+            } else if (m.media_type === 'youtube') {
+                return '<div style="position:relative;padding-bottom:56.25%;height:0;overflow:hidden;border-radius:8px;margin:16px 0"><iframe src="'+escHtml(m.url)+'" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allowfullscreen></iframe></div>';
+            }
+            return '';
+        }).join('');
+    }
+
+    // 승인/숨기기 텍스트
+    var approveBtnHtml = '';
+    if (a.status === 'published') {
+        approveBtnHtml = '<button class="meta-action-btn" data-action="hidden" onclick="changeStatus(this.dataset.action)" style="background:#f3f4f6;">🚫 숨기기</button>';
+    } else {
+        approveBtnHtml = '<button class="meta-action-btn" data-action="published" onclick="changeStatus(this.dataset.action)" style="background:#f3f4f6;color:#111;font-weight:600;">체크 승인</button>';
+    }
+
+    // ── 서브타이틀 (요약문 지정) ──
+    var subtitleHtml = '';
+    if (a.subtitle) {
+        subtitleHtml = '<div style="border-left: 3px solid #ccc; padding-left: 16px; margin: 24px 0; font-size: 16px; color: #111; font-weight: 600; line-height: 1.6; word-break: keep-all;">' + 
+            escHtml(a.subtitle).replace(/\n/g, '<br>') + 
+            '</div>';
+    }
+
+    // ── HTML 조립 ──
+    document.getElementById('pageBody').innerHTML =
+    '<div style="display:flex; gap:30px; max-width:1100px; margin:0 auto; align-items:flex-start;">'+
+      
+      // ── 좌측 실제 기사 뷰 영역 ──
+      '<div style="flex:1; min-width:0; background:#fff; border-radius:10px; box-shadow:0 1px 4px rgba(0,0,0,0.06); overflow:hidden;">'+
+        
+        // 상단 디바이스 버튼 영역 (흰 배경 위쪽)
+        '<div style="display:flex; justify-content:center; padding:15px; border-bottom:1px solid #f0f0f0; background:#fafafa;">' +
+          '<div class="device-btns" style="background:#fff; border:1px solid #ddd; display:flex; gap:4px; padding:6px 8px; border-radius:6px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">' +
+              '<button class="device-btn active" id="devPC" data-dev="pc" onclick="setDevice(this.dataset.dev)" title="PC" style="padding:4px 16px; background:#0bc2c2; color:#fff;">🖥️</button>' +
+              '<button class="device-btn" id="devTB" data-dev="tablet" onclick="setDevice(this.dataset.dev)" title="태블릿" style="padding:4px 16px;">📱</button>' +
+              '<button class="device-btn" id="devMB" data-dev="mobile" onclick="setDevice(this.dataset.dev)" title="모바일" style="padding:4px 16px;">📲</button>' +
+          '</div>' +
+        '</div>' +
+
+        // 실제 기사 컨텐츠 영역 (흰색)
+        '<div class="preview-frame" id="previewFrame" style="transition:all 0.3s; margin:0 auto; padding:40px;">'+
+          '<div style="margin-bottom:0;">'+
+            '<div style="font-size: 14px; color: #666; margin-bottom: 8px; font-weight: 600;">'+crumb+'</div>'+
+            '<h1 style="font-size: 32px; font-weight: 800; color: #111; line-height: 1.3; margin-bottom: 16px; letter-spacing:-1px; word-break:keep-all;">'+escHtml(a.title||'(제목 없음)')+'</h1>'+
+            '<div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 30px;">'+
+               '<div style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #666;">'+
+                    '<span style="color:#111; font-weight:bold;">'+(a.reporter_name||'공실뉴스')+'</span>'+
+                    '<span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>'+
+                    '<span>입력 '+pubDate+'</span>'+
+                    '<span style="display:inline-block; width:1px; height:12px; background:#ddd; margin:0 4px;"></span>'+
+                    '<span>조회수 '+(a.view_count||0)+'</span>'+
+               '</div>'+
+               '<div style="display: flex; gap: 8px; align-items: center;">'+
+                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" onclick="shareArticle()">🔗 주소복사</button>'+
+                    '<button class="btn-toolbar" style="padding:4px 12px; border-radius:4px; font-size:13px; background:#fff; border:1px solid #ddd; color:#555; cursor:pointer;" data-msg="미리보기 화면입니다" onclick="alert(this.dataset.msg)">💻 미리보기</button>'+
+               '</div>'+
+            '</div>'+
+          '</div>'+
+          
+          '<div class="article-body" style="font-size:17px; line-height:1.75; color:#222; padding:0; border:none;">'+
+            subtitleHtml +
+            bodyHtml +
+          '</div>'+
+        '</div>'+
+      '</div>'+
+      
+      // ── 우측 사이드바 영역 ──
+      '<div class="article-sidebar" style="width:280px; flex-shrink:0;">'+
+        '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
+          '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">⚙️ 기사 관리</div>'+
+          '<div class="admin-actions">'+
+            approveBtnHtml +
+            '<div style="display:flex; gap:6px; margin-top:8px;">'+
+              '<button class="btn-full btn-edit" onclick="goEdit()" style="flex:1; background:#eff6ff; color:#3b82f6; border:1px solid #bfdbfe; padding:8px 0; border-radius:4px; cursor:pointer;">기사 수정</button>'+
+              '<button class="btn-full btn-delete" onclick="deleteArticle()" style="flex:1; background:#fef2f2; color:#ef4444; border:1px solid #fecaca; padding:8px 0; border-radius:4px; cursor:pointer;">기사 삭제</button>'+
+            '</div>'+
+            '<button class="btn-full" onclick="goBack()" style="margin-top:8px; width:100%; background:#fff; border:1px solid #ddd; color:#555; padding:8px 0; border-radius:4px; cursor:pointer;">← 목록으로 돌아가기</button>'+
+          '</div>'+
+        '</div>'+
+        
+        '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
+          '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">📋 기사 서비스 로그</div>'+
+          '<div class="sidebar-memo">'+
+            '<textarea id="logMemoInput" placeholder="이곳에 서비스 메모를 남겨두세요..." style="width:100%; box-sizing:border-box; height:110px; padding:10px; border:1px solid #ddd; border-radius:6px; resize:none; margin-bottom:8px; font-family:inherit;"></textarea>'+
+            '<div class="sidebar-memo-footer" style="text-align:right;">'+
+              '<button onclick="addServiceLog()" style="padding:6px 16px; background:#444; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:600;">등록</button>'+
+            '</div>'+
+          '</div>'+
+          '<ul class="sidebar-log-list" id="serviceLogList" style="list-style:none; padding:0; margin-top:12px; font-size:13px; color:#555; border-top:1px solid #f0f0f0; padding-top:12px;">'+
+            '<li class="log-empty" style="color:#aaa; text-align:center; padding:10px;">등록된 로그가 없습니다.</li>'+
+          '</ul>'+
+        '</div>'+
+        
+        '<div class="sidebar-card" style="margin-bottom:16px; box-shadow:0 1px 4px rgba(0,0,0,0.06); padding:20px; background:#fff; border-radius:10px;">'+
+          '<div class="sidebar-card-title" style="margin-bottom:12px; font-size:14px; font-weight:bold;">🕐 기사 최근 로그</div>'+
+          '<ul class="sidebar-log-list" id="recentLogList" style="list-style:none; padding:0; margin:0; font-size:13px; color:#555;">'+buildRecentLog(a)+'</ul>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+
+    // 댓글 글자수 카운터
+    var ta = document.getElementById('commentInput');
+    if (ta) ta.addEventListener('input', function() {
+        document.getElementById('charCount').textContent = ta.value.length + '자';
+    });
+
+    // 정렬버튼 토글
+    document.querySelectorAll('.sort-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.sort-btn').forEach(function(b){ b.classList.remove('active'); });
+            btn.classList.add('active');
+        });
+    });
+}
+
+function buildApproveBtn(status) {
+    if (status === 'published') {
+        return '<button class="btn-full" style="background:#f3f4f6;color:#666;" onclick="changeStatus(\'hidden\')">🚫 기사 숨기기</button>';
+    }
+    return '<button class="btn-full btn-approve" onclick="changeStatus(\'published\')" style="background:#dcfce7;color:#16a34a;">✅ 기사 승인</button>';
+}
+
+function buildRecentLog(a) {
+    var logs = [
+        { label: '작성', date: a.created_at },
+        { label: '최근 수정', date: a.updated_at }
+    ];
+    return logs.filter(function(l){ return l.date; }).map(function(l, i) {
+        return '<li class="log-item">'+
+          '<div class="log-num">'+(i+1)+'</div>'+
+          '<div class="log-content">'+
+            '<div class="log-title">'+l.label+'</div>'+
+            '<div class="log-meta">'+ new Date(l.date).toLocaleString('ko-KR') +'</div>'+
+          '</div>'+
+        '</li>';
+    }).join('');
+}
+
+function typeLabel(t) {
+    return { normal: '일반뉴스', card: '카드뉴스', gallery: '갤러리' }[t] || t || '-';
+}
+
+// ── 관리 기능 ─────────────────────────────────────
+function goBack() {
+    if (window.parent && window.parent.loadPage) {
+        window.parent.loadPage(null, '기사관리', 'article_admin.html');
+    } else { history.back(); }
+}
+
+function goEdit() {
+    if (!articleId) return;
+    if (window.parent && window.parent.loadPage) {
+        window.parent.loadPage(null, '기사수정', 'news_write.html?editId=' + articleId);
+    } else {
+        window.location.href = 'news_write.html?editId=' + articleId;
+    }
+}
+
+async function changeStatus(newStatus) {
+    var label = { published: '승인', hidden: '숨기기' }[newStatus] || newStatus;
+    if (!confirm('기사를 [' + label + '] 상태로 변경하시겠습니까?')) return;
+    var res = await sb.from('articles').update({ status: newStatus }).eq('id', articleId);
+    if (res.error) { alert('상태 변경 실패: ' + res.error.message); return; }
+    articleData.status = newStatus;
+    render();
+}
+
+async function deleteArticle() {
+    var title = articleData ? articleData.title : '이 기사';
+    if (!confirm('[❌ 삭제 확인]\n\n"' + title + '"\n\n기사를 영구적으로 삭제합니다.\n\n정말 삭제하시겠습니까?')) return;
+    var res = await sb.from('articles').delete().eq('id', articleId);
+    if (res.error) { alert('삭제 실패: ' + res.error.message); return; }
+    alert('삭제되었습니다.');
+    goBack();
+}
+
+function approveArticle() { changeStatus('published'); }
+
+function shareArticle() {
+    var url = window.location.href;
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() { alert('URL이 클립보드에 복사되었습니다.'); });
+    } else { prompt('아래 URL을 복사하세요:', url); }
+}
+
+var serviceLogData = [];
+function addServiceLog() {
+    var input = document.getElementById('logMemoInput');
+    var memo = input ? input.value.trim() : '';
+    if (!memo) { alert('메모를 입력하세요.'); return; }
+    serviceLogData.unshift({ text: memo, date: new Date() });
+    input.value = '';
+    renderServiceLog();
+}
+
+function renderServiceLog() {
+    var ul = document.getElementById('serviceLogList');
+    if (!ul) return;
+    if (!serviceLogData.length) {
+        ul.innerHTML = '<li class="log-empty">서비스 로그가 없습니다.</li>';
+        return;
+    }
+    ul.innerHTML = serviceLogData.map(function(l, i) {
+        return '<li class="log-item">'+
+          '<div class="log-num">'+(i+1)+'</div>'+
+          '<div class="log-content">'+
+            '<div class="log-title">'+escHtml(l.text)+'</div>'+
+            '<div class="log-meta">'+l.date.toLocaleString('ko-KR')+'</div>'+
+          '</div></li>';
+    }).join('');
+}
+
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── 실행 ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(init, 400);
+});

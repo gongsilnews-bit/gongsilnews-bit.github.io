@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원관리 - 공실뉴스 Admin</title>
+    <script src="admin_darkmode.js"></script>
+    <link rel="stylesheet" href="admin_dark.css">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <style>
+        :root {
+            --primary-color: #ff9f1c;
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #e1e4e8;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --blue-filter-bg: #f0f4fc;
+            --dark-btn-bg: #4b5563;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px;
+            margin: 0;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .admin-card {
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            padding: 32px;
+            min-height: 800px;
+        }
+
+        /* ── 헤더 ── */
+        .card-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+        .card-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111; }
+        .card-header .count-info { font-size: 13px; color: #666; }
+        .card-header .count-info span { color: #666; font-weight: 400; }
+        .card-header .count-info .total-count { color: #333; font-weight: 700; }
+
+        /* ── 검색 필터 ── */
+        .filter-container {
+            background-color: var(--blue-filter-bg);
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .filter-group { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+        .filter-input {
+            padding: 7px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            background-color: #fff;
+            outline: none;
+            font-family: inherit;
+            color: var(--text-main);
+        }
+        .filter-input:focus { border-color: #4285f4; }
+        select.filter-input { cursor: pointer; }
+        .filter-divider { width: 1px; height: 24px; background-color: #d1d5db; margin: 0 4px; }
+
+        .btn-search {
+            background-color: var(--dark-btn-bg);
+            color: white; border: none;
+            padding: 7px 14px; border-radius: 4px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            font-family: inherit; transition: background 0.15s;
+        }
+        .btn-search:hover { background-color: #374151; }
+
+        .btn-reset {
+            background-color: #fff; color: #666;
+            border: 1px solid #d1d5db;
+            padding: 7px 14px; border-radius: 4px;
+            font-size: 13px; cursor: pointer;
+            font-family: inherit; transition: background 0.15s;
+        }
+        .btn-reset:hover { background-color: #f9fafb; }
+
+        /* ── 액션 바 ── */
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .left-actions { display: flex; gap: 6px; }
+
+        .btn {
+            padding: 6px 12px; font-size: 13px; font-weight: 500;
+            border-radius: 4px; border: 1px solid #d1d5db;
+            background: #fff; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
+            color: #333; font-family: inherit; transition: background 0.15s;
+        }
+        .btn:hover { background-color: #f3f4f6; }
+
+        .btn-register {
+            background-color: #4285f4; color: white;
+            border: none; padding: 8px 18px;
+            font-weight: 700; font-size: 13px;
+        }
+        .btn-register:hover { background-color: #3367d6; }
+
+        /* ── 테이블 ── */
+        .table-container { width: 100%; overflow-x: auto; border-top: 2px solid #333; }
+
+        table {
+            width: 100%; border-collapse: collapse;
+            font-size: 13px; min-width: 1050px;
+        }
+
+        th {
+            background-color: #fafafa;
+            border-bottom: 1px solid #e5e7eb;
+            padding: 12px 8px;
+            font-weight: 700; color: #333;
+            text-align: center; white-space: nowrap;
+        }
+
+        td {
+            padding: 26px 8px;
+            border-bottom: 1px solid #f1f3f5;
+            text-align: center; vertical-align: middle; color: #444;
+        }
+
+        tr:hover td { background-color: #fafcff; }
+
+        /* ── 셀 스타일 ── */
+        .member-no { font-size: 11px; color: #aaa; font-weight: 400; }
+        .user-email { font-size: 13px; color: #222; font-weight: 600; }
+        .user-email.clickable {
+            color: #333; cursor: pointer; text-decoration: none;
+            transition: color 0.12s;
+        }
+        .user-email.clickable:hover { color: #2563eb; text-decoration: underline; text-underline-offset: 3px; text-decoration-color: #93c5fd; }
+        .user-name-sub { font-size: 11px; color: #999; margin-top: 1px; }
+        .date-text { font-size: 12px; color: #888; }
+        .phone-text { font-size: 13px; color: #444; }
+
+        /* ── 공통 배지 ── */
+        .status-badge, .role-badge, .membership-badge {
+            display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+            padding: 3px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 700;
+            border: 1px solid #d1d5db; background: #fff;
+            color: #374151; white-space: nowrap; font-family: inherit;
+        }
+
+        /* 상태 */
+        .status-normal  { background: #f0fdf4; color: #15803d; border-color: #bbf7d0; }
+        .status-expired { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .status-pending { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+        /* 회원구분 */
+        .role-admin   { background: #fff1f2; color: #be123c; border-color: #fecdd3; }
+        .role-realtor { background: #fff7ed; color: #c2410c; border-color: #fed7aa; }
+        .role-general { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+
+        /* 멤버십 */
+        .membership-free { background: #f8fafc; color: #64748b; border-color: #cbd5e1; }
+        .membership-paid { background: #fffbeb; color: #b45309; border-color: #fde68a; }
+
+        /* 유료기간 */
+        .paid-period { font-size: 11px; color: #555; }
+        .paid-period.active  { color: #15803d; font-weight: 700; }
+        .paid-period.expired { color: #be123c; }
+
+        /* ── 관리 버튼 ── */
+        .cell-actions { display: flex; gap: 4px; justify-content: center; flex-wrap: wrap; }
+
+        .btn-edit {
+            padding: 5px 10px; font-size: 11px; border-radius: 4px;
+            border: 1px solid #4b5563; background: #4b5563; cursor: pointer;
+            color: #fff; font-family: inherit; font-weight: 600; transition: all 0.15s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-edit:hover { background: #374151; border-color: #374151; }
+        
+        .btn-delete {
+            padding: 5px 10px; font-size: 11px; border-radius: 4px;
+            border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+            color: #374151; font-family: inherit; font-weight: 500; transition: all 0.15s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-delete:hover { background: #f9fafb; border-color: #fecaca; color: #dc2626; }
+        .btn-delete:hover svg { stroke: #dc2626; }
+        
+        .btn-history {
+            padding: 5px 10px; font-size: 11px; border-radius: 4px;
+            border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+            color: #374151; font-family: inherit; font-weight: 500; transition: all 0.15s;
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+        }
+        .btn-history:hover { background: #f9fafb; }
+
+        /* ── 페이지네이션 ── */
+        .pagination { display: flex; justify-content: center; margin-top: 32px; gap: 4px; }
+        .page-link {
+            width: 32px; height: 32px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid #d1d5db; border-radius: 4px;
+            font-size: 13px; color: #666; text-decoration: none;
+            background: #fff; cursor: pointer; transition: background 0.12s;
+        }
+        .page-link:hover { background-color: #f3f4f6; }
+        .page-link.active { background-color: var(--dark-btn-bg); color: #fff; border-color: var(--dark-btn-bg); }
+
+        input[type="checkbox"] { width: 15px; height: 15px; accent-color: #4285f4; cursor: pointer; }
+
+        /* ── 모달 ── */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: white; padding: 28px; border-radius: 10px; width: 420px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+        .modal-header {
+            font-size: 17px; font-weight: 700; margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary-color); padding-bottom: 12px; color: #111;
+        }
+        .modal-group { margin-bottom: 14px; }
+        .modal-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 600; color: #555; }
+        .modal-group input, .modal-group select {
+            width: 100%; padding: 9px 10px; border: 1px solid #d1d5db;
+            border-radius: 4px; box-sizing: border-box; font-size: 13px;
+            font-family: inherit; outline: none;
+        }
+        .modal-group input:focus, .modal-group select:focus { border-color: #4285f4; }
+        .modal-btns { display: flex; justify-content: flex-end; gap: 8px; margin-top: 22px; }
+        .modal-btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; font-weight: 600; font-family: inherit; }
+        .modal-btn.cancel { background: #e5e7eb; color: #374151; }
+        .modal-btn.cancel:hover { background: #d1d5db; }
+        .modal-btn.save { background: var(--primary-color); color: white; }
+        .modal-btn.save:hover { background: #e08800; }
+        #modalMsg { margin-top: 10px; font-size: 13px; color: #d9534f; display: none; }
+        #regModalMsg { margin-top: 10px; font-size: 13px; color: #004085; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+
+    <!-- 헤더 -->
+    <div class="card-header">
+        <h2>회원관리</h2>
+        <span class="count-info">
+            (<span id="countAdmin">관리자 -</span> / <span id="countRealtor">부동산 -</span> / <span id="countGeneral">일반 -</span> / <span class="total-count" id="totalCount">전체 -명</span>)
+        </span>
+    </div>
+
+    <!-- 검색 필터 -->
+    <section class="filter-container">
+        <div class="filter-group">
+            <span class="filter-label">회원번호</span>
+            <input type="text" class="filter-input" id="filterNo" placeholder="회원번호 입력" style="width:130px;">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-label">회원구분</span>
+            <select class="filter-input" id="filterRole">
+                <option value="">전체</option>
+                <option value="admin">최고관리자</option>
+                <option value="realtor">부동산회원</option>
+                <option value="general">일반회원</option>
+            </select>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <input type="text" class="filter-input" id="filterKeyword" placeholder="이름 또는 이메일 검색" style="width:220px;">
+        </div>
+        <button class="btn-search" id="btnSearch">🔍&nbsp;검색</button>
+        <button class="btn-reset" id="btnReset">초기화</button>
+    </section>
+
+    <!-- 액션 바 -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <button class="btn btn-register" id="btnOpenRegModal">+ 회원등록</button>
+            <button class="btn" onclick="alert('준비중인 기능입니다.')">★ 광고순위갱신</button>
+            <button class="btn" id="btnBulkDelete">🗑 선택삭제</button>
+            <button class="btn" onclick="alert('준비중인 기능입니다.')">✖ 탈퇴아이디보기</button>
+        </div>
+        <div class="right-actions"></div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="table-container">
+        <table>
+            <colgroup>
+                <col style="width:36px;">   <!-- 체크박스 -->
+                <col style="width:66px;">   <!-- 회원번호 -->
+                <col style="width:200px;">  <!-- 아이디 -->
+                <col style="width:70px;">   <!-- 이름 -->
+                <col style="width:110px;">  <!-- 연락처 -->
+                <col style="width:90px;">   <!-- 회원구분 -->
+                <col style="width:90px;">   <!-- 가입일 -->
+                <col style="width:60px;">   <!-- 멤버십 -->
+                <col style="width:110px;">  <!-- 유료회원기간 -->
+                <col style="width:66px;">   <!-- 승인상태 -->
+                <col>                       <!-- 관리 (나머지 공간 모두) -->
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="chkAll"></th>
+                    <th>회원번호</th>
+                    <th>아이디</th>
+                    <th>이름</th>
+                    <th>연락처</th>
+                    <th>회원구분</th>
+                    <th>가입일</th>
+                    <th>멤버십</th>
+                    <th>유료 회원 기간</th>
+                    <th>승인상태</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="11" style="padding:50px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div class="pagination" id="pagination">
+        <a href="#" class="page-link active">1</a>
+        <a href="#" class="page-link">2</a>
+        <a href="#" class="page-link">3</a>
+        <a href="#" class="page-link">4</a>
+        <a href="#" class="page-link">5</a>
+    </div>
+</div>
+
+<!-- 수정 모달 -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-content" style="width: 460px;">
+        <div class="modal-header">✏️ 회원 정보 및 멤버십 수정</div>
+        <input type="hidden" id="editUid">
+        <div class="modal-group">
+            <label>회원 이메일 (아이디)</label>
+            <input type="text" id="editEmail" disabled style="background:#f9fafb; color:#888;">
+        </div>
+        <div style="display:flex; gap:12px;">
+            <div class="modal-group" style="flex:1;">
+                <label>회원 권한 등급</label>
+                <select id="editRole">
+                    <option value="general">일반회원</option>
+                    <option value="realtor">부동산회원</option>
+                    <option value="admin">최고관리자</option>
+                </select>
+            </div>
+            <div class="modal-group" style="flex:1;">
+                <label>멤버십 상태</label>
+                <select id="editMembership">
+                    <option value="free">무료(Free)</option>
+                    <option value="paid">유료(Paid)</option>
+                </select>
+            </div>
+        </div>
+        <div class="modal-group" id="editDateGroup">
+            <label>유료 멤버십 만료일</label>
+            <div style="display:flex; gap:6px; margin-bottom:8px;">
+                <input type="date" id="editExpiredAt" style="flex:1;">
+                <button type="button" class="btn-edit" onclick="setQuickDate(30)" style="padding:0 10px;">+1개월</button>
+                <button type="button" class="btn-edit" onclick="setQuickDate(90)" style="padding:0 10px;">+3개월</button>
+            </div>
+            <p style="font-size:11px; color:#888; margin:0;">* 유료 멤버십인 경우에만 기간이 활성화됩니다.</p>
+        </div>
+        <div id="modalMsg"></div>
+        <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="closeModal('editModal')">취소</button>
+            <button class="modal-btn save" id="btnSaveEdit">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 사전등록 모달 -->
+<div class="modal-overlay" id="regModal">
+    <div class="modal-content">
+        <div class="modal-header">➕ 회원 사전 등록</div>
+        <p style="font-size:13px; color:#666; margin-top:0; margin-bottom:16px; line-height:1.5;">
+            가입 전인 이메일을 등록해두면, 첫 로그인 시 선택한 등급으로 자동 설정됩니다.
+        </p>
+        <div class="modal-group">
+            <label>구글 이메일 주소</label>
+            <input type="email" id="regEmail" placeholder="example@gmail.com">
+        </div>
+        <div class="modal-group">
+            <label>회원 등급</label>
+            <select id="regRole">
+                <option value="general">일반회원</option>
+                <option value="realtor" selected>부동산회원</option>
+                <option value="admin">관리자</option>
+            </select>
+        </div>
+        <div class="modal-group" id="regDateGroup">
+            <label>유료 회원 만료일</label>
+            <input type="date" id="regExpiredAt">
+        </div>
+        <div id="regModalMsg"></div>
+        <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="closeModal('regModal')">취소</button>
+            <button class="modal-btn save" id="btnSaveReg">등록하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- 부동산 서류 검토 모달 -->
+<div class="modal-overlay" id="verifyModal">
+    <div class="modal-content" style="width: 520px;">
+        <div class="modal-header">📄 부동산 회원 서류 검토</div>
+        <input type="hidden" id="verifyUid">
+        <div class="modal-group">
+            <label>가입자 이메일</label>
+            <input type="text" id="verifyEmail" disabled style="background:#f9fafb;">
+        </div>
+        <div style="display:flex; gap:12px;">
+            <div class="modal-group" style="flex:1;">
+                <label>상호명</label>
+                <input type="text" id="verifyCompName" disabled style="background:#f9fafb;">
+            </div>
+            <div class="modal-group" style="flex:1;">
+                <label>대표자명</label>
+                <input type="text" id="verifyCeo" disabled style="background:#f9fafb;">
+            </div>
+        </div>
+        <div style="display:flex; gap:12px;">
+            <div class="modal-group" style="flex:1;">
+                <label>중개등록번호</label>
+                <input type="text" id="verifyBrokerNo" disabled style="background:#f9fafb;">
+            </div>
+            <div class="modal-group" style="flex:1;">
+                <label>사업자번호</label>
+                <input type="text" id="verifyBizNo" disabled style="background:#f9fafb;">
+            </div>
+        </div>
+        <div class="modal-group">
+            <label>첨부된 서류 (클릭 시 원본 보기)</label>
+            <div style="display:flex; gap:10px; margin-top:6px;">
+                <a id="linkBizDoc" href="#" target="_blank" style="flex:1; border:1px solid #ddd; padding:8px; text-align:center; border-radius:4px; text-decoration:none; font-size:12px; font-weight:600; color:#333;">사업자등록증 보기</a>
+                <a id="linkBrokerDoc" href="#" target="_blank" style="flex:1; border:1px solid #ddd; padding:8px; text-align:center; border-radius:4px; text-decoration:none; font-size:12px; font-weight:600; color:#333;">중개등록증 보기</a>
+            </div>
+        </div>
+        <div class="modal-group">
+            <label>관리자 검토 메모 (내부용)</label>
+            <input type="text" id="verifyNote" placeholder="거절 사유 등 입력...">
+        </div>
+        <div id="verifyModalMsg" style="margin-top:10px; font-size:13px; color:#d9534f; display:none;"></div>
+        <div class="modal-btns">
+            <button class="modal-btn cancel" onclick="closeModal('verifyModal')">닫기</button>
+            <button class="modal-btn" id="btnRejectVerify" style="background:#dc2626; color:white;">반려 (거절)</button>
+            <button class="modal-btn save" id="btnApproveVerify">최종 승인</button>
+        </div>
+    </div>
+</div>
+
+<!-- 수정내역 팝업 모달 -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content" style="width: 1200px; padding: 0; max-width:96vw;">
+        <div class="modal-header" style="background:#5c8aff; color:#fff; text-align:center; position:relative; border-radius: 10px 10px 0 0; padding: 24px; border: none; font-size: 20px; font-weight:bold;">
+            회원정보 수정내역
+            <button onclick="closeModal('historyModal')" style="position:absolute; right: 20px; top: 20px; background: rgba(0,0,0,0.1); border:none; color:#fff; width:32px; height:32px; cursor:pointer; font-size:16px; border-radius:6px; display:flex; align-items:center; justify-content:center; transition:background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.2)'" onmouseout="this.style.background='rgba(0,0,0,0.1)'">✕</button>
+        </div>
+        <div style="padding: 24px 30px; max-height:600px; overflow-y:auto; overflow-x:hidden;">
+            <table style="width:100%; text-align:center; border-collapse: collapse; font-size:13px;">
+                <thead>
+                    <tr style="border-top:2px solid #555; border-bottom:1px solid #ccc; background:#fff;">
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">일시</th>
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">대상아이디</th>
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">유형</th>
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">상세</th>
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">아이디</th>
+                        <th style="padding:14px 10px; font-weight:600; color:#333;">아이피</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="6" style="padding:50px; color:#aaa;">로딩 중...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+
+<script type="module">
+    const supabase = window.gongsiClient;
+
+    window.closeModal = (id) => document.getElementById(id).style.display = 'none';
+
+    // 아이디 클릭 → 상세페이지 이동 (iframe 내에서 같은 창으로)
+    window.goDetail = function(uid) {
+        window.location.href = `admin_member_detail.html?uid=${uid}`;
+    };
+
+    document.getElementById('chkAll').addEventListener('change', function () {
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(cb => cb.checked = this.checked);
+    });
+
+    let allUsers = [];
+
+    async function loadUsers() {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '<tr><td colspan="11" style="padding:50px; color:#bbb;">데이터를 불러오는 중입니다...</td></tr>';
+
+        try {
+            const { data: users, error, count } = await supabase
+                .from('members')
+                .select('*', { count: 'exact' })
+                .order('created_at', { ascending: true });
+
+            if (error) throw error;
+
+            allUsers = users || [];
+
+            const adminCnt   = allUsers.filter(u => u.role === 'admin').length;
+            const realtorCnt = allUsers.filter(u => u.role === 'realtor').length;
+            const generalCnt = allUsers.filter(u => u.role === 'general').length;
+
+            document.getElementById('totalCount').textContent   = `전체 ${count}명`;
+            document.getElementById('countAdmin').textContent   = `관리자 ${adminCnt}명`;
+            document.getElementById('countRealtor').textContent = `부동산 ${realtorCnt}명`;
+            document.getElementById('countGeneral').textContent = `일반 ${generalCnt}명`;
+
+            renderTable(allUsers);
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = `<tr><td colspan="11" style="color:#dc2626; padding:40px;">데이터 로드 오류: ${e.message}</td></tr>`;
+        }
+    }
+
+    function renderTable(users) {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = '';
+
+        if (!users || users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="11" style="padding:50px; color:#bbb;">조회된 회원이 없습니다.</td></tr>';
+            return;
+        }
+
+        const now = new Date();
+        now.setHours(0,0,0,0);
+
+        users.forEach((data, idx) => {
+            const memberNo    = data.member_no || (idx + 1);
+            const memberNoStr = String(memberNo).padStart(6, '0');
+
+            // 역할 배지
+            let roleClass = 'role-general', roleText = '일반회원';
+            if (data.role === 'admin')   { roleClass = 'role-admin';   roleText = '최고관리자'; }
+            if (data.role === 'realtor') { roleClass = 'role-realtor'; roleText = '부동산회원'; }
+
+            // 멤버십 배지
+            const isPaid = data.membership === 'paid';
+            const membershipHtml = isPaid
+                ? '<span class="membership-badge membership-paid">👑 유료</span>'
+                : '<span class="membership-badge membership-free">무료</span>';
+
+            // 상태 표기 (정상은 심플한 텍스트로)
+            let statusHtml = '<span style="color:#15803d; font-weight:600; font-size:13px;">정상</span>';
+            let dDayHtml   = '';
+
+            const createdStr = data.created_at ? data.created_at.split('T')[0] : '-';
+            const expiredStr = data.expired_at ? data.expired_at.split('T')[0] : null;
+            const phoneStr   = data.phone || '-';
+
+            if (isPaid && expiredStr) {
+                const expDate = new Date(expiredStr);
+                expDate.setHours(0,0,0,0);
+                const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+
+                if (diffDays < 0) {
+                    statusHtml = '<span class="status-badge status-expired">기간만료</span>';
+                    dDayHtml = `<span style="color:#be123c; font-size:10px; font-weight:700;">(만료됨)</span>`;
+                } else {
+                    const c = diffDays <= 7 ? 'color:#be123c; font-weight:bold;' : 'color:#15803d;';
+                    dDayHtml = `<span style="${c} font-size:10px;">(D-${diffDays})</span>`;
+                }
+            }
+
+            // 유료 회원 기간
+            let paidPeriodHtml = '<span class="paid-period">-</span>';
+            if (expiredStr) {
+                const isExp = new Date(expiredStr) < now;
+                const cls = isExp ? 'paid-period expired' : 'paid-period active';
+                paidPeriodHtml = `
+                    <div style="display:flex; flex-direction:column; gap:1px; align-items:center;">
+                        <span class="${cls}">${expiredStr}</span>
+                        ${dDayHtml}
+                    </div>`;
+            }
+
+            // 인증 상태
+            let verifyHtml = '<span style="color:#ccc;">-</span>';
+            if (data.role === 'realtor') {
+                const vs = data.verification_status || 'pending';
+                if (vs === 'auto_verified')
+                    verifyHtml = '<span class="status-badge" style="background:#f0fdf4;color:#15803d;border-color:#bbf7d0;">자동검증</span>';
+                else if (vs === 'manual_required') {
+                    verifyHtml = '<span class="status-badge" style="background:#fffbeb;color:#b45309;border-color:#fde68a;">심사대기</span>';
+                    statusHtml = '<span class="status-badge" style="background:#fffbeb;color:#b45309;border-color:#fde68a;">⏳ 심사 대기중</span>';
+                }
+                else if (vs === 'approved')
+                    verifyHtml = '<span class="status-badge" style="background:#f0f9ff;color:#0369a1;border-color:#bae6fd;">승인완료</span>';
+                else if (vs === 'rejected') {
+                    verifyHtml = '<span class="status-badge" style="background:#fff1f2;color:#be123c;border-color:#fecdd3;">반려됨</span>';
+                    statusHtml = '<span class="status-badge" style="background:#fff1f2;color:#be123c;border-color:#fecdd3;">🚨 보완요청 확인요망</span>';
+                }
+                else
+                    verifyHtml = '<span class="status-badge" style="background:#f8fafc;color:#64748b;border-color:#cbd5e1;">입력중</span>';
+            }
+
+            // 서류검토 로직이 제거됨 (사용자 요청에 의해 X표 처리된 버튼 삭제)
+            
+            // 아이디 클릭 링크 (관리자는 링크 없음)
+            const isClickable = data.role !== 'admin';
+            const emailHtml = isClickable
+                ? `<div class="user-email clickable" onclick="goDetail('${data.id}')">${data.email || '-'}</div>`
+                : `<div class="user-email">${data.email || '-'}</div>`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox"></td>
+                <td><span class="member-no">${memberNoStr}</span></td>
+                <td style="text-align:left; padding-left:10px;">
+                    ${emailHtml}
+                </td>
+                <td>${data.name || '-'}</td>
+                <td class="phone-text">${phoneStr}</td>
+                <td><span class="role-badge ${roleClass}">${roleText}</span></td>
+                <td><span style="font-size:12px; color:#555;">${createdStr}</span></td>
+                <td>${membershipHtml}</td>
+                <td>${paidPeriodHtml}</td>
+                <td>${statusHtml}</td>
+                <td>
+                    <div class="cell-actions">
+                        <button class="btn-edit" onclick="goDetail('${data.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
+                            수정
+                        </button>
+                        <button class="btn-delete" onclick="deleteUser('${data.id}','${data.email}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;stroke:#9ca3af;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            삭제
+                        </button>
+                        <button class="btn-history" onclick="openHistoryModal('${data.id}')">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;stroke:#9ca3af;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                            수정내역
+                        </button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    document.getElementById('btnSearch').addEventListener('click', () => {
+        const keyword = document.getElementById('filterKeyword').value.trim().toLowerCase();
+        const role    = document.getElementById('filterRole').value;
+        const no      = document.getElementById('filterNo').value.trim();
+
+        const filtered = allUsers.filter((u, idx) => {
+            const mNo = String(u.member_no || (idx + 1)).padStart(6, '0');
+            return (no      ? mNo.includes(no) : true)
+                && (role    ? u.role === role : true)
+                && (keyword ? (u.email || '').toLowerCase().includes(keyword) || (u.name || '').toLowerCase().includes(keyword) : true);
+        });
+        renderTable(filtered);
+    });
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+        document.getElementById('filterNo').value      = '';
+        document.getElementById('filterRole').value   = '';
+        document.getElementById('filterKeyword').value = '';
+        renderTable(allUsers);
+    });
+
+    window.openEditModal = function(id, email, role, membership, expStr) {
+        document.getElementById('editUid').value = id;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editMembership').value = membership || 'free';
+        document.getElementById('editExpiredAt').value = expStr || '';
+        toggleDateGroup(membership || 'free');
+        document.getElementById('modalMsg').style.display = 'none';
+        document.getElementById('editModal').style.display = 'flex';
+    };
+
+    function toggleDateGroup(membership) {
+        document.getElementById('editDateGroup').style.display = membership === 'paid' ? 'block' : 'none';
+    }
+
+    document.getElementById('editMembership').addEventListener('change', e => toggleDateGroup(e.target.value));
+
+    document.getElementById('editExpiredAt').addEventListener('change', function() {
+        const msgObj = document.getElementById('modalMsg');
+        if (!this.value) { msgObj.style.display = 'none'; return; }
+        const expDate = new Date(this.value);
+        const now = new Date(); now.setHours(0,0,0,0); expDate.setHours(0,0,0,0);
+        const diffDays = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
+        msgObj.style.display = 'block';
+        if (diffDays < 0) {
+            msgObj.style.color = '#dc2626';
+            msgObj.textContent = `⚠️ 이미 만료된 날짜입니다. (${Math.abs(diffDays)}일 경과)`;
+        } else {
+            msgObj.style.color = '#2563eb';
+            msgObj.textContent = `✅ 선택하신 날짜까지 약 ${diffDays}일 동안 유료 멤버십이 유지됩니다.`;
+        }
+    });
+
+    window.setQuickDate = function(days) {
+        const input = document.getElementById('editExpiredAt');
+        let base = input.value ? new Date(input.value) : new Date();
+        if (base < new Date()) base = new Date();
+        base.setDate(base.getDate() + days);
+        input.value = base.toISOString().split('T')[0];
+    };
+
+    document.getElementById('btnSaveEdit').addEventListener('click', async () => {
+        const id = document.getElementById('editUid').value;
+        const email = document.getElementById('editEmail').value;
+        const role = document.getElementById('editRole').value;
+        const membership = document.getElementById('editMembership').value;
+        const dateStr = document.getElementById('editExpiredAt').value;
+        const msgObj = document.getElementById('modalMsg');
+        msgObj.style.display = 'block'; msgObj.style.color = '#2563eb'; msgObj.textContent = '저장 중...';
+        try {
+            let updateData = { role, membership };
+            updateData.expired_at = (membership === 'paid' && dateStr) ? dateStr : null;
+            
+            const myIp = await getIp();
+            const { data: { session } } = await supabase.auth.getSession();
+            const actUid = session ? session.user.id : null;
+            const actEmail = session ? session.user.email : null;
+
+            await supabase.from('member_logs').insert({
+                target_uid: id, target_email: email, action_type: '회원정보수정',
+                details: '관리자가 회원정보 수정 (' + role + '/' + membership + ')',
+                actor_uid: actUid, actor_email: actEmail, ip_address: myIp
+            });
+
+            const { error } = await supabase.from('members').update(updateData).eq('id', id);
+            if (error) throw error;
+            closeModal('editModal'); loadUsers();
+        } catch (e) {
+            msgObj.style.color = '#dc2626'; msgObj.textContent = '저장 오류: ' + e.message;
+        }
+    });
+
+    window.deleteUser = async function(id, email) {
+        if(!confirm(`[${email}] 회원을 삭제하시겠습니까?`)) return;
+        try {
+            const myIp = await getIp();
+            const { data: { session } } = await supabase.auth.getSession();
+            const actUid = session ? session.user.id : null;
+            const actEmail = session ? session.user.email : null;
+
+            await supabase.from('member_logs').insert({
+                target_uid: id, target_email: email, action_type: '회원삭제',
+                details: '관리자가 회원 직접 삭제', actor_uid: actUid, actor_email: actEmail, ip_address: myIp
+            });
+
+            const { error } = await supabase.from('members').delete().eq('id', id);
+            if (error) throw error;
+            alert('삭제되었습니다.');
+            loadUsers();
+        } catch (e) { alert('삭제 오류: ' + e.message); }
+    };
+
+    async function getIp() {
+        try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; } catch(e){ return 'unknown'; }
+    }
+
+    window.openHistoryModal = async function(id) {
+        const modal = document.getElementById('historyModal');
+        const tbody = document.getElementById('historyTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" style="padding:40px; color:#aaa;">로딩 중...</td></tr>';
+        modal.style.display = 'flex';
+        try {
+            const { data, error } = await supabase.from('member_logs').select('*').eq('target_uid', id).order('created_at', {ascending: false});
+            if (error) throw error;
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="padding:40px; color:#aaa;">기록이 없습니다.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.map(log => {
+                const dateParts = log.created_at.split('T');
+                // 포맷팅 (예: 26.03.19 12:44)
+                let dtStr = '-';
+                if(dateParts.length > 1) {
+                    const dateSub = dateParts[0].substring(2).replace(/-/g, '.'); // YYYY-MM-DD -> YY.MM.DD
+                    const timeSub = dateParts[1].substring(0, 5); // HH:mm:ss -> HH:mm
+                    dtStr = dateSub + ' ' + timeSub;
+                }
+                const targetEmail = (log.target_email || '').split('@')[0];
+                const actorEmail = (log.actor_email || '시스템').split('@')[0];
+                
+                return `
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding:12px; color:#555;">${dtStr}</td>
+                    <td style="padding:12px; color:#222;">${targetEmail}</td>
+                    <td style="padding:12px; color:#222;">${log.action_type || '-'}</td>
+                    <td style="padding:12px; color:#555;">${log.details || '-'}</td>
+                    <td style="padding:12px; color:#222;">${actorEmail}</td>
+                    <td style="padding:12px; color:#555;">${log.ip_address || '-'}</td>
+                </tr>
+                `;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6" style="padding:40px; color:#dc2626;">오류: ${e.message}</td></tr>`;
+        }
+    };
+
+    const regRoleSelect = document.getElementById('regRole');
+    const regDateGroup  = document.getElementById('regDateGroup');
+    regRoleSelect.addEventListener('change', e => {
+        regDateGroup.style.display = e.target.value === 'general' ? 'none' : 'block';
+    });
+
+    document.getElementById('btnOpenRegModal').addEventListener('click', () => {
+        document.getElementById('regEmail').value = '';
+        regRoleSelect.value = 'realtor'; regDateGroup.style.display = 'block';
+        const t = new Date(); t.setDate(t.getDate() + 30);
+        document.getElementById('regExpiredAt').valueAsDate = t;
+        document.getElementById('regModalMsg').style.display = 'none';
+        document.getElementById('regModal').style.display = 'flex';
+    });
+
+    document.getElementById('btnSaveReg').addEventListener('click', async () => {
+        const email = document.getElementById('regEmail').value.trim().toLowerCase();
+        const role  = document.getElementById('regRole').value;
+        const dateStr = document.getElementById('regExpiredAt').value;
+        const msgDiv = document.getElementById('regModalMsg');
+        if (!email) { alert('이메일을 입력하세요'); return; }
+        if (role !== 'general' && !dateStr) { alert('만료일을 선택하세요'); return; }
+        msgDiv.style.display = 'block'; msgDiv.textContent = '처리 중...'; msgDiv.style.color = '#2563eb';
+        try {
+            const { data: existing } = await supabase.from('members').select('*').eq('email', email).maybeSingle();
+            if (existing) {
+                await supabase.from('members').update({ role, expired_at: role === 'general' ? null : dateStr }).eq('id', existing.id);
+                alert(`이미 가입된 회원이므로 '${role}' 권한으로 즉시 변경되었습니다.`);
+            } else {
+                await supabase.from('pre_registered_realtors').upsert({ email, expired_date: role === 'general' ? '9999-12-31' : dateStr, note: `role:${role}` });
+                alert(`'${email}' 님을 사전 가입(${role}) 상태로 등록했습니다. 첫 로그인 시 적용됩니다.`);
+            }
+            closeModal('regModal'); loadUsers();
+        } catch (e) { msgDiv.textContent = '에러: ' + e.message; msgDiv.style.color = '#dc2626'; }
+    });
+
+    window.openVerifyModal = async function(id) {
+        document.getElementById('verifyUid').value = id;
+        document.getElementById('verifyModalMsg').style.display = 'none';
+        document.getElementById('verifyNote').value = '';
+        try {
+            const { data, error } = await supabase.from('members').select('*').eq('id', id).single();
+            if (error) throw error;
+            document.getElementById('verifyEmail').value    = data.email || '';
+            document.getElementById('verifyCompName').value = data.company_name || '';
+            document.getElementById('verifyCeo').value      = data.ceo_name || '';
+            document.getElementById('verifyBrokerNo').value = data.company_reg_no || '';
+            document.getElementById('verifyBizNo').value    = data.biz_reg_no || '';
+            const linkBiz = document.getElementById('linkBizDoc');
+            const linkBroker = document.getElementById('linkBrokerDoc');
+            if (data.license_image) {
+                linkBiz.href = data.license_image; linkBiz.style.pointerEvents = 'auto';
+                linkBiz.style.color = '#2563eb'; linkBiz.textContent = '사업자등록증 보기';
+            } else { linkBiz.href = '#'; linkBiz.style.pointerEvents = 'none'; linkBiz.style.color = '#ccc'; linkBiz.textContent = '첨부 안됨'; }
+            if (data.license_image_brokerage) {
+                linkBroker.href = data.license_image_brokerage; linkBroker.style.pointerEvents = 'auto';
+                linkBroker.style.color = '#2563eb'; linkBroker.textContent = '중개등록증 보기';
+            } else { linkBroker.href = '#'; linkBroker.style.pointerEvents = 'none'; linkBroker.style.color = '#ccc'; linkBroker.textContent = '첨부 안됨'; }
+            document.getElementById('verifyModal').style.display = 'flex';
+        } catch(e) { alert('회원 정보 로드 오류: ' + e.message); }
+    };
+
+    document.getElementById('btnApproveVerify').addEventListener('click', () => updateVerifyStatus('approved'));
+    document.getElementById('btnRejectVerify').addEventListener('click', () => updateVerifyStatus('rejected'));
+
+    async function updateVerifyStatus(status) {
+        const id   = document.getElementById('verifyUid').value;
+        const note = document.getElementById('verifyNote').value.trim();
+        const msg  = document.getElementById('verifyModalMsg');
+        if (status === 'rejected' && !note) { alert("거절 사유(검토 메모)를 입력해주세요."); return; }
+        msg.style.display = 'block'; msg.style.color = '#2563eb'; msg.textContent = '처리 중...';
+        try {
+            const { error } = await supabase.from('members').update({
+                verification_status: status, admin_note: note
+            }).eq('id', id);
+            if (error) throw error;
+            closeModal('verifyModal'); loadUsers();
+            alert(status === 'approved' ? '승인되었습니다.' : '반려 처리되었습니다.');
+        } catch(e) { msg.style.color = '#dc2626'; msg.textContent = '처리 오류: ' + e.message; }
+    }
+
+    loadUsers();
+</script>
+</body>
+</html>

@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공실스터디 - 학습하기</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        /* Base Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pretendard', sans-serif; }
+        body { background-color: #f8fafc; color: #334155; transition: background-color 0.3s, color 0.3s; }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        button { cursor: pointer; border: none; background: none; font-family: inherit; }
+
+        /* Dark Mode Variables & Styles */
+        body.dark-mode { background-color: #0f172a; color: #f1f5f9; }
+        .dark-mode .watch-header { background: #1e293b; border-bottom: 1px solid #334155; }
+        .dark-mode .watch-tabs { border-bottom: 1px solid #334155; }
+        .dark-mode .tab-btn { color: #94a3b8; }
+        .dark-mode .tab-btn.active { color: #38bdf8; border-bottom: 2px solid #38bdf8; }
+        .dark-mode .watch-sidebar { background: #1e293b; border-left: 1px solid #334155; }
+        .dark-mode .curr-section-title { background: #0f172a; border-bottom: 1px solid #334155; color: #e2e8f0; }
+        .dark-mode .curr-item:hover { background: #334155; }
+        .dark-mode .curr-item.active { background: rgba(56, 189, 248, 0.1); }
+        .dark-mode .download-card { background: #334155; border: 1px solid #475569; }
+        .dark-mode .qna-input-box textarea { background: #0f172a; border-color: #475569; color:#fff;}
+        .dark-mode .qna-item { border-bottom-color: #334155; }
+
+        /* Layout */
+        .watch-header {
+            position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 100;
+            background: #ffffff; border-bottom: 1px solid #e2e8f0;
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px;
+            transition: 0.3s;
+        }
+        .header-left { display: flex; align-items: center; gap: 16px; }
+        .back-btn { display: flex; align-items: center; gap: 6px; font-weight: 600; color: #64748b; font-size: 15px; transition: 0.2s; }
+        .back-btn:hover { color: #0ea5e9; }
+        .course-title { font-weight: 700; font-size: 16px; border-left: 2px solid #e2e8f0; padding-left: 16px; margin-left: 6px; display:inline-block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width: 400px; }
+        
+        .header-right { display: flex; align-items: center; gap: 12px; }
+        .dark-toggle {
+            display: flex; align-items: center; justify-content: center; width: 40px; height: 40px;
+            border-radius: 50%; background: #f1f5f9; color: #475569; transition: 0.2s;
+        }
+        .dark-toggle:hover { background: #e2e8f0; }
+        .dark-mode .dark-toggle { background: #334155; color: #f8fafc; }
+
+        .watch-layout { display: flex; margin-top: 60px; height: calc(100vh - 60px); }
+        .watch-main { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+        .watch-sidebar { width: 380px; flex-shrink: 0; background: #ffffff; border-left: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: 0.3s; }
+
+        /* Video Area */
+        .video-container { background: #000; width: 100%; aspect-ratio: 16 / 9; position: relative; }
+        .video-container iframe { width: 100%; height: 100%; border: none; }
+        
+        .video-info-bar { padding: 24px 32px; display: flex; justify-content: space-between; align-items: center; }
+        .current-lesson-title { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .lesson-meta { font-size: 14px; color: #64748b; font-weight: 500; }
+        .finish-btn {
+            background: #0ea5e9; color: #fff; padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 15px;
+            display: flex; align-items: center; gap: 8px; transition: 0.2s; box-shadow: 0 4px 12px rgba(14,165,233,0.3);
+        }
+        .finish-btn:hover { background: #0284c7; transform: translateY(-2px); }
+
+        /* Tabs */
+        .watch-tabs { display: flex; padding: 0 32px; border-bottom: 1px solid #e2e8f0; gap: 24px; transition: 0.3s; }
+        .tab-btn { padding: 16px 4px; font-size: 16px; font-weight: 700; color: #64748b; position: relative; transition: 0.2s; }
+        .tab-btn:hover { color: #0ea5e9; }
+        .tab-btn.active { color: #0ea5e9; }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 3px; background: #0ea5e9; border-radius: 3px 3px 0 0; }
+        
+        .tab-content { padding: 32px; display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+        /* Note Content */
+        .lesson-note h3 { font-size: 18px; margin-bottom: 16px; font-weight: 700; }
+        .lesson-note p { font-size: 15px; line-height: 1.6; color: inherit; margin-bottom: 24px; }
+        
+        .download-card {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 20px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; transition: 0.3s;
+        }
+        .dl-info { display: flex; align-items: center; gap: 12px; }
+        .dl-icon { width: 40px; height: 40px; background: #e0f2fe; color: #0ea5e9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .dl-texts strong { display: block; font-size: 15px; }
+        .dl-texts span { font-size: 13px; color: #64748b; }
+        .dl-btn { background: #fff; border: 1px solid #cbd5e1; padding: 8px 16px; border-radius: 6px; font-weight: 600; font-size: 14px; color: #334155; cursor:pointer; transition:0.2s; }
+        .dl-btn:hover { background: #f1f5f9; border-color: #94a3b8; }
+
+        /* QnA Content */
+        .qna-input-box { margin-bottom: 30px; }
+        .qna-input-box textarea {
+            width: 100%; height: 100px; padding: 16px; border: 1px solid #cbd5e1; border-radius: 12px;
+            resize: none; font-size: 14px; font-family: inherit; margin-bottom: 12px; outline:none; transition:0.2s;
+        }
+        .qna-input-box textarea:focus { border-color: #0ea5e9; box-shadow: 0 0 0 3px rgba(14,165,233,0.1); }
+        .qna-submit-wrap { display: flex; justify-content: flex-end; }
+        .qna-submit { background: #0f172a; color: #fff; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px; }
+        
+        .qna-list { display: flex; flex-direction: column; }
+        .qna-item { padding: 20px 0; border-bottom: 1px solid #e2e8f0; display: flex; gap: 16px; }
+        .qna-avatar { width: 40px; height: 40px; background: #e2e8f0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; color: #64748b; flex-shrink:0; }
+        .qna-body h4 { font-size: 15px; margin-bottom: 4px; display:flex; gap:8px; align-items:center; }
+        .qna-date { font-size: 12px; color: #94a3b8; font-weight: 400; }
+        .qna-text { font-size: 14px; line-height: 1.5; color: inherit; }
+        .qna-reply { margin-top: 12px; background: rgba(14,165,233,0.05); padding: 16px; border-radius: 8px; border-left: 3px solid #0ea5e9; }
+        .qna-reply h5 { font-size: 13px; color: #0ea5e9; margin-bottom: 6px; }
+        
+        /* Sidebar (Curriculum) */
+        .sidebar-header { padding: 24px; border-bottom: 1px solid #e2e8f0; transition:0.3s; }
+        .dark-mode .sidebar-header { border-bottom-color: #334155; }
+        .progress-meta { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 14px; font-weight: 700; }
+        .progress-pct { color: #0ea5e9; }
+        .progress-bar-bg { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .dark-mode .progress-bar-bg { background: #334155; }
+        .progress-bar-fill { height: 100%; background: #0ea5e9; width: 33%; transition: width 0.5s ease; border-radius: 3px; }
+
+        .curr-list { overflow-y: auto; flex: 1; }
+        .curr-section { border-bottom: 1px solid #e2e8f0; }
+        .dark-mode .curr-section { border-bottom-color: #334155; }
+        .curr-section-title {
+            padding: 16px 24px; background: #f8fafc; font-weight: 700; font-size: 15px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; transition: 0.2s;
+        }
+        .curr-items { display: block; }
+        .curr-item {
+            padding: 14px 24px 14px 40px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: 0.2s; border-left: 3px solid transparent;
+        }
+        .curr-item:hover { background: #f1f5f9; }
+        .curr-item.active { background: #f0f9ff; border-left-color: #0ea5e9; }
+        .curr-item.active .ci-title { color: #0ea5e9; font-weight: 700; }
+        
+        .ci-icon { width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .ci-icon.played { color: #10b981; } /* 초록색 체크 */
+        .ci-icon.playing { color: #0ea5e9; }
+        .ci-icon.locked { color: #cbd5e1; }
+        
+        .ci-info { flex: 1; display:flex; flex-direction: column; gap:4px; }
+        .ci-title { font-size: 14px; font-weight: 500; line-height: 1.4; color: inherit; }
+        .ci-time { font-size: 12px; color: #94a3b8; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .watch-layout { flex-direction: column; overflow-y: auto; height: auto; }
+            .watch-main { overflow-y: visible; }
+            .watch-sidebar { width: 100%; border-left: none; border-top: 1px solid #e2e8f0; }
+            .course-title { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="watch-header">
+        <div class="header-left">
+            <a href="#" class="back-btn" onclick="alert('데이터 로딩중입니다.'); return false;">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                뒤로가기
+            </a>
+            <span class="course-title">중개업 실무 마스터 클래스 (초급~중급)</span>
+        </div>
+        <div class="header-right">
+            <button class="dark-toggle" id="darkModeBtn" title="다크 모드 전환" onclick="toggleDarkMode()">
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" id="darkIconMoon"><path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="watch-layout">
+        
+        <!-- Left: Video & Tabs -->
+        <main class="watch-main">
+            <!-- Video Player Area -->
+            <div class="video-container">
+                <!-- 비메오(Vimeo) 깔끔한 플레이어 예시 (title=0&byline=0&portrait=0 옵션으로 불필요한 로고/제목 숨김) -->
+                <iframe src="https://player.vimeo.com/video/76979871?title=0&byline=0&portrait=0&transparent=0" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <!-- Video Info -->
+            <div class="video-info-bar">
+                <div>
+                    <h1 class="current-lesson-title">제 3강. 상가 임대차 계약서 작성시 특약사항 주의점</h1>
+                    <div class="lesson-meta">오리엔테이션 및 기초 이론 &nbsp;|&nbsp; 12:45</div>
+                </div>
+                <button class="finish-btn" onclick="alert('수강 완료 처리되었습니다! 다음 강의로 이동합니다.')">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                    수강 완료 및 다음
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="watch-tabs">
+                <button class="tab-btn active" onclick="switchTab('note', this)">강의 노트 & 자료</button>
+                <button class="tab-btn" onclick="switchTab('qna', this)">질문 & 답변 (Q&A)</button>
+            </div>
+
+            <!-- Tab Content: Note -->
+            <div class="tab-content active" id="tab-note">
+                <div class="lesson-note">
+                    <h3>📝 이번 강의 요약</h3>
+                    <p>
+                        상가 임대차 계약 시 권리금 보호와 관련된 특약사항은 필수적입니다. 특히 환산보증금 초과 여부에 따라 적용되는 상임법 조항이 다르므로, 중개사로서 이를 정확히 인지하고 계약서에 명시해야 합니다. 하단에 첨부된 표준 계약서 양식 및 특약사항 샘플 PDF를 다운로드 받아 실무에 바로 적용해 보세요.
+                    </p>
+                    
+                    <h3>📁 수업 자료 다운로드</h3>
+                    <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon">📋</div>
+                            <div class="dl-texts">
+                                <strong>상가임대차_표준계약서_및_특약샘플.pdf</strong>
+                                <span>2.4 MB · PDF Document</span>
+                            </div>
+                        </div>
+                        <button class="dl-btn">다운로드</button>
+                    </div>
+                     <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon" style="color:#10b981; background:#dcfce7;">📊</div>
+                            <div class="dl-texts">
+                                <strong>수익률_분석_계산기_v1.2.xlsx</strong>
+                                <span>1.1 MB · Excel Spreadsheet</span>
+                            </div>
+                        </div>
+                        <button class="dl-btn">다운로드</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: QnA -->
+            <div class="tab-content" id="tab-qna">
+                <div class="qna-input-box">
+                    <textarea placeholder="강의 내용 중 궁금한 점을 자유롭게 남겨주세요! (강사님 또는 학습 매니저가 답변해 드립니다)"></textarea>
+                    <div class="qna-submit-wrap">
+                        <button class="qna-submit">질문 등록하기</button>
+                    </div>
+                </div>
+
+                <div class="qna-list">
+                    <div class="qna-item">
+                        <div class="qna-avatar">김</div>
+                        <div class="qna-body">
+                            <h4>김중개 <span class="qna-date">2026. 03. 28</span></h4>
+                            <div class="qna-text">
+                                특약사항 3번 항목에서 환산보증금을 초과하는 임대차의 경우 묵시적 갱신 시 임차인이 계약 해지를 통지할 수 있는지 궁금합니다. 민법이 적용된다고 하셨는데 실무에서는 어떻게 처리하시나요?
+                            </div>
+                            <div class="qna-reply">
+                                <h5>강사 답변 ✍️</h5>
+                                환산보증금을 초과하는 상가임대차의 경우 상임법상 묵시적 갱신 규정이 적용되지 않고 민법 제639조가 적용됩니다. 이 경우 임대인과 임차인 모두 언제든지 계약해지 통고를 할 수 있으며, 임차인이 통고한 경우 1개월 후 효력이 발생합니다. 실무에서는 이러한 분쟁을 막기 위해 만기 1~2개월 전 반드시 서면/문자로 재계약 여부를 명확히 하는 것이 안전합니다! 😊
+                            </div>
+                        </div>
+                    </div>
+                     <div class="qna-item">
+                        <div class="qna-avatar">이</div>
+                        <div class="qna-body">
+                            <h4>이대표 <span class="qna-date">2026. 03. 25</span></h4>
+                            <div class="qna-text">
+                                제공해주신 엑셀 계산기 정말 유용합니다! 혹시 권리금까지 포함해서 수익률을 계산할 수 있는 폼도 있을까요?
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right: Sidebar Curriculum -->
+        <aside class="watch-sidebar">
+            <div class="sidebar-header">
+                <div class="progress-meta">
+                    <span>전체 진도율</span>
+                    <span class="progress-pct">33% (8/24강)</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill"></div>
+                </div>
+            </div>
+
+            <div class="curr-list">
+                <!-- Section 1 -->
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>1. 오리엔테이션 및 기초 이론</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                        <div class="curr-item">
+                            <div class="ci-icon played">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 1강. 강사 소개 및 오리엔테이션</div>
+                                <div class="ci-time">05:20</div>
+                            </div>
+                        </div>
+                        <div class="curr-item">
+                            <div class="ci-icon played">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 2강. 상가 임대차 보호법 기초 다지기</div>
+                                <div class="ci-time">18:30</div>
+                            </div>
+                        </div>
+                        <!-- 현재 재생중 -->
+                        <div class="curr-item active">
+                            <div class="ci-icon playing">
+                                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 3강. 상가 임대차 계약서 작성시 특약사항 주의점</div>
+                                <div class="ci-time">12:45</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2 -->
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>2. 실전 중개 노하우 및 마케팅</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                        <div class="curr-item">
+                            <div class="ci-icon locked">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 4강. 공실뉴스 플랫폼 200% 활용하기</div>
+                                <div class="ci-time">15:10</div>
+                            </div>
+                        </div>
+                        <div class="curr-item">
+                            <div class="ci-icon locked">
+                                <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                            </div>
+                            <div class="ci-info">
+                                <div class="ci-title">제 5강. 체류시간을 늘리는 매력적인 매물 설명글 작성법</div>
+                                <div class="ci-time">22:00</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        // 전역 변수
+        let allLessons = [];
+        let allMaterials = [];
+
+        document.addEventListener("DOMContentLoaded", async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            const isPreview = urlParams.get('preview') === 'true';
+
+            // 🔥 관리자 미리보기(Preview) 전용 UI 변경 🔥
+            if (isPreview) {
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    .watch-layout { height: auto !important; overflow: visible !important; }
+                    .watch-main { overflow: visible !important; background: #fff; }
+                    .watch-sidebar { overflow: visible !important; height: auto !important; border-left: 1px solid #e2e8f0; }
+                    .curr-list { overflow: visible !important; }
+                    
+                    /* 상단 제목 UI 정리 : 뒤로가기 제거 후 제목만 단정하게 표시 */
+                    .back-btn { display: none !important; }
+                    .course-title { border-left: none !important; padding-left: 0 !important; margin-left: 0 !important; font-size: 16px !important; }
+                    
+                    ::-webkit-scrollbar { display: none; }
+                    body { -ms-overflow-style: none; scrollbar-width: none; overflow: hidden !important; }
+                    
+                    /* PC 미리보기를 위해 레이아웃 강제 유지 */
+                    body.preview-pc .watch-layout { flex-direction: row !important; }
+                    body.preview-pc .watch-sidebar { width: 340px !important; border-top: none !important; border-left: 1px solid #e2e8f0 !important; }
+                    body.preview-pc .video-info-bar { flex-direction: row !important; align-items: center !important; justify-content: space-between !important; gap: 12px; }
+
+                    /* 관리자 버튼 공용 스타일 (정갈한 그레이톤 버튼) */
+                    .g-btn {
+                        display:inline-flex; align-items:center; gap:4px; height:28px; padding:0 10px;
+                        font-size:12px; font-weight:400; background:#fff; color:#475569;
+                        border:1px solid #cbd5e1; border-radius:3px; cursor:pointer;
+                        transition:all 0.2s;
+                    }
+                    .g-btn:hover { background:#f8fafc; border-color:#94a3b8; color:#0f172a; }
+                    .g-btn-brand-blue { background:#f97316; color:#fff; border:1px solid #ea580c; }
+                    .g-btn-brand-blue:hover { background:#ea580c; border-color:#c2410c; color:#fff; }
+                `;
+                document.head.appendChild(style);
+
+                // 관리자용 버튼 바 (동영상 바로 밑, 아이콘 그레이톤 통일, 주소복사 추가)
+                const adminHtml = `
+                <div style="display:flex; justify-content:flex-start; align-items:center; gap:5px; padding:12px 32px; background:#fff; border-bottom:1px solid #e2e8f0; border-top:none;">
+                    <button class="g-btn" onclick="window.parent.postMessage('goList', '*')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg> 
+                        목록
+                    </button>
+                    <button class="g-btn" onclick="window.parent.postMessage('goEdit', '*')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> 
+                        수정
+                    </button>
+                    <button class="g-btn" onclick="alert('목록 화면에서 우측 휴지통을 눌러 삭제해주세요.')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg> 
+                        삭제
+                    </button>
+                    <button class="g-btn" onclick="navigator.clipboard.writeText(location.href.split('preview=true')[0].replace('&', '?')); alert('강의 웹페이지 주소가 복사되었습니다.');">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg> 
+                        주소복사
+                    </button>
+                    <button class="g-btn" onclick="window.parent.postMessage('goPreview', '*')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg> 
+                        미리보기
+                    </button>
+                    
+                    <button class="g-btn g-btn-brand-blue" style="margin-left: 4px;">
+                        승인(공개/판매중)
+                    </button>
+                </div>
+                `;
+                document.querySelector('.video-container').insertAdjacentHTML('afterend', adminHtml);
+
+                // 부모로부터 디바이스 모드 수신하여 클래스 부착
+                window.addEventListener('message', (e) => {
+                    if (e.data && e.data.type === 'device') {
+                        document.body.classList.remove('preview-pc', 'preview-tablet', 'preview-mobile');
+                        document.body.classList.add('preview-' + e.data.mode);
+                    }
+                });
+                document.body.classList.add('preview-pc'); // 최초 기본값
+
+                // 부모 프레임으로 현재 높이 실시간 전달 (내부 스크롤 제거용)
+                setInterval(() => {
+                    const h = document.body.scrollHeight;
+                    window.parent.postMessage({type: 'resize', height: h}, '*');
+                }, 500);
+            }
+
+            const fallbackUrl = urlParams.get('from') === 'main' ? 'index.html#special-lecture' : 'study.html';
+            
+            if(!courseId) {
+                // 미리보기가 아닌데 ID가 없을 경우에만 차단 (미리보기 시에도 없으면 차단함)
+                alert("삭제 되거나 잘못된 강의 주소입니다. 이전 화면으로 이동합니다.");
+                location.href = fallbackUrl;
+                return;
+            }
+
+            // 동적 뒤로가기 링크 할당
+            const backBtn = document.querySelector('.back-btn');
+            let backUrlTemplate = `study_detail.html?id=${courseId}&ask_review=1`;
+            if (urlParams.get('from') === 'main') {
+                backUrlTemplate += '&from=main';
+            }
+            if (backBtn) {
+                backBtn.href = backUrlTemplate;
+                backBtn.onclick = null; // 로딩용 핸들러 제거
+            }
+            
+            // 수강 완료(finish-btn) 클릭 시 리뷰 작성 페이지(뒤로 가기)로 이동 처리
+            const finishBtn = document.querySelector('.finish-btn');
+            if(finishBtn) {
+                finishBtn.onclick = () => {
+                    alert('수강 완료 처리되었습니다! 후기 작성 페이지로 이동합니다.');
+                    location.href = backUrlTemplate;
+                };
+            }
+
+            // 시청 기록 세션 저장 (뒤로가기 시 팝업 띄우기 용도)
+            if(courseId) {
+                sessionStorage.setItem('just_watched_' + courseId, '1');
+            }
+
+            const sb = window.gongsiClient;
+            if(!sb) return;
+
+            // 1. 코스 제목 변경
+            const { data: courseData } = await sb.from('study_courses').select('title').eq('id', courseId).single();
+            if(courseData) {
+                document.querySelector('.course-title').innerText = courseData.title;
+            }
+
+            // 2. 강의 자료(Materials) 전부 불러오기
+            const { data: materialsData } = await sb.from('study_materials').select('*').eq('course_id', courseId);
+            if(materialsData) allMaterials = materialsData;
+
+            // 3. 동영상 목차(Lessons) 전부 불러오기
+            const { data: lessonsData } = await sb.from('study_lessons').select('*').eq('course_id', courseId).order('order_index', { ascending: true });
+            if(lessonsData && lessonsData.length > 0) {
+                allLessons = lessonsData;
+                renderCurriculumSidebar(lessonsData);
+                // 진도율 초기화 반영
+                if(typeof updateProgress === 'function') updateProgress();
+                // 자동 재생 방지를 위해 클릭 전 첫 화면 세팅만 수행
+                loadLessonPlayer(lessonsData[0]);
+            } else {
+                document.querySelector('.watch-sidebar').innerHTML = `<div style="padding:40px; text-align:center; color:#94a3b8; font-weight:600;">등록된 목차(챕터)가 없습니다.</div>`;
+                document.querySelector('.video-container').innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#64748b; font-size:20px; font-weight:600;">등록된 영상이 없습니다. 관리자에서 챕터를 추가해주세요.</div>`;
+                renderNotesTab(''); // 빈 자료실
+            }
+        });
+
+        // 우측 네비게이션 목차 동적으로 뿌리기
+        function renderCurriculumSidebar(lessons) {
+            const sections = {};
+            lessons.forEach(l => {
+                if(!sections[l.section_title]) sections[l.section_title] = [];
+                sections[l.section_title].push(l);
+            });
+
+            const sidebar = document.querySelector('.watch-sidebar');
+            let thtml = `
+                <div class="sidebar-header">
+                    <div class="progress-meta">
+                        <span>전체 진도율 </span>
+                        <span class="progress-pct">0% (0 / ${lessons.length}강)</span>
+                    </div>
+                    <div class="progress-bar-bg"><div class="progress-bar-fill" style="width: 0%;"></div></div>
+                </div>
+                <div class="curr-list">
+            `;
+
+            Object.keys(sections).forEach(sec => {
+                thtml += `
+                <div class="curr-section">
+                    <div class="curr-section-title" onclick="toggleSection(this)">
+                        <span>${sec}</span>
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="curr-items">
+                `;
+                sections[sec].forEach(l => {
+                    thtml += `
+                        <div class="curr-item" id="curr-item-${l.id}" onclick="loadLessonById('${l.id}')">
+                            <div class="ci-icon"><svg width="18" height="18" fill="none" stroke="#94a3b8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M10 8l6 4-6 4z"></path></svg></div>
+                            <div class="ci-info">
+                                <div class="ci-title" style="line-height:1.4;">${l.lesson_title}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+                thtml += `</div></div>`;
+            });
+            thtml += `</div>`;
+            sidebar.innerHTML = thtml;
+        }
+
+        // 아이디로 영상 불러오기 (클릭이벤트 전용)
+        function loadLessonById(id) {
+            const lesson = allLessons.find(l => l.id === id);
+            if(lesson) loadLessonPlayer(lesson);
+        }
+
+        // 영상 플레이어 및 하단 정보 갈아치우기
+        function loadLessonPlayer(lesson) {
+            // 1. 영상 주소 파싱 (유튜브, 비메오 지원)
+            let embedUrl = lesson.video_url;
+            if (embedUrl) {
+                // 유튜브
+                if (embedUrl.includes('youtu.be/')) embedUrl = `https://www.youtube.com/embed/${embedUrl.split('youtu.be/')[1].split('?')[0]}`;
+                else if (embedUrl.includes('youtube.com/watch?v=')) embedUrl = `https://www.youtube.com/embed/${embedUrl.split('v=')[1].split('&')[0]}`;
+                // 비메오
+                else if (embedUrl.includes('vimeo.com/')) embedUrl = `https://player.vimeo.com/video/${embedUrl.split('.com/')[1].split('?')[0]}?title=0&byline=0&portrait=0`;
+            }
+
+            // 2. 플레이어 삽입
+            const vc = document.querySelector('.video-container');
+            if(embedUrl) {
+                vc.innerHTML = `<iframe src="${embedUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;" frameborder="0" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            } else {
+                vc.innerHTML = `<div style="display:flex; height:100%; align-items:center; justify-content:center; color:#fff;">등록된 영상 링크가 없습니다.</div>`;
+            }
+
+            // 3. 영상 제목 텍스트 적용
+            document.querySelector('.current-lesson-title').innerText = lesson.lesson_title;
+            document.querySelector('.lesson-meta').innerText = lesson.section_title;
+
+            // 4. 하단 탭(요약본 & 첨부파일) 내용 새로고침
+            renderNotesTab(lesson.description);
+
+            // 5. 사이드바 활성(파란색) 효과 갱신
+            document.querySelectorAll('.curr-item').forEach(el => {
+                el.classList.remove('active');
+                const svg = el.querySelector('svg');
+                if(svg && el.querySelector('.ci-icon').classList.contains('playing')) {
+                    el.querySelector('.ci-icon').classList.remove('playing');
+                    svg.innerHTML = `<circle cx="12" cy="12" r="10"></circle><path stroke-linecap="round" stroke-linejoin="round" d="M10 8l6 4-6 4z"></path>`;
+                    svg.setAttribute('stroke', '#94a3b8');
+                }
+            });
+            
+            const citem = document.getElementById(`curr-item-${lesson.id}`);
+            if(citem) {
+                citem.classList.add('active');
+                const activeIconWrap = citem.querySelector('.ci-icon');
+                activeIconWrap.classList.add('playing');
+                const svg = activeIconWrap.querySelector('svg');
+                if(svg) {
+                    svg.setAttribute('stroke', '#0ea5e9');
+                    // 재생중 아이콘 형태(음파/정지가 아닌 간단한 체크마크 또는 활성화 형태) 
+                    svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>`;
+                }
+            }
+            
+            // 🔥 진도율 아이콘 원래 상태(완료) 복구 🔥
+            if(typeof updateProgress === 'function') updateProgress();
+            
+            // 🔥 수강 완료 및 다음 버튼 활성화 🔥
+            const currentLessonIndex = allLessons.findIndex(l => l.id === lesson.id);
+            const finishBtn = document.querySelector('.finish-btn');
+            if(finishBtn) {
+                finishBtn.onclick = () => {
+                    markLessonComplete(lesson.id); // 1. 완료 마킹
+                    if(currentLessonIndex + 1 < allLessons.length) {
+                        // 2. 다음 강의 존재 시 이동
+                        loadLessonPlayer(allLessons[currentLessonIndex + 1]);
+                    } else {
+                        // 3. 마지막 강의일 경우
+                        alert("마지막 강의입니다. 모든 과정을 수강하셨습니다! 🎉");
+                    }
+                };
+            }
+        }
+
+        // --- 🌟 강의 수강 완료 처리 및 진도율 업데이트 ---
+        function markLessonComplete(lessonId) {
+            const courseId = new URLSearchParams(window.location.search).get('id');
+            const key = 'completed_lessons_' + courseId;
+            let completed = JSON.parse(localStorage.getItem(key) || '[]');
+            if(!completed.includes(lessonId)) {
+                completed.push(lessonId);
+                localStorage.setItem(key, JSON.stringify(completed));
+            }
+            updateProgress(); // 화면 갱신 호출
+        }
+
+        // --- 🌟 진도율 바 및 아이콘 갱신 기능 ---
+        function updateProgress() {
+            if(!allLessons || allLessons.length === 0) return;
+            const courseId = new URLSearchParams(window.location.search).get('id');
+            const key = 'completed_lessons_' + courseId;
+            let completed = JSON.parse(localStorage.getItem(key) || '[]');
+            
+            // 전체 중 완료된 갯수
+            const realCompleted = completed.filter(id => allLessons.some(l => l.id === id));
+            const pct = Math.round((realCompleted.length / allLessons.length) * 100);
+            
+            const pctText = document.querySelector('.progress-pct');
+            const barFill = document.querySelector('.progress-bar-fill');
+            if(pctText) pctText.innerText = `${pct}% (${realCompleted.length} / ${allLessons.length}강)`;
+            if(barFill) barFill.style.width = pct + '%';
+
+            // 우측 사이드바 각 리스트에 V(체크) 표시 부여
+            realCompleted.forEach(cId => {
+                const citem = document.getElementById(`curr-item-${cId}`);
+                if(citem) {
+                    const iconWrap = citem.querySelector('.ci-icon');
+                    // 현재 재생중(playing)인 항목의 아이콘은 건드리지 않음
+                    if(iconWrap && !iconWrap.classList.contains('playing')) {
+                        iconWrap.classList.remove('locked');
+                        iconWrap.classList.add('played');
+                        iconWrap.style.color = '#10b981'; // 초록색 지정
+                        const svg = iconWrap.querySelector('svg');
+                        if(svg) {
+                            svg.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>`;
+                        }
+                    }
+                }
+            });
+        }
+
+        // [강의 노트 & 자료] 탭 다시 그리기 (요약 설명 + 공통 첨부파일)
+        function renderNotesTab(descText) {
+            const noteTab = document.getElementById('tab-note');
+            let html = '';
+
+            // 챕터 전용 요약 텍스트
+            if (descText && descText.trim() !== '') {
+                html += `
+                <div style="margin-bottom:36px;">
+                    <h3 style="font-size:18px; font-weight:800; margin-bottom:12px; color:#1e293b;">📝 이번 챕터 핵심 요약</h3>
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:20px; font-size:15px; line-height:1.7; color:#475569; white-space:pre-wrap;">${descText}</div>
+                </div>`;
+            }
+
+            // 공통 수업 첨부파일
+            if (allMaterials && allMaterials.length > 0) {
+                html += `<h3 style="font-size:18px; margin-bottom:16px; font-weight:800; color:#1e293b;">📁 스터디 공통 교재 및 자료 다운로드</h3>`;
+                allMaterials.forEach(mat => {
+                    const isLink = mat.material_type === 'link';
+                    const icon = isLink ? '🔗' : '📄';
+                    const dlText = isLink ? '자료 다운로드' : 'PC 다운로드';
+                    const bg = isLink ? '#eff6ff' : '#f0fdf4';
+                    const tx = isLink ? '#3b82f6' : '#16a34a';
+
+                    html += `
+                    <div class="download-card">
+                        <div class="dl-info">
+                            <div class="dl-icon" style="background:${bg}; color:${tx}; font-size:18px;">${icon}</div>
+                            <div class="dl-texts">
+                                <strong>${mat.title}</strong>
+                            </div>
+                        </div>
+                        <button class="dl-btn" onclick="window.open('${mat.file_url}', '_blank')">${dlText}</button>
+                    </div>`;
+                });
+            }
+
+            if(html === '') {
+                html = `<div style="text-align:center; padding:50px 0; color:#94a3b8; font-size:15px;">등록된 핵심 요약이나 수업 배포 자료가 아직 없습니다.</div>`;
+            }
+
+            noteTab.innerHTML = html;
+        }
+
+        // Tab Switch Logic
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            btnElement.classList.add('active');
+            document.getElementById('tab-' + tabId).classList.add('active');
+        }
+
+        // Section Accordion Toggle
+        function toggleSection(element) {
+            const items = element.nextElementSibling;
+            const svg = element.querySelector('svg');
+            if (items.style.display === 'none') {
+                items.style.display = 'block';
+                if(svg) svg.style.transform = 'rotate(0deg)';
+            } else {
+                items.style.display = 'none';
+                if(svg) svg.style.transform = 'rotate(-90deg)';
+            }
+        }
+
+        // Dark Mode Toggle Logic
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('darkIconMoon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>';
+            } else {
+                icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>';
+            }
+        }
+    </script>
+</body>
+</html>

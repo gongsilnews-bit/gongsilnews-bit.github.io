@@ -1,0 +1,437 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script src="admin_darkmode.js"></script>
+    <link rel="stylesheet" href="admin_dark.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스터디관리 - 공실뉴스 Admin</title>
+    <!-- 구글 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- 필요시 사용할 외부 설정 파일 -->
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    
+    <style>
+        :root {
+            --primary-color: #ff9f1c;   /* 스터디 테마에 맞춘 오렌지 포인트 */
+            --primary-hover: #e08b17;
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #e1e4e8;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --filter-bg: #fffbf5; /* 옅은 주황빛 필터박스 */
+            --dark-btn-bg: #4b5563;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px;
+            margin: 0;
+            color: var(--text-main);
+            line-height: 1.5;
+        }
+
+        .admin-card {
+            background-color: var(--bg-card);
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+            padding: 32px;
+            min-height: 800px;
+        }
+
+        /* ── 헤더 ── */
+        .card-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+        .card-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111; }
+        .card-header .count-info { font-size: 13px; color: #666; display: flex; gap: 6px; }
+        .card-header .count-info span { font-weight: 500; }
+        .card-header .count-info span.bold { font-weight: 700; }
+        
+        /* 상태별 텍스트 색상 */
+        .count-publish { color: #16a34a; }
+        .count-draft { color: #d97706; }
+        .count-reject { color: #64748b; }
+
+        /* ── 필터 ── */
+        .filter-container {
+            background-color: var(--filter-bg);
+            border-radius: 6px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            border: 1px solid #fee2e2;
+        }
+        .filter-group { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+
+        .filter-input {
+            padding: 7px 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 13px;
+            background-color: #fff;
+            outline: none;
+            font-family: inherit;
+            color: var(--text-main);
+        }
+        .filter-input:focus { border-color: var(--primary-color); }
+        select.filter-input { cursor: pointer; }
+
+        .btn-search {
+            background-color: var(--dark-btn-bg);
+            color: white; border: none;
+            padding: 7px 14px; border-radius: 4px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; gap: 4px;
+            transition: background 0.15s;
+        }
+        .btn-search:hover { background-color: #374151; }
+
+        .btn-reset {
+            background-color: #fff; color: #666;
+            border: 1px solid #d1d5db;
+            padding: 7px 14px; border-radius: 4px;
+            font-size: 13px; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-reset:hover { background-color: #f9fafb; }
+
+        /* ── 액션 바 ── */
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .left-actions { display: flex; gap: 6px; align-items: center; }
+
+        .btn {
+            padding: 6px 12px; font-size: 13px; font-weight: 500;
+            border-radius: 4px; border: 1px solid #d1d5db;
+            background: #fff; cursor: pointer;
+            display: inline-flex; align-items: center; gap: 4px;
+            color: #333; transition: background 0.15s;
+        }
+        .btn:hover { background-color: #f3f4f6; }
+
+        /* 버튼 컬러를 오렌지 포인트로 유지 */
+        .btn-write {
+            background-color: var(--primary-color); color: white;
+            border: none; padding: 8px 18px;
+            font-weight: 700; font-size: 13px;
+            display: inline-flex; align-items: center; gap: 4px;
+            border-radius: 4px; transition: background 0.15s;
+            cursor: pointer;
+        }
+        .btn-write:hover { background-color: var(--primary-hover); }
+
+        /* ── 테이블 ── */
+        .table-container { width: 100%; overflow-x: auto; border-top: 2px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 900px; }
+        th { background-color: #fafafa; border-bottom: 1px solid #e5e7eb; padding: 12px 10px; font-weight: 700; color: #333; text-align: center; white-space: nowrap; }
+        td { padding: 14px 10px; border-bottom: 1px solid #f1f3f5; text-align: center; vertical-align: middle; color: #444; }
+        tr:hover td { background-color: #fff7ed; }
+
+        .cell-title { text-align: left; font-weight: 600; color: #111; cursor: pointer; }
+        .cell-title:hover { text-decoration: underline; color: var(--primary-color); }
+        .cell-price { font-weight: 600; color: #ea580c; } /* 가격 포인트 컬러 */
+
+        /* ── 상태 배지 ── */
+        .badge-status {
+            display: inline-block; padding: 4px 12px; border-radius: 4px;
+            font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap;
+        }
+        .status-published  { background-color: #16a34a; } /* 판매중 */
+        .status-draft   { background-color: #fbbf24; } /* 임시저장 */
+        .status-hidden  { background-color: #64748b; } /* 숨김 */
+
+        /* ── 관리 버튼 ── */
+        .btn-edit {
+            padding: 3px 6px; font-size: 11px; border-radius: 3px;
+            border: 1px solid #d1d5db; background: #fff; cursor: pointer;
+            color: #333; font-weight: 500; transition: background 0.1s; margin-right: 4px;
+        }
+        .btn-edit:hover { background: #f3f4f6; }
+        .btn-delete {
+            padding: 3px 6px; font-size: 11px; border-radius: 3px;
+            border: 1px solid #fecaca; background: #fff; cursor: pointer;
+            color: #dc2626; font-weight: 500; transition: background 0.1s;
+        }
+        .btn-delete:hover { background: #fef2f2; }
+
+        /* ── 페이지네이션 ── */
+        .pagination { display: flex; justify-content: center; margin-top: 32px; gap: 4px; }
+        .page-link {
+            width: 32px; height: 32px;
+            display: flex; justify-content: center; align-items: center;
+            border: 1px solid #d1d5db; border-radius: 4px;
+            font-size: 13px; color: #666; text-decoration: none;
+            background: #fff; cursor: pointer; transition: background 0.12s;
+        }
+        .page-link:hover { background-color: #f3f4f6; }
+        .page-link.active { background-color: var(--dark-btn-bg); color: #fff; border-color: var(--dark-btn-bg); }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <!-- 타이틀 영역 -->
+    <div class="card-header">
+        <h2>스터디목록 (강의관리)</h2>
+        <div class="count-info">
+            ( <span class="count-publish">판매중 <span class="bold" id="cntPublish">2</span>건</span> / 
+            <span class="count-draft">임시저장 <span class="bold" id="cntDraft">1</span>건</span> / 
+            <span class="count-reject">숨김처리 <span class="bold" id="cntHidden">0</span>건</span> )
+        </div>
+    </div>
+
+    <!-- 검색/필터 영역 -->
+    <div class="filter-container">
+        <div class="filter-group">
+            <span class="filter-label">진행상황</span>
+            <select class="filter-input" id="filterStatus">
+                <option value="all">전체</option>
+                <option value="published">판매중</option>
+                <option value="draft">임시저장</option>
+                <option value="hidden">숨김처리</option>
+            </select>
+        </div>
+        
+        <div class="filter-group" style="flex:1;">
+            <input type="text" id="filterKeyword" class="filter-input" placeholder="강의명을 검색하세요." style="width: 100%; max-width: 300px;">
+        </div>
+
+        <button class="btn-search" onclick="applyFilters()">🔍 검색</button>
+        <button class="btn-reset" onclick="resetFilters()">초기화</button>
+    </div>
+
+    <!-- 액션 및 유틸 버튼 영역 -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <!-- 🌟 핵심: 클릭 시 방금 작업한 study_write.html 로 이동 -->
+            <button onclick="window.parent.loadPage(null, '새 강의 등록', 'study_write.html')" class="btn-write">+ 새 강의 등록</button>
+            <button class="btn" onclick="deleteSelectedCourses()">🗑️ 선택삭제</button>
+        </div>
+    </div>
+
+    <!-- 테이블 리스트 -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40px;"><input type="checkbox" id="checkAll" onchange="toggleAll(this)"></th>
+                    <th style="width: 100px;">공개상태</th>
+                    <th>강의명</th>
+                    <th style="width: 140px;">수강료(포인트)</th>
+                    <th style="width: 150px;">최초등록일</th>
+                    <th style="width: 90px;">관리</th>
+                </tr>
+            </thead>
+            <tbody id="studyTableBody">
+                <tr><td colspan="6" style="text-align:center; padding: 50px 0; color:#9ca3af;">데이터를 불러오는 중입니다...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- 페이징 마크업 -->
+    <div class="pagination" id="paginationArea">
+        <a href="#" class="page-link" style="border:none;" onclick="return false;">&lt;</a>
+        <span id="pageLinks" style="display:flex; gap:4px;">
+            <a href="#" class="page-link active">1</a>
+        </span>
+        <a href="#" class="page-link" style="border:none;" onclick="return false;">&gt;</a>
+    </div>
+</div>
+
+<script>
+    // 전역 상태 변수 (검색 및 페이징)
+    let currentPage = 1;
+    const pageSize = 10;
+    let currentStatus = 'all';
+    let currentKeyword = '';
+
+    // 전체 선택/토글
+    function toggleAll(chk) {
+        document.querySelectorAll('.row-check').forEach(function(c){ c.checked = chk.checked; });
+    }
+
+    // 🌟 필터 적용 (검색 버튼 클릭)
+    function applyFilters() {
+        currentStatus = document.getElementById('filterStatus').value;
+        currentKeyword = document.getElementById('filterKeyword').value.trim();
+        currentPage = 1; // 검색 시 항상 1페이지로 돌아감
+        loadCourses();
+    }
+
+    // 🌟 초기화 (초기화 버튼 클릭)
+    function resetFilters() {
+        document.getElementById('filterStatus').value = 'all';
+        document.getElementById('filterKeyword').value = '';
+        currentStatus = 'all';
+        currentKeyword = '';
+        currentPage = 1;
+        loadCourses();
+    }
+
+    // 🌟 Supabase 연동: 실제 강의 데이터 불러오기 🌟
+    document.addEventListener("DOMContentLoaded", () => {
+        // 엔터키 검색 이벤트 연결
+        document.getElementById('filterKeyword').addEventListener('keypress', function(e) {
+            if(e.key === 'Enter') applyFilters();
+        });
+        
+        loadCourses();
+    });
+
+    async function loadCourses() {
+        const sb = window.gongsiClient;
+        if (!sb) {
+            document.getElementById('studyTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color:red;">[오류] 데이터베이스(Supabase) 설정이 연결되지 않았습니다.</td></tr>`;
+            return;
+        }
+
+        try {
+            // 로딩 상태 표시
+            document.getElementById('studyTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 50px 0; color:#9ca3af;">데이터를 불러오는 중입니다...</td></tr>`;
+
+            // 1. 전체 데이터 개수 (count) 가져오기 (필터 적용)
+            let queryCount = sb.from('study_courses').select('*', { count: 'exact', head: true });
+            if (currentStatus !== 'all') queryCount = queryCount.eq('status', currentStatus);
+            if (currentKeyword !== '') queryCount = queryCount.ilike('title', `%${currentKeyword}%`);
+            
+            const { count, error: countError } = await queryCount;
+            if (countError) throw countError;
+
+            // 2. 실제 데이터 페이징 조회 (limit, offset 방식)
+            const from = (currentPage - 1) * pageSize;
+            const to = from + pageSize - 1;
+
+            let queryData = sb.from('study_courses').select('*').order('created_at', { ascending: false }).range(from, to);
+            
+            // 필터 추가
+            if (currentStatus !== 'all') queryData = queryData.eq('status', currentStatus);
+            if (currentKeyword !== '') queryData = queryData.ilike('title', `%${currentKeyword}%`);
+
+            const { data, error } = await queryData;
+            if (error) throw error;
+
+            const tbody = document.getElementById('studyTableBody');
+
+            // 총 N건 숫자 연동
+            const countHeader = document.querySelector('.card-header .count-info span');
+            if(countHeader) countHeader.innerText = `총 ${count}건`;
+            
+            if (!data || data.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 50px 0; color:#64748b; font-weight:600;">조건에 맞는 등록된 강의가 없습니다.</td></tr>`;
+                renderPagination(0);
+                return;
+            }
+
+            let html = '';
+            data.forEach(course => {
+                const dateText = new Date(course.created_at).toLocaleString('ko-KR', {
+                    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+                });
+
+                let badgeHtml = '';
+                if(course.status === 'published') badgeHtml = '<span class="badge-status status-published">판매중</span>';
+                else if(course.status === 'draft') badgeHtml = '<span class="badge-status status-draft">임시저장</span>';
+                else if(course.status === 'pending') badgeHtml = '<span class="badge-status" style="background:#3b82f6;">승인대기</span>';
+                else badgeHtml = '<span class="badge-status status-hidden">숨김처리</span>';
+
+                const viewUrl = `study_view.html?id=${course.id}`;
+                const editUrl = `study_write.html?id=${course.id}`;
+                const priceText = course.price > 0 ? course.price.toLocaleString() + ' P' : '무료강의';
+
+                html += `
+                    <tr>
+                      <td onclick="event.stopPropagation()"><input type="checkbox" class="row-check" value="${course.id}"></td>
+                      <td>${badgeHtml}</td>
+                      <td class="cell-title" onclick="window.parent.loadPage(null, '강의상세보기', '${viewUrl}')" style="cursor:pointer; font-weight:700;">
+                        ${course.title}
+                      </td>
+                      <td class="cell-price">${priceText}</td>
+                      <td class="date-text" style="font-size:12px;">${dateText}</td>
+                      <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                          <button class="btn-edit" onclick="window.parent.loadPage(null, '강의수정', '${editUrl}')">수정</button>
+                          <button class="btn-delete" onclick="deleteCourse('${course.id}')">삭제</button>
+                      </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html;
+            renderPagination(count);
+
+        } catch (e) {
+            console.error("데이터 로드 실패", e);
+            document.getElementById('studyTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 40px; color:red;">데이터 통신 중 오류가 발생했습니다.<br>${e.message}</td></tr>`;
+        }
+    }
+
+    // 🌟 하단 페이징 렌더링 로직 (현재 1~3, 이전/다음)
+    function renderPagination(totalCount) {
+        const totalPages = Math.ceil(totalCount / pageSize) || 1;
+        const pageLinks = document.getElementById('pageLinks');
+        const prevBtn = document.querySelector('.pagination .page-link:first-child');
+        const nextBtn = document.querySelector('.pagination .page-link:last-child');
+
+        // 이전/다음 버튼 이벤트 덮어쓰기 로직
+        prevBtn.onclick = (e) => { e.preventDefault(); if(currentPage > 1) { currentPage--; loadCourses(); } };
+        nextBtn.onclick = (e) => { e.preventDefault(); if(currentPage < totalPages) { currentPage++; loadCourses(); } };
+
+        // 페이지 번호 생성
+        let pHtml = '';
+        for(let i=1; i<=totalPages; i++){
+            if(i === currentPage) {
+                pHtml += `<a href="#" class="page-link active" onclick="event.preventDefault()">${i}</a>`;
+            } else {
+                pHtml += `<a href="#" class="page-link" onclick="event.preventDefault(); currentPage=${i}; loadCourses();">${i}</a>`;
+            }
+        }
+        pageLinks.innerHTML = pHtml;
+    }
+
+    // 🌟 완전 삭제(Delete) 로직
+    async function deleteCourse(id) {
+        if(!confirm("⚠️ 경고: 정말로 이 강의를 삭제하시겠습니까?\\n(강의에 등록된 목차, 영상, 첨부파일 등 모든 정보가 함께 영구삭제됩니다.)")) return;
+        const sb = window.gongsiClient;
+        const { error } = await sb.from('study_courses').delete().eq('id', id);
+        if(error) {
+            alert("삭제 중 서버 통신 에러가 발생했습니다: " + error.message);
+        } else {
+            alert("강의가 삭제되었습니다.");
+            loadCourses(); 
+        }
+    }
+
+    // 🌟 선택삭제 일괄처리 로직
+    async function deleteSelectedCourses() {
+        const checked = Array.from(document.querySelectorAll('.row-check:checked')).map(chk => chk.value);
+        if (checked.length === 0) {
+            alert("삭제할 강의를 먼저 체크박스에 선택해주세요.");
+            return;
+        }
+
+        if(!confirm(`⚠️ 선택하신 총 ${checked.length}개의 강의를 일괄 영구 삭제하시겠습니까?`)) return;
+
+        const sb = window.gongsiClient;
+        // Supabase에서 in() 을 사용해 여러 ID 한 번에 삭제
+        const { error } = await sb.from('study_courses').delete().in('id', checked);
+        
+        if (error) {
+            alert("일괄 삭제 처리 중 오류가 발생했습니다: " + error.message);
+        } else {
+            alert(`${checked.length}건이 성공적으로 삭제되었습니다.`);
+            document.getElementById('checkAll').checked = false; // 상단 전체선택 박스 해제
+            currentPage = 1; // 1페이지로 새로고침
+            loadCourses();
+        }
+    }
+</script>
+
+</body>
+</html>

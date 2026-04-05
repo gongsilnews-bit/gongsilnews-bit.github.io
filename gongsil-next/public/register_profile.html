@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>가입 마무리 - 공실뉴스</title>
+    <!-- 구글 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    <link rel="stylesheet" href="style.css">
+    <!-- 이미지 압축 라이브러리 추가 -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js"></script>
+    <script src="base_path.js"></script>
+    <script src="supabase_gongsi_config.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #ff9f1c; /* 공실뉴스 오렌지 */
+            --secondary-color: #1a73e8; /* 부동산회원 블루 */
+            --bg-color: #f8fafc;
+            --card-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+        html, body {
+            overflow: auto !important;
+            height: auto !important;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            font-family: 'Pretendard Variable', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start; /* 중앙 정렬 대신 상단 시작으로 변경하여 클리핑 방지 */
+            min-height: 100vh;
+            margin: 0;
+            padding: 40px 20px;
+            box-sizing: border-box;
+        }
+
+        .reg-card {
+            background: #fff;
+            width: 100%;
+            max-width: 480px;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .reg-header {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .reg-header img {
+            height: 32px;
+            margin-bottom: 15px;
+        }
+
+        .reg-header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #1a1a1b;
+            margin: 0;
+        }
+
+        .reg-header p {
+            font-size: 14px;
+            color: #64748b;
+            margin-top: 8px;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+            transition: all 0.2s;
+            background: #fdfdfd;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: #fff;
+            box-shadow: 0 0 0 4px rgba(255, 159, 28, 0.1);
+        }
+
+        /* 역할 선택 버튼 (토글) */
+        .role-selector {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .role-btn {
+            flex: 1;
+            padding: 14px;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 12px;
+            background: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .role-btn .role-icon { font-size: 20px; display: block; margin-bottom: 4px; }
+        .role-btn .role-text { font-size: 13px; font-weight: 700; color: #64748b; }
+
+        .role-btn.active[data-role="general"] {
+            border-color: var(--primary-color);
+            background: #fff8f1;
+        }
+        .role-btn.active[data-role="general"] .role-text { color: var(--primary-color); }
+
+        .role-btn.active[data-role="realtor"] {
+            border-color: var(--secondary-color);
+            background: #f0f7ff;
+        }
+        .role-btn.active[data-role="realtor"] .role-text { color: var(--secondary-color); }
+
+        /* 부동산 전용 폼 (그리드 레이아웃 적용) */
+        #realtorFields {
+            display: none;
+            background: #f8fafc;
+            padding: 24px;
+            border-radius: 14px;
+            margin-bottom: 25px;
+            border: 1px solid #e2e8f0;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .realtor-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .form-group-full {
+            grid-column: span 2;
+        }
+
+        .address-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .btn-address {
+            padding: 0 16px;
+            background: #333d4b;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* 파일 업로드 스타일 */
+        .file-upload-box {
+            border: 1.5px dashed #cbd5e1;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            background: #fff;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .file-upload-box:hover { border-color: var(--secondary-color); background: #f0f7ff; }
+        .file-upload-box input { position: absolute; top:0; left:0; width:100%; height:100%; opacity: 0; cursor: pointer; }
+        .file-preview { margin-top: 10px; font-size: 12px; color: #1a73e8; font-weight: bold; display: none; }
+
+        /* 동의 영역 */
+        .terms-area {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 20px;
+            margin-bottom: 30px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            color: #475569;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .checkbox-label input { width: 16px; height: 16px; accent-color: var(--primary-color); cursor: pointer; margin-top: 2px; }
+
+        /* 제출 버튼 */
+        .btn-finish {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary-color);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(255, 159, 28, 0.2);
+        }
+
+        .btn-finish:hover {
+            background: #e68a00;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(255, 159, 28, 0.3);
+        }
+
+        .btn-finish:disabled {
+            background: #cbd5e1;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* 로딩 오버레이 */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: none; align-items: center; justify-content: center;
+            z-index: 10000; flex-direction: column; gap: 15px;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%; animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="reg-card">
+        <div class="reg-header">
+            <img src="logo.png" alt="공실뉴스">
+            <h1>딱 한 단계만 더!</h1>
+            <p>공실뉴스 서비스를 위해 필수 정보를 입력해 주세요.</p>
+        </div>
+
+        <form id="profileForm">
+            <!-- 기본 정보 -->
+            <div class="form-group">
+                <label class="form-label">이름 <span style="color:red">*</span></label>
+                <input type="text" id="userName" class="form-control" placeholder="성함을 입력하세요" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">이메일 (확인전용)</label>
+                <input type="email" id="userEmail" class="form-control" readonly style="background:#f1f5f9; color:#64748b;">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">연락처 <span style="color:red">*</span></label>
+                <input type="tel" id="userPhone" class="form-control" placeholder="010-0000-0000" required>
+            </div>
+
+            <!-- 역할 선택 -->
+            <label class="form-label">활동 유형 <span style="color:red">*</span></label>
+            <div class="role-selector">
+                <div class="role-btn active" data-role="general" onclick="selectRole('general')">
+                    <span class="role-icon">👤</span>
+                    <span class="role-text">일반 회원</span>
+                </div>
+                <div class="role-btn" data-role="realtor" onclick="selectRole('realtor')">
+                    <span class="role-icon">🏘️</span>
+                    <span class="role-text">부동산 회원</span>
+                </div>
+            </div>
+            <input type="hidden" id="userRole" value="general">
+
+            <!-- 부동산 전용 필드 -->
+            <div id="realtorFields">
+                <h3 style="font-size: 14px; margin-top: 0; margin-bottom: 20px; color:#1e293b; border-bottom: 1.5px solid #e2e8f0; padding-bottom: 10px;">🏢 부동산 / 기업 정보 입력</h3>
+                
+                <div class="realtor-form-grid">
+                    <div class="form-group">
+                        <label class="form-label">상호명 <span style="color:red">*</span></label>
+                        <input type="text" id="companyName" class="form-control realtor-req" placeholder="예: 공실뉴스 부동산중개">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">중개등록번호 <span style="color:red">*</span></label>
+                        <input type="text" id="companyRegNo" class="form-control realtor-req" placeholder="중개등록번호 입력">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">대표자명 <span style="color:red">*</span></label>
+                        <input type="text" id="ceoName" class="form-control realtor-req" placeholder="대표자 성함">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">사업자등록번호 <span style="color:red">*</span></label>
+                        <input type="text" id="bizRegNo" class="form-control realtor-req" placeholder="000-00-00000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">일반번호 <span style="color:red">*</span></label>
+                        <input type="tel" id="telNum" class="form-control realtor-req" placeholder="02-000-0000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">휴대번호 <span style="color:red">*</span></label>
+                        <input type="tel" id="cellNum" class="form-control realtor-req" placeholder="010-0000-0000">
+                    </div>
+
+                    <div class="form-group form-group-full">
+                        <label class="form-label">부동산 주소 <span style="color:red">*</span></label>
+                        <div class="address-group">
+                            <input type="text" id="zipcode" class="form-control realtor-req" placeholder="우편번호" readonly style="flex: 1;">
+                            <button type="button" class="btn-address" onclick="execDaumPostcode()">주소 찾기</button>
+                        </div>
+                        <input type="text" id="address" class="form-control realtor-req" placeholder="기본 주소" readonly style="margin-bottom: 8px;">
+                        <input type="text" id="addressDetail" class="form-control realtor-req" placeholder="상세 주소를 입력하세요">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">사업자등록증 첨부 <span style="color:red">*</span></label>
+                        <div class="file-upload-box">
+                            <span style="font-size: 11px; color:#64748b;">파일 선택 (사진)</span>
+                            <input type="file" id="licenseFile" class="realtor-req" accept="image/*">
+                            <div id="filePreview" class="file-preview">📄 선택됨</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">중개등록증 첨부 <span style="color:red">*</span></label>
+                        <div class="file-upload-box">
+                            <span style="font-size: 11px; color:#64748b;">파일 선택 (사진)</span>
+                            <input type="file" id="brokerLicenseFile" class="realtor-req" accept="image/*">
+                            <div id="brokerFilePreview" class="file-preview">📄 선택됨</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 약관 동의 -->
+            <div class="terms-area">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chkTerms" required>
+                    <span><strong>[필수]</strong> 공실뉴스 서비스 이용약관 동의</span>
+                </label>
+                <label class="checkbox-label">
+                    <input type="checkbox" id="chkPrivacy" required>
+                    <span><strong>[필수]</strong> 개인정보 수집 및 이용 방침 동의</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-finish" id="btnSubmit">공실뉴스 시작하기 ✨</button>
+        </form>
+    </div>
+
+    <!-- 로딩 -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="spinner"></div>
+        <p id="loadingText" style="font-weight: bold; color: #333;">정보 저장 중...</p>
+    </div>
+
+    <script type="module">
+        const supabase = window.gongsiClient;
+        let selectedFile = null;
+
+        window.addEventListener('load', async () => {
+            // 1. 현재 세션 확인
+            const { data: { session } } = await supabase.auth.getSession();
+            if(!session) {
+                alert("로그인이 필요한 페이지입니다.");
+                window.location.href = window.BASE_PATH + '/';
+                return;
+            }
+
+            const user = session.user;
+            document.getElementById('userEmail').value = user.email;
+            document.getElementById('userName').value = user.user_metadata?.full_name || '';
+
+            // 2. 이미 가입된 회원인지 확인 (중복 가입 방지)
+            const { data: existingUser } = await supabase
+                .from('members')
+                .select('id')
+                .eq('id', user.id)
+                .maybeSingle();
+            
+            if(existingUser) {
+                // 이미 가입된 경우 메인으로 리다이렉트
+                window.location.href = window.BASE_PATH + '/';
+            }
+        });
+
+        // 역할 선택 함수
+        window.selectRole = function(role) {
+            document.getElementById('userRole').value = role;
+            const btns = document.querySelectorAll('.role-btn');
+            btns.forEach(b => b.classList.remove('active'));
+            document.querySelector(`.role-btn[data-role="${role}"]`).classList.add('active');
+
+            const realtorFields = document.getElementById('realtorFields');
+            const realtorInputs = document.querySelectorAll('.realtor-req');
+            
+            if(role === 'realtor') {
+                realtorFields.style.display = 'block';
+                document.getElementById('btnSubmit').textContent = '부동산 가입 신청하기 🚀';
+                realtorInputs.forEach(input => input.required = true);
+            } else {
+                realtorFields.style.display = 'none';
+                document.getElementById('btnSubmit').textContent = '공실뉴스 시작하기 ✨';
+                realtorInputs.forEach(input => {
+                    input.required = false;
+                    input.value = ''; // 초기화
+                });
+            }
+        }
+
+        // 주소 검색 함수
+        window.execDaumPostcode = function() {
+            new daum.Postcode({
+                oncomplete: function(data) {
+                    var addr = '';
+                    if (data.userSelectedType === 'R') { addr = data.roadAddress; } 
+                    else { addr = data.jibunAddress; }
+                    document.getElementById('zipcode').value = data.zonecode;
+                    document.getElementById("address").value = addr;
+                    document.getElementById("addressDetail").focus();
+                }
+            }).open();
+        }
+
+        // 파일 선택 시 미리보기 처리
+        const licenseInput = document.getElementById('licenseFile');
+        licenseInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                document.getElementById('filePreview').style.display = 'block';
+                document.getElementById('filePreview').textContent = `📄 ${file.name} (대기중)`;
+            }
+        });
+
+        const brokerLicenseInput = document.getElementById('brokerLicenseFile');
+        brokerLicenseInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(file) {
+                document.getElementById('brokerFilePreview').style.display = 'block';
+                document.getElementById('brokerFilePreview').textContent = `📄 ${file.name} (대기중)`;
+            }
+        });
+
+        // 폼 제출
+        document.getElementById('profileForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const { data: { session } } = await supabase.auth.getSession();
+            if(!session) return;
+            const user = session.user;
+
+            const name = document.getElementById('userName').value;
+            const phone = document.getElementById('userPhone').value;
+            const role = document.getElementById('userRole').value;
+            const status = role === 'realtor' ? 'pending' : 'active'; // 부동산은 승인 대기
+
+            showLoading("회원 정보를 등록하고 있습니다...");
+
+            try {
+                let licenseUrl = null;
+                let brokerLicenseUrl = null;
+
+                // 1. 부동산 회원의 경우 사진 업로드
+                if(role === 'realtor') {
+                    const lFile = document.getElementById('licenseFile').files[0];
+                    const bFile = document.getElementById('brokerLicenseFile').files[0];
+
+                    if (lFile) {
+                        showLoading("사업자등록증 사진을 업로드 중...");
+                        const options = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+                        const compressed = await imageCompression(lFile, options);
+                        const fileName = `${user.id}/${Date.now()}_license.${compressed.name.split('.').pop()}`;
+                        const { error: uploadError } = await supabase.storage.from('member_documents').upload(fileName, compressed);
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = supabase.storage.from('member_documents').getPublicUrl(fileName);
+                        licenseUrl = publicUrl;
+                    }
+
+                    if (bFile) {
+                        showLoading("중개등록증 사진을 업로드 중...");
+                        const options = { maxSizeMB: 1, maxWidthOrHeight: 1280, useWebWorker: true };
+                        const compressed = await imageCompression(bFile, options);
+                        const fileName = `${user.id}/${Date.now()}_broker_license.${compressed.name.split('.').pop()}`;
+                        const { error: uploadError } = await supabase.storage.from('member_documents').upload(fileName, compressed);
+                        if (uploadError) throw uploadError;
+                        const { data: { publicUrl } } = supabase.storage.from('member_documents').getPublicUrl(fileName);
+                        brokerLicenseUrl = publicUrl;
+                    }
+                }
+
+                // 2. members 테이블에 저장
+                const memberData = {
+                    id: user.id,
+                    email: user.email,
+                    role: 'general', // 실제 권한은 관리자 승인 후 변경
+                    name: name,
+                    phone: phone,
+                    status: status,
+                    created_at: new Date().toISOString()
+                };
+
+                if (role === 'realtor') {
+                    memberData.company_name = document.getElementById('companyName').value;
+                    memberData.company_reg_no = document.getElementById('companyRegNo').value;
+                    memberData.ceo_name = document.getElementById('ceoName').value;
+                    memberData.biz_reg_no = document.getElementById('bizRegNo').value;
+                    memberData.tel_num = document.getElementById('telNum').value;
+                    memberData.cell_num = document.getElementById('cellNum').value;
+                    memberData.zipcode = document.getElementById('zipcode').value;
+                    memberData.address = document.getElementById('address').value;
+                    memberData.address_detail = document.getElementById('addressDetail').value;
+                    memberData.license_image = licenseUrl;
+                    memberData.license_image_brokerage = brokerLicenseUrl;
+                }
+
+                const { error: insertError } = await supabase
+                    .from('members')
+                    .insert([memberData]);
+
+                if (insertError) throw insertError;
+
+                hideLoading();
+
+                if(role === 'realtor') {
+                    alert("가입 신청이 완료되었습니다! 관리자 승인(최대 24시간) 후 부동산 회원 권한이 부여됩니다.");
+                } else {
+                    alert("반갑습니다! 공실뉴스 가입이 완료되었습니다.");
+                }
+
+                window.location.href = window.BASE_PATH + '/';
+
+            } catch (err) {
+                hideLoading();
+                console.error("가입 오류:", err);
+                alert("처리 중 오류가 발생했습니다: " + err.message);
+            }
+        });
+
+        function showLoading(text) {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingText').textContent = text;
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

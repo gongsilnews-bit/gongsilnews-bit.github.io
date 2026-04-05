@@ -1,0 +1,633 @@
+﻿<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <script src="admin_darkmode.js"></script>
+    <link rel="stylesheet" href="admin_dark.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>고객관리 - 공실뉴스 Admin</title>
+    <!-- 구글 폰트 적용 (Pretendard) -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/variable/pretendardvariable.css" />
+    
+    <style>
+        :root {
+            --primary-color: #ff9f1c; /* 공실관리와 동일한 테마 */
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #e1e4e8;
+            --text-main: #333333;
+            --text-sub: #666666;
+            --blue-filter-bg: #f0f4fc;
+            --dark-btn-bg: #4b5563;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Pretendard Variable', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+            background-color: var(--bg-body);
+            padding: 24px; margin: 0; color: var(--text-main); line-height: 1.5;
+        }
+
+        .admin-card { background-color: var(--bg-card); border-radius: 10px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); padding: 32px; min-height: 800px; }
+
+        /* HEADER */
+        .card-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 24px; }
+        .card-header h2 { margin: 0; font-size: 1.25rem; font-weight: 700; color: #111; }
+        .card-header .count-info { font-size: 13px; color: #666; }
+        .card-header .count-info .ad-count { color: var(--primary-color); font-weight: 700; }
+        .card-header .count-info .total-count { color: #333; font-weight: 700; }
+
+        /* FILTER */
+        .filter-container { background-color: var(--blue-filter-bg); border-radius: 6px; padding: 18px 20px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+        .filter-group { display: flex; align-items: center; gap: 6px; }
+        .filter-label { font-size: 13px; font-weight: 600; color: #555; white-space: nowrap; }
+        .filter-input { padding: 7px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; background-color: #fff; outline: none; font-family: inherit; color: var(--text-main); }
+        .filter-input:focus { border-color: #4285f4; }
+        .filter-divider { width: 1px; height: 24px; background-color: #d1d5db; margin: 0 4px; }
+        
+        .btn-search { background-color: var(--dark-btn-bg); color: white; border: none; padding: 7px 14px; border-radius: 4px; font-size: 13px; font-weight: 600; cursor: pointer; transition: background 0.15s; font-family: inherit; display:flex; align-items:center;}
+        .btn-search:hover { background-color: #374151; }
+        .btn-reset { background-color: #fff; color: #666; border: 1px solid #d1d5db; padding: 7px 14px; border-radius: 4px; font-size: 13px; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+        .btn-reset:hover { background-color: #f9fafb; }
+
+        /* ACTION BAR */
+        .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .left-actions { display: flex; gap: 6px; }
+        .btn { padding: 6px 12px; font-size: 13px; font-weight: 500; border-radius: 4px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; color: #333; transition: background 0.15s; font-family: inherit; display: inline-flex; align-items: center; gap: 4px; }
+        .btn:hover { background-color: #f3f4f6; }
+        .btn-primary { background-color: #4285f4; color: white; border: none; padding: 8px 18px; font-weight: 700; font-size: 13px; }
+        .btn-primary:hover { background-color: #3367d6; }
+
+        /* TABLE */
+        .table-container { width: 100%; overflow-x: auto; border-top: 2px solid #333; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 1050px; }
+        th { background-color: #fafafa; border-bottom: 1px solid #e5e7eb; padding: 12px 8px; font-weight: 700; color: #333; text-align: center; white-space: nowrap; }
+        td { padding: 14px 8px; border-bottom: 1px solid #f1f3f5; text-align: center; vertical-align: middle; color: #444; }
+        tr:hover td { background-color: #fafcff; }
+
+        /* BADGES */
+        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; color: #fff; }
+        .status-new { background-color: #4285f4; }
+        .status-progress { background-color: #f59e0b; }
+        .status-done { background-color: #10b981; }
+        .status-hold { background-color: #9ca3af; }
+
+        .type-badge { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 700; color: #fff; background: #2b6cb0; }
+        .type-landlord { background: #c05621; } /* 임대인/매도인 계열 테마 */
+
+        .contact-row { font-weight: 700; font-size: 13px; color: #111; margin-bottom: 4px; }
+        .contact-num { font-size: 12px; color: #666; cursor: pointer; color: #2b6cb0; font-weight: bold; } /* 딥링크용 색상 */
+        .contact-num:hover { text-decoration: underline; }
+        
+        .recent-memo { font-size: 12px; color: #555; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-align: left; background: #f9fafb; padding: 6px; border-radius: 4px; text-decoration: none !important;}
+
+        .cell-actions { display: flex; gap: 4px; justify-content: center; }
+        .btn-action { padding: 3px 6px; font-size: 11px; border-radius: 3px; border: 1px solid #d1d5db; background: #fff; cursor: pointer; color: #333; font-weight: 500; font-family: inherit; }
+        .btn-action:hover { background: #f3f4f6; }
+        .btn-delete { color: #dc2626; border-color: #fecaca; }
+        .btn-delete:hover { background: #fef2f2; }
+
+        /* CUSTOMER EXCLUSIVE MODAL (스마트 매칭 + 일관성 유지) */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-window { background: #fff; width: 850px; max-width: 95%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); display: flex; flex-direction: column; overflow: hidden; font-family: inherit; max-height: 90vh; }
+        .modal-header { background: #2c303f; color: #fff; padding: 16px 20px; font-size: 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
+        .modal-close { cursor: pointer; font-size: 20px; opacity:0.8; }
+        .modal-close:hover { opacity:1; }
+        
+        .modal-body-split { display: flex; flex: 1; overflow: hidden; }
+        
+        .modal-left { flex: 1.5; padding: 24px; overflow-y: auto; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 12px; font-weight: 700; color: #555; margin-bottom: 6px; }
+        .form-input { width: 100%; padding: 8px 10px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 13px; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-color: #4285f4; }
+        .form-row { display: flex; gap: 10px; }
+        .form-row .form-group { flex: 1; }
+
+        /* Timeline in left panel */
+        .timeline-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px; }
+        .timeline-title { font-size: 13px; font-weight: bold; color: #111; margin-bottom: 10px; }
+        .timeline-box { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; padding: 10px; min-height: 80px; max-height: 180px; overflow-y: auto; margin-bottom: 10px; }
+        .timeline-item { font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #e5e7eb; }
+        .timeline-item:last-child { border-bottom: none; }
+        .timeline-date { color: #888; font-size: 10px; display: block; margin-bottom: 2px; }
+        .timeline-add { display: flex; gap: 5px; }
+        .timeline-input { flex: 1; padding: 6px; font-size: 12px; border: 1px solid #d1d5db; border-radius: 4px; outline: none; }
+        .timeline-btn { background: #4285f4; color: white; border: none; border-radius: 4px; padding: 0 12px; font-size: 11px; cursor: pointer; }
+
+        .modal-right { flex: 1; background: #fafafa; border-left: 1px solid #e5e7eb; padding: 24px; overflow-y: auto; }
+        .ai-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .ai-title { font-size: 14px; font-weight: 700; color: #111; display: flex; align-items: center; gap: 6px; margin: 0; }
+        .ai-refresh { font-size: 11px; color: #666; background: #fff; border: 1px solid #ddd; padding: 3px 6px; border-radius: 4px; cursor: pointer; }
+        .ai-refresh:hover { background: #f0f0f0; }
+        .match-score-badge { display: inline-block; background: #dcfce7; color: #166534; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 10px; margin-bottom: 4px; }
+        
+        .match-card { background: #fff; border: 1px solid #e1e4e8; border-radius: 6px; padding: 12px; margin-bottom: 10px; cursor: pointer; transition: 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .match-card:hover { border-color: #4285f4; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transform: translateY(-1px); }
+        .match-img-wrap { display: flex; gap: 10px; margin-bottom: 6px; }
+        .match-img-wrap img { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; background: #eee; flex-shrink: 0; }
+        .match-info-top { flex: 1; min-width: 0; }
+        .match-addr { font-size: 12px; font-weight: bold; color: #111; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 2px; }
+        .match-price { font-size: 13px; font-weight: bold; color: #2b6cb0; margin-bottom: 2px; }
+        .match-spec { font-size: 11px; color: #666; }
+        .match-actions { display: flex; gap: 4px; margin-top: 8px; }
+        .btn-match-action { flex: 1; padding: 5px 0; text-align: center; border: 1px solid #d1d5db; background: #f9fafb; font-size: 11px; border-radius: 4px; cursor: pointer; color: #444; }
+        .btn-match-action:hover { background: #e5e7eb; }
+        .btn-match-kakao { background: #fee500; border-color: #fee500; color: #372900; font-weight: bold; }
+        .btn-match-kakao:hover { background: #f4dc00; }
+
+        .modal-footer { padding: 16px 24px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; background: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="admin-card">
+    <div class="card-header">
+        <h2>고객관리 (방문/상담)</h2>
+        <span class="count-info">
+            (<span class="ad-count">진행중 <span id="progressCount">0</span>건</span> / <span class="total-count">전체 <span id="totalCount">0</span>건</span>)
+        </span>
+    </div>
+
+    <!-- 검색 필터 -->
+    <section class="filter-container">
+        <div class="filter-group">
+            <span class="filter-label">고객명/연락처</span>
+            <input type="text" class="filter-input" id="search-keyword" placeholder="이름 또는 뒷자리 검색" style="width:160px;">
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-label">진행상태</span>
+            <select class="filter-input" id="search-status">
+                <option value="">전체</option>
+                <option value="신규">신규</option>
+                <option value="진행중">상담/진행중</option>
+                <option value="계약완료">계약완료</option>
+                <option value="보류">보류/취소</option>
+            </select>
+        </div>
+        <div class="filter-divider"></div>
+        <div class="filter-group">
+            <span class="filter-label">고객분류</span>
+            <select class="filter-input" id="search-type">
+                <option value="">전체</option>
+                <option value="매수인">매수인</option>
+                <option value="임차인">임차인</option>
+                <option value="매도인">매도인</option>
+                <option value="임대인">임대인</option>
+                <option value="일반문의">일반문의</option>
+            </select>
+        </div>
+        <button class="btn-search" id="btn-do-search">🔍 검색</button>
+        <button class="btn-reset" id="btn-reset">초기화</button>
+    </section>
+
+    <!-- 액션 바 -->
+    <div class="action-bar">
+        <div class="left-actions">
+            <button class="btn btn-primary" onclick="openCustomerModal()">+ 새 손님 등록</button>
+            <button class="btn" onclick="alert('엑셀 다운로드 (준비중)')">⬇️ 엑셀 다운로드</button>
+        </div>
+    </div>
+
+    <!-- 테이블 -->
+    <div class="table-container">
+        <table>
+            <colgroup>
+                <col style="width:40px;">
+                <col style="width:80px;">   <!-- 진행상태 -->
+                <col style="width:80px;">   <!-- 고객분류 -->
+                <col style="width:140px;">  <!-- 고객명/연락처 -->
+                <col style="min-width:180px;"> <!-- 희망조건/예산 -->
+                <col style="min-width:160px;"> <!-- 최근메모 -->
+                <col style="width:80px;">   <!-- 최근접촉 -->
+                <col style="width:120px;">  <!-- 관리 -->
+            </colgroup>
+            <thead>
+                <tr>
+                    <th><input type="checkbox" id="chk-all"></th>
+                    <th>상태</th>
+                    <th>분류</th>
+                    <th>고객명 / 연락처</th>
+                    <th>희망조건 / 예산 / 매물</th>
+                    <th>최근 상담 요약</th>
+                    <th>등록일</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody id="customer-list-body">
+                <tr><td colspan="8" style="padding: 100px; color: #4285f4; font-weight: bold;">고객 정보를 불러오는 중입니다... 🔄</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- 상세/수정 및 추천 모달 -->
+<div id="customerModal" class="modal-overlay">
+    <div class="modal-window">
+        <div class="modal-header">
+            <span id="modalTitle">새 손님 등록</span>
+            <span class="modal-close" onclick="closeCustomerModal()">×</span>
+        </div>
+        <div class="modal-body-split">
+            <!-- 좌측 폼 영역 -->
+            <div class="modal-left">
+                <input type="hidden" id="modalCustomerId" value="">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>고객명</label>
+                        <input type="text" id="modalName" class="form-input" placeholder="예: 홍길동">
+                    </div>
+                    <div class="form-group">
+                        <label>연락처</label>
+                        <input type="text" id="modalPhone" class="form-input" placeholder="010-0000-0000">
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>진행상태</label>
+                        <select id="modalStatus" class="form-input">
+                            <option value="신규">신규 (방금등록)</option>
+                            <option value="진행중">상담/진행중</option>
+                            <option value="계약완료">계약완료</option>
+                            <option value="보류">보류/연락두절</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>고객분류</label>
+                        <select id="modalType" class="form-input">
+                            <option value="임차인">임차인 (방 구하는 사람)</option>
+                            <option value="매수인">매수인 (집 사는 사람)</option>
+                            <option value="임대인">임대인 (방 내놓는 사람)</option>
+                            <option value="매도인">매도인 (집 파는 사람)</option>
+                            <option value="일반문의">일반문의</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>예산 및 자금 계획</label>
+                    <input type="text" id="modalBudget" class="form-input" placeholder="예: 보증금 5천 / 월세 최대 60만 / 전세대출 필요">
+                </div>
+
+                <div class="form-group">
+                    <label>희망 지역 및 매물 조건 (⭐ AI 추천 핵심 키워드)</label>
+                    <input type="text" id="modalTarget" class="form-input" placeholder="예: 마포구, 투룸, 남향, 주차가능" oninput="debounceMatch()">
+                </div>
+                
+                <div class="form-group">
+                    <label>이사(잔금) 희망일</label>
+                    <input type="text" id="modalMoveDate" class="form-input" placeholder="예: 4월 초, 즉시입주">
+                </div>
+
+                <!-- 타임라인 영역 -->
+                <div class="timeline-section" id="timelineSection" style="display:none;">
+                    <div class="timeline-title">💬 상담 히스토리</div>
+                    <div class="timeline-box" id="timelineList">
+                        <!-- 동적 추가 -->
+                    </div>
+                    <div class="timeline-add">
+                        <input type="text" id="newMemo" class="timeline-input" placeholder="통화/상담 내용 메모..." onkeypress="if(event.key==='Enter') saveMemo()">
+                        <button class="timeline-btn" onclick="saveMemo()">등록</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 우측 AI 추천 구역 -->
+            <div class="modal-right">
+                <div class="ai-header">
+                    <h3 class="ai-title">💡 스마트 매칭 (내 공실)</h3>
+                    <button class="ai-refresh" onclick="runAiMatch()">↻ 다시 추천</button>
+                </div>
+                <div style="font-size:11px; color:#888; margin-bottom:12px;">좌측의 [지역, 조건, 예산]을 바탕으로 중개사님이 소유한 공실 중 적합한 매물을 자동 추천합니다.</div>
+                
+                <div id="aiMatchList">
+                    <!-- 스켈레톤/안내 문구 -->
+                    <div style="text-align:center; padding: 40px 0; color:#aaa; font-size:12px;">조건을 입력해 주세요.</div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn" onclick="closeCustomerModal()">취소</button>
+            <button class="btn-primary" onclick="saveCustomer()">저장하기</button>
+        </div>
+    </div>
+</div>
+
+<!-- Supabase JS & Logic -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_gongsi_config.js"></script>
+
+<script>
+    let currentUserId = null;
+    let customersList = [];
+    let matchTimeout = null;
+
+    (async function init() {
+        if (!window.gongsiClient) {
+            alert("DB 연결 오류: config 확인 필요"); return;
+        }
+
+        const { data: { session } } = await window.gongsiClient.auth.getSession();
+        if (!session) {
+            alert("로그인이 필요합니다.");
+            parent.window.location.href = 'index.html';
+            return;
+        }
+        currentUserId = session.user.id;
+        loadCustomers();
+    })();
+
+    async function loadCustomers() {
+        const tbody = document.getElementById('customer-list-body');
+        
+        const { data, error } = await window.gongsiClient
+            .from('customers')
+            .select(`*`)
+            .eq('realtor_id', currentUserId)
+            .order('updated_at', { ascending: false });
+
+        if (error) {
+            console.error(error);
+            tbody.innerHTML = `<tr><td colspan="8" style="padding:40px; color:red;">목록을 불러오는 중 오류가 발생했습니다. (customers 테이블이 생성되었는지 확인하세요)</td></tr>`;
+            return;
+        }
+
+        customersList = data || [];
+        renderCustomerTable(customersList);
+    }
+
+    function renderCustomerTable(list) {
+        const tbody = document.getElementById('customer-list-body');
+        tbody.innerHTML = '';
+
+        document.getElementById('totalCount').innerText = list.length;
+        document.getElementById('progressCount').innerText = list.filter(c => c.status === '진행중').length;
+
+        if (list.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" style="padding:60px 0; color:#999; text-align:center;">등록된 손님이 없습니다. 새 손님을 등록해보세요.</td></tr>`;
+            return;
+        }
+
+        list.forEach(c => {
+            let statusCls = 'status-new';
+            if (c.status === '진행중') statusCls = 'status-progress';
+            else if (c.status === '계약완료') statusCls = 'status-done';
+            else if (c.status === '보류') statusCls = 'status-hold';
+
+            let typeCls = 'type-badge';
+            if (c.customer_type?.includes('임대') || c.customer_type?.includes('매도')) {
+                typeCls += ' type-landlord';
+            }
+
+            const dateStr = c.created_at ? new Date(c.created_at).toISOString().split('T')[0] : '';
+            
+            // 모바일일때 딥링크
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+            const phoneLink = isMobile ? `href="sms:${c.phone_number}"` : `onclick="alert('PC에서는 카카오톡 링크 전송 API를 활용할 수 있습니다.')"`;
+
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><input type="checkbox" value="${c.id}"></td>
+                <td><span class="status-badge ${statusCls}">${c.status || '신규'}</span></td>
+                <td><span class="${typeCls}">${c.customer_type}</span></td>
+                <td>
+                    <div class="contact-row">${c.name}</div>
+                    <a ${phoneLink} style="text-decoration:none;"><span class="contact-num">💬 ${c.phone_number || '번호없음'}</span></a>
+                </td>
+                <td style="text-align:left; font-size:12px;">
+                    <strong style="color:#2b6cb0;">예산:</strong> ${c.budget || '-'}<br>
+                    <strong style="color:#276749;">조건:</strong> ${c.target_items || '-'}
+                </td>
+                <td><div class="recent-memo" title="${c.notes || '메모 없음'}">${c.notes || '메모 없음'}</div></td>
+                <td style="font-size:11px; color:#888;">${dateStr}</td>
+                <td>
+                    <div class="cell-actions">
+                        <button class="btn-action" onclick="openCustomerModal('${c.id}')">상세/수정</button>
+                        <button class="btn-action btn-delete" onclick="deleteCustomer('${c.id}')">삭제</button>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    // 모달 관리
+    function openCustomerModal(id = null) {
+        document.getElementById('modalTitle').innerText = id ? '손님 관리 및 스마트매칭' : '새 손님 등록';
+        document.getElementById('timelineSection').style.display = id ? 'block' : 'none';
+        
+        // 초기화
+        document.getElementById('modalCustomerId').value = id || '';
+        document.getElementById('modalName').value = '';
+        document.getElementById('modalPhone').value = '';
+        document.getElementById('modalStatus').value = '신규';
+        document.getElementById('modalType').value = '임차인';
+        document.getElementById('modalBudget').value = '';
+        document.getElementById('modalTarget').value = '';
+        document.getElementById('modalMoveDate').value = '';
+        document.getElementById('timelineList').innerHTML = '';
+        document.getElementById('newMemo').value = '';
+        document.getElementById('aiMatchList').innerHTML = '<div style="text-align:center; padding: 40px 0; color:#aaa; font-size:12px;">필요조건(예산, 매물종류)을 입력하고 우측 상단 다시 추천 버튼을 눌러보세요.</div>';
+
+        if (id) {
+            const customer = customersList.find(c => c.id === id);
+            if (customer) {
+                document.getElementById('modalName').value = customer.name || '';
+                document.getElementById('modalPhone').value = customer.phone_number || '';
+                document.getElementById('modalStatus').value = customer.status || '신규';
+                document.getElementById('modalType').value = customer.customer_type || '임차인';
+                document.getElementById('modalBudget').value = customer.budget || '';
+                document.getElementById('modalTarget').value = customer.target_items || '';
+                document.getElementById('modalMoveDate').value = customer.move_in_date || '';
+                
+                loadCustomerLogs(id);
+                // 자동 추천 대기 (0.5초 디바운스)
+                setTimeout(() => runAiMatch(), 500);
+            }
+        }
+
+        document.getElementById('customerModal').style.display = 'flex';
+    }
+
+    function closeCustomerModal() {
+        document.getElementById('customerModal').style.display = 'none';
+    }
+
+    // 고객 저장 기능 (퍼블리싱 수준까지만)
+    async function saveCustomer() {
+        const id = document.getElementById('modalCustomerId').value;
+        const customerData = {
+            realtor_id: currentUserId,
+            name: document.getElementById('modalName').value.trim(),
+            phone_number: document.getElementById('modalPhone').value.trim(),
+            status: document.getElementById('modalStatus').value,
+            customer_type: document.getElementById('modalType').value,
+            budget: document.getElementById('modalBudget').value.trim(),
+            target_items: document.getElementById('modalTarget').value.trim(),
+            move_in_date: document.getElementById('modalMoveDate').value.trim(),
+            updated_at: new Date().toISOString()
+        };
+
+        if (!customerData.name) return alert('고객명을 입력해주세요.');
+
+        // Save logic (UPSERT)
+        if (id) {
+            await window.gongsiClient.from('customers').update(customerData).eq('id', id);
+        } else {
+            await window.gongsiClient.from('customers').insert([customerData]);
+        }
+        
+        closeCustomerModal();
+        loadCustomers();
+    }
+
+    // 히스토리 (메모) 기능
+    async function loadCustomerLogs(customerId) {
+        const wrapper = document.getElementById('timelineList');
+        const { data, error } = await window.gongsiClient.from('customer_logs')
+            .select('*').eq('customer_id', customerId).order('created_at', { ascending: false });
+        
+        wrapper.innerHTML = '';
+        if (data && data.length > 0) {
+            data.forEach(log => {
+                const date = new Date(log.created_at).toLocaleString('ko-KR', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+                wrapper.innerHTML += `
+                    <div class="timeline-item">
+                        <span class="timeline-date">${date}</span>
+                        <div class="timeline-content">${log.content}</div>
+                    </div>
+                `;
+            });
+            // Update customer's latest note locally (just visual)
+            const cIndex = customersList.findIndex(c => c.id === customerId);
+            if (cIndex >= 0) {
+                customersList[cIndex].notes = data[0].content;
+            }
+        } else {
+            wrapper.innerHTML = '<div style="font-size:11px; color:#aaa; text-align:center; padding: 10px;">등록된 메모가 없습니다.</div>';
+        }
+    }
+
+    async function saveMemo() {
+        const id = document.getElementById('modalCustomerId').value;
+        const text = document.getElementById('newMemo').value.trim();
+        if (!id) return alert('먼저 손님을 저장한 후 메모를 등록해주세요.');
+        if (!text) return;
+
+        await window.gongsiClient.from('customer_logs').insert([{ customer_id: id, realtor_id: currentUserId, content: text }]);
+        
+        // 메모를 고객 테이블의 notes로도 복사
+        await window.gongsiClient.from('customers').update({ notes: text, updated_at: new Date().toISOString() }).eq('id', id);
+
+        document.getElementById('newMemo').value = '';
+        loadCustomerLogs(id);
+        loadCustomers(); // 백그라운드에서 목록 업데이트
+    }
+
+    async function deleteCustomer(id) {
+        if (!confirm('정말 삭제하시겠습니까? 관련된 상담 메모도 모두 삭제됩니다.')) return;
+        await window.gongsiClient.from('customers').delete().eq('id', id);
+        loadCustomers();
+    }
+
+    // AI 스마트 매칭 로직 (단순화된 시뮬레이션 구현)
+    function debounceMatch() {
+        if (matchTimeout) clearTimeout(matchTimeout);
+        matchTimeout = setTimeout(runAiMatch, 800); // 사용자가 입력 멈추면 실행
+    }
+
+    async function runAiMatch() {
+        const wrap = document.getElementById('aiMatchList');
+        const budgetKeyword = document.getElementById('modalBudget').value;
+        const targetKeyword = document.getElementById('modalTarget').value;
+        const typeKeyword = document.getElementById('modalType').value; // 임대인/매도인이면 내 물건만
+
+        if (!targetKeyword && !budgetKeyword) {
+             wrap.innerHTML = '<div style="text-align:center; padding: 40px 0; color:#777; font-size:12px;">조건(동네이름, 예산 등)을 입력하면<br>어울리는 매물을 찾아줍니다.</div>';
+             return;
+        }
+
+        wrap.innerHTML = '<div style="text-align:center; padding:20px; color:#1a73e8; font-weight:bold;">🔍 AI가 매물을 분석 중입니다...</div>';
+
+        // 1. 공실 데이터 불러오기 (실제로는 여기서 키워드 검색 적용 - ex: user_id = currentUserId)
+        const { data: props, error } = await window.gongsiClient.from('properties')
+            .select('id, building_name, dong, trade_type, deposit, monthly_rent, room_count, current_floor, property_type')
+            .eq('user_id', currentUserId)
+            .limit(50); // 일단 내 물건 위주로
+            
+        if (!props || props.length === 0) {
+             wrap.innerHTML = '<div style="text-align:center; padding: 20px; font-size:12px;">등록하신 공실 중에 적합한 매물이 없습니다.</div>';
+             return;
+        }
+
+        // 2. 야매(Heuristic) 텍스트 매칭 스코어링 (AI 시뮬레이션용)
+        const combinedQuery = `${targetKeyword} ${budgetKeyword} ${typeKeyword}`.toLowerCase();
+        
+        const scoredProps = props.map(p => {
+             let score = 50; 
+             const pStr = `${p.dong} ${p.building_name} ${p.property_type} ${p.trade_type} ${p.deposit} ${p.monthly_rent}`.toLowerCase();
+             
+             // 매우 단순한 단어 매칭 규칙
+             const keywords = combinedQuery.split(' ').filter(x => x.length > 0);
+             keywords.forEach(kw => {
+                 if (pStr.includes(kw)) score += 20;
+             });
+
+             return { ...p, score };
+        }).sort((a,b) => b.score - a.score).filter(p => p.score > 50).slice(0, 3);
+
+        if (scoredProps.length === 0) {
+            wrap.innerHTML = '<div style="text-align:center; padding: 20px; font-size:12px;">조건과 일치하는 공실이 없습니다.</div>';
+            return;
+        }
+
+        wrap.innerHTML = '';
+        scoredProps.forEach(p => {
+            const priceTxt = p.trade_type === '월세' || p.trade_type === '단기' ? `${p.deposit} / ${p.monthly_rent}` : `${p.deposit}`;
+            
+            wrap.innerHTML += `
+                <div class="match-card">
+                    <div class="match-info-top">
+                        <div class="match-score-badge">🔥 매칭률 ${Math.min(99, p.score)}%</div>
+                        <div class="match-addr">[${p.trade_type}] ${p.dong} ${p.building_name || p.property_type}</div>
+                        <div class="match-price">${priceTxt} 만원</div>
+                        <div class="match-spec">방 ${p.room_count || '-'}개 / ${p.current_floor || '?'}층</div>
+                        <div class="match-actions">
+                            <div class="btn-match-action" onclick="alert('클립보드에 매물 요약이 복사되었습니다.\\n메모에 붙여넣기 기능 구현용')">📄 정보복사</div>
+                            <div class="btn-match-action btn-match-kakao" onclick="alert('스마트폰 카카오톡 링크 전송 API 호춯')">🟡 카톡보내기</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+
+    // 검색/초기화 이벤트
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        document.getElementById('search-keyword').value = '';
+        document.getElementById('search-status').value = '';
+        document.getElementById('search-type').value = '';
+        renderCustomerTable(customersList);
+    });
+
+    document.getElementById('btn-do-search').addEventListener('click', () => {
+        const kw = document.getElementById('search-keyword').value.trim();
+        const stat = document.getElementById('search-status').value;
+        const type = document.getElementById('search-type').value;
+
+        const filtered = customersList.filter(c => {
+            const mKw = kw ? (c.name?.includes(kw) || c.phone_number?.includes(kw)) : true;
+            const mStat = stat ? (c.status === stat) : true;
+            const mType = type ? (c.customer_type === type) : true;
+            return mKw && mStat && mType;
+        });
+        renderCustomerTable(filtered);
+    });
+</script>
+<script src="gongsil_chatbot.js?v=20250329"></script>
+</body>
+</html>

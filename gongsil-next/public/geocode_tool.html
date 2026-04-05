@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>좌표 일괄 저장 툴 (관리자 전용)</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase_gongsi_config.js"></script>
+    <style>
+        body { font-family: sans-serif; padding: 30px; background: #f5f5f5; }
+        h2 { color: #1a4282; }
+        #log { background: #fff; border: 1px solid #ddd; padding: 15px; height: 400px; overflow-y: auto; font-size: 13px; border-radius: 8px; }
+        .log-ok { color: #2e7d32; }
+        .log-err { color: #c62828; }
+        .log-skip { color: #888; }
+        button { background: #1a73e8; color: #fff; border: none; padding: 12px 28px; font-size: 15px; border-radius: 6px; cursor: pointer; margin-top: 15px; }
+        button:disabled { background: #aaa; cursor: not-allowed; }
+        #progress { margin-top: 10px; font-size: 14px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h2>🗺️ 매물 좌표 일괄 저장 툴 (관리자 전용)</h2>
+    <p>이 툴을 실행하면 DB에 저장된 모든 매물의 주소를 카카오 API로 좌표 변환하여 <code>lat</code>, <code>lng</code> 컬럼에 저장합니다.<br>
+    ⚠️ <b>Supabase에서 먼저 아래 SQL을 실행하세요:</b></p>
+    <pre style="background:#eee;padding:10px;border-radius:4px;font-size:12px;">ALTER TABLE properties ADD COLUMN IF NOT EXISTS lat numeric(15,10);
+ALTER TABLE properties ADD COLUMN IF NOT EXISTS lng numeric(15,10);</pre>
+    <button id="startBtn" onclick="startGeocoding()">▶ 좌표 저장 시작</button>
+    <div id="progress">준비 완료</div>
+    <div id="log"></div>
+
+    <!-- 카카오맵 SDK (서비스 키 포함) -->
+    <script>
+        // 카카오맵 appkey를 자동으로 가져오기 위해 script 동적 생성
+        // 기존 gongsil/index.html 에서 사용하는 키와 동일
+        const KAKAO_APP_KEY = '435d3602201a49ea712e5f5a36fe6efc';
+    </script>
+    <script>
+        function loadKakaoAndRun(callback) {
+            const s = document.createElement('script');
+            s.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_APP_KEY}&libraries=services&autoload=false`;
+            s.onload = () => {
+                kakao.maps.load(callback);
+            };
+            document.head.appendChild(s);
+        }
+
+        function log(msg, type='') {
+            const div = document.getElementById('log');
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = msg;
+            div.appendChild(line);
+            div.scrollTop = div.scrollHeight;
+        }
+
+        async function startGeocoding() {
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('log').innerHTML = '';
+            log('카카오맵 SDK 로딩 중...');
+
+            loadKakaoAndRun(async () => {
+                log('✅ 카카오맵 SDK 로드 완료');
+                const geocoder = new kakao.maps.services.Geocoder();
+
+                if (!window.gongsiClient) {
+                    log('❌ Supabase 클라이언트 없음! supabase_gongsi_config.js 확인', 'log-err');
+                    return;
+                }
+
+                log('DB에서 매물 목록 불러오는 중...');
+                const { data, error } = await window.gongsiClient
+                    .from('properties')
+                    .select('id, sido, sigungu, dong, detail_address, lat, lng')
+                    .eq('status', 'active');
+
+                if (error) { log('❌ DB 오류: ' + error.message, 'log-err'); return; }
+                log(`총 ${data.length}개 매물 발견`);
+
+                let ok = 0, skip = 0, fail = 0;
+                let idx = 0;
+
+                function processNext() {
+                    if (idx >= data.length) {
+                        document.getElementById('progress').textContent =
+                            `✅ 완료! 성공: ${ok}개 / 이미저장: ${skip}개 / 실패: ${fail}개`;
+                        document.getElementById('startBtn').disabled = false;
+                        return;
+                    }
+
+                    const p = data[idx++];
+                    document.getElementById('progress').textContent =
+                        `진행중... ${idx}/${data.length} (성공:${ok} 스킵:${skip} 실패:${fail})`;
+
+                    // 이미 좌표 있으면 스킵
+                    if (p.lat && p.lng) {
+                        log(`[스킵] ID:${p.id} - 이미 좌표 있음 (${p.lat}, ${p.lng})`, 'log-skip');
+                        skip++;
+                        setTimeout(processNext, 50);
+                        return;
+                    }
+
+                    const addr = `${p.sido || ''} ${p.sigungu || ''} ${p.dong || ''}`.trim();
+                    if (!addr) {
+                        log(`[스킵] ID:${p.id} - 주소 없음`, 'log-skip');
+                        fail++;
+                        setTimeout(processNext, 50);
+                        return;
+                    }
+
+                    geocoder.addressSearch(addr, async (result, status) => {
+                        if (status === kakao.maps.services.Status.OK) {
+                            const lat = parseFloat(result[0].y);
+                            const lng = parseFloat(result[0].x);
+                            const { error: updErr } = await window.gongsiClient
+                                .from('properties')
+                                .update({ lat, lng })
+                                .eq('id', p.id);
+                            if (updErr) {
+                                log(`[실패] ID:${p.id} "${addr}" - DB 업데이트 오류: ${updErr.message}`, 'log-err');
+                                fail++;
+                            } else {
+                                log(`[OK] ID:${p.id} "${addr}" → (${lat.toFixed(5)}, ${lng.toFixed(5)})`, 'log-ok');
+                                ok++;
+                            }
+                        } else {
+                            log(`[실패] ID:${p.id} "${addr}" - 좌표 변환 실패`, 'log-err');
+                            fail++;
+                        }
+                        // 카카오 API 속도 제한 방지: 100ms 딜레이
+                        setTimeout(processNext, 100);
+                    });
+                }
+
+                processNext();
+            });
+        }
+    </script>
+</body>
+</html>
