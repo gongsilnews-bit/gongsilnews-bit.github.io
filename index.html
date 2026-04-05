@@ -1288,7 +1288,7 @@
                 const target = document.getElementById(targetId);
                 if(!target) return;
                 
-                let query = newsDb.from('articles').select('*')
+                let query = newsDb.from('articles_light').select('*')
                                   .eq('status', 'published')
                                   .eq('section1', sec1);
                 
@@ -1315,27 +1315,29 @@
                 data.forEach(item => {
                     const timeStr = item.created_at ? item.created_at.substring(0, 10).replace(/-/g, '.') : '';
                     let desc = item.subtitle;
-                    if(!desc && item.content) {
-                        desc = item.content.replace(/<[^>]+>/g, '').substring(0, 100);
+                    const contentRaw = item.content_preview || item.content;
+                    if(!desc && contentRaw) {
+                        desc = contentRaw.replace(/<[^>]+>/g, '').substring(0, 100);
                     }
                     if(!desc) desc = '';
                     
                     let imgHtml = '';
                     let isVideo = false;
-                    let thumbUrl = item.image_url;
+                    let thumbUrl = null;
+                    const contentStr = item.content_preview || item.content;
                     
-                    if (!thumbUrl && item.content) {
-                        const ytMatch = item.content.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                    if (contentStr) {
+                        const ytMatch = contentStr.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
                         if (ytMatch) {
                             thumbUrl = `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`;
                             isVideo = true;
                         } else {
-                            const embedMatch = item.content.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/);
+                            const embedMatch = contentStr.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/);
                             if (embedMatch) {
                                 thumbUrl = `https://img.youtube.com/vi/${embedMatch[1]}/mqdefault.jpg`;
                                 isVideo = true;
                             } else {
-                                const imgMatch = item.content.match(/<img[^>]+src=['"]([^'"]+)['"]/);
+                                const imgMatch = contentStr.match(/<img[^>]+src=['"]([^'"]+)['"]/);
                                 if (imgMatch) thumbUrl = imgMatch[1];
                             }
                         }
@@ -1378,7 +1380,7 @@
                     const target = document.getElementById('home-video-grid');
                     if(!target || !newsDb) return;
                     
-                    const {data, error} = await newsDb.from('articles')
+                    const {data, error} = await newsDb.from('articles_light')
                         .select('*')
                         .eq('status', 'published')
                         .eq('section1', '우리동네부동산')
@@ -1400,8 +1402,9 @@
                         if (videos.length >= 3) break;
                         
                         let vid = null;
-                        if (item.content) {
-                            const ytMatch = item.content.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                        const checkContent = item.content_preview || item.content;
+                        if (checkContent) {
+                            const ytMatch = checkContent.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
                             if (ytMatch) vid = ytMatch[1];
                             else {
                                 const embedMatch = item.content.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/);
