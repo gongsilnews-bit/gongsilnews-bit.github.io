@@ -32,7 +32,7 @@ export default async function CategoryPage({ params, searchParams }) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     );
 
-    let query = supabase.from('articles').select('id, title, content, created_at, section1, view_count, image_url', { count: 'exact' }).eq('status', 'published');
+    let query = supabase.from('articles').select('id, title, content, created_at, section1, view_count, image_path', { count: 'exact' }).eq('status', 'published');
     
     if (category !== 'news-all') {
         query = query.eq('section1', sectionName);
@@ -44,8 +44,8 @@ export default async function CategoryPage({ params, searchParams }) {
 
     const totalPages = Math.ceil((count || 0) / itemsPerPage);
 
-    function getThumbnail(content, image_url) {
-        if (image_url) return image_url;
+    function getThumbnail(content, image_path) {
+        if (image_path) return image_path;
         if (!content) return null;
         const ytMatch = content.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
         if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`;
@@ -63,7 +63,7 @@ export default async function CategoryPage({ params, searchParams }) {
 
             <div style={{ display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:'24px' }}>
                 {articles?.map(article => {
-                    const thumb = getThumbnail(article.content, article.image_url);
+                    const thumb = getThumbnail(article.content, article.image_path);
                     return (
                         <Link href={`/article/${article.id}`} key={article.id} style={{ border:'1px solid #eee', borderRadius:'8px', overflow:'hidden', display:'block', transition:'transform 0.2s, boxShadow 0.2s' }} className="hover:shadow-lg hover:-translate-y-1">
                             {thumb ? (

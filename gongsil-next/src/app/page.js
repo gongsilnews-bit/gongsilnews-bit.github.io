@@ -10,8 +10,8 @@ const supabase = createClient(
 );
 
 // 썸네일 자동 추출 함수
-function getThumbnail(content, image_url) {
-    if (image_url) return image_url;
+function getThumbnail(content, image_path) {
+    if (image_path) return image_path;
     if (!content) return null;
     const ytMatch = content.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
     if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/mqdefault.jpg`;
@@ -23,7 +23,7 @@ function getThumbnail(content, image_url) {
 export default async function Home() {
   const { data: articles, error } = await supabase
     .from('articles')
-    .select('id, title, subtitle, image_url, content, created_at, section1')
+    .select('id, title, subtitle, image_path, content, created_at, section1')
     .eq('status', 'published')
     .order('created_at', { ascending: false })
     .limit(50);
@@ -86,7 +86,7 @@ export default async function Home() {
                   <div className="hi-left">
                       <div className="hi-list">
                           {financeNews.map(article => {
-                              const thumb = getThumbnail(article.content, article.image_url);
+                              const thumb = getThumbnail(article.content, article.image_path);
                               return (
                                   <Link href={`/article/${article.id}`} key={article.id} className="hi-item" style={{display:'flex', gap:'20px', cursor:'pointer'}}>
                                       {thumb ? (
@@ -117,7 +117,7 @@ export default async function Home() {
               </div>
               <div className="video-grid">
                   {localNews.map(article => {
-                      const thumb = getThumbnail(article.content, article.image_url);
+                      const thumb = getThumbnail(article.content, article.image_path);
                       return (
                           <Link href={`/article/${article.id}`} key={article.id} className="vid-item" style={{display:'block', cursor:'pointer'}}>
                               {thumb ? (
