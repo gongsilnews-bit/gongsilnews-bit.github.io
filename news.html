@@ -622,20 +622,38 @@
             <img src="logo.png" alt="공실뉴스" style="height: 34px;">
         </a>
         <h1 style="font-size: 26px; font-weight: 800; margin: 0; margin-right: 20px; color:#111;">우리동네뉴스</h1>
-        <select class="news-select-filter" onchange="window.selectSelectTab(this.value)" style="padding: 6px 10px; border:1px solid #ccc; border-radius:4px; outline:none; font-size:14px; min-width:150px; font-weight:600; cursor:pointer;">
-            <option value="우리동네부동산">전체</option>
-            <option value="아파트·오피스텔">아파트·오피스텔</option>
-            <option value="빌라·주택">빌라·주택</option>
-            <option value="원룸·투룸">원룸·투룸</option>
-            <option value="상가·업무·공장·토지">상가·업무·공장·토지</option>
-            <option value="분양">분양</option>
+        <select id="sec1Filter" class="news-select-filter" onchange="window.onSec1FilterChange(this.value)" style="padding: 6px 10px; border:1px solid #ccc; border-radius:4px; outline:none; font-size:14px; min-width:130px; font-weight:600; cursor:pointer;">
+            <option value="">1차섹션 전체</option>
+            <option value="우리동네부동산">우리동네부동산</option>
+            <option value="뉴스">뉴스</option>
+            <option value="칼럼">칼럼</option>
+        </select>
+        <select id="sec2Filter" class="news-select-filter" onchange="window.onSec2FilterChange(this.value)" style="padding: 6px 10px; border:1px solid #ccc; border-radius:4px; outline:none; font-size:14px; min-width:130px; font-weight:600; cursor:pointer; margin-left:8px;">
+            <option value="">2차섹션 전체</option>
         </select>
         <script>
-            window.selectSelectTab = function(val) {
-                if(typeof window.loadNews === 'function') {
-                    window.loadNews(val);
-                }
+            var SEC_FILTER_SUBS = {
+                '': [],
+                '우리동네부동산': ['아파트\u00b7오피스텔', '빌라\u00b7주택', '원룸\u00b7투룸', '상가\u00b7업무\u00b7공장\u00b7토지', '분양'],
+                '뉴스': ['부동산\u00b7주식\u00b7재테크', '정치\u00b7경제\u00b7사회', '세무\u00b7법률', '여행\u00b7맛집', '건강\u00b7헬스', 'IT\u00b7가전\u00b7가구', '스포츠\u00b7연예\u00b7Car', '인물\u00b7미션\u00b7기타'],
+                '칼럼': ['부동산\u00b7주식\u00b7재테크', '정치\u00b7경제\u00b7사회', '세무\u00b7법률', '여행\u00b7맛집', '건강\u00b7헬스', 'IT\u00b7가전\u00b7가구', '스포츠\u00b7연예\u00b7Car', '인물\u00b7미션\u00b7기타']
             };
+            window.onSec1FilterChange = function(val) {
+                var sec2 = document.getElementById('sec2Filter');
+                sec2.innerHTML = '<option value="">2차섹션 전체</option>';
+                var subs = SEC_FILTER_SUBS[val] || [];
+                subs.forEach(function(s) {
+                    var opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s;
+                    sec2.appendChild(opt);
+                });
+                if (typeof window.loadNews === 'function') window.loadNews(val || '전체기사');
+            };
+            window.onSec2FilterChange = function(val) {
+                var sec1 = (document.getElementById('sec1Filter') || {}).value || '';
+                if (typeof window.loadNews === 'function') window.loadNews(val || sec1 || '전체기사');
+            };
+            window.selectSelectTab = function(val) { window.onSec1FilterChange(val); };
         </script>
     </header>
 

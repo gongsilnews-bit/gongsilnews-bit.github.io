@@ -978,11 +978,18 @@ async function loadNews(category) {
             let dbCategory = category;
             const COLUMN_SUBS = NEWS_NAV_CONFIG['column'].subs;
             
-            if (category === '우리동네부동산') {
+            if (category === '전체기사' || category === '' || !category) {
+                dbCategory = '전체기사'; // 필터 없음
+            } else if (category === '우리동네부동산') {
                 dbCategory = '우리동네부동산';
-            } else if (COLUMN_SUBS.includes(category)) {
-                dbCategory = '전체기사'; 
+            } else if (category === '뉴스') {
+                // 뉴스: section1 = '뉴스' 또는 '뉴스/칼럼' (하위 호환)
+                dbCategory = '뉴스,뉴스/칼럼';
+            } else if (category === '칼럼') {
+                // 칼럼: section1 = '칼럼' 또는 '뉴스/칼럼' (하위 호환)
+                dbCategory = '칼럼,뉴스/칼럼';
             }
+            // COLUMN_SUBS (2차섹션)는 dbCategory를 그대로 유지 → section2 필터로 처리됨
 
             // 기간 필터 적용
             if (currentPeriod !== 'all') {
@@ -1013,9 +1020,9 @@ async function loadNews(category) {
         const baseLng = 126.9780;
 
         let finalNewsList = (rawArticles || []).map((a, i) => {
-            // 강남역, 잠실, 지역 임의 산포 (테스트/초기 화면용)
-            let mLat = a.lat || (baseLat + (Math.random() - 0.5) * 0.1);
-            let mLng = a.lng || (baseLng + (Math.random() - 0.5) * 0.1);
+            // 실제 위도/경도만 사용 (없으면 null → 지도 마커 미표시)
+            let mLat = a.lat || null;
+            let mLng = a.lng || null;
 
             return {
                 ...a,
