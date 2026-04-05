@@ -844,7 +844,7 @@
         if(!sb) return;
         
         // Count query
-        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published').eq('section1', '여행·건강·생활');
+        const { count, error: countErr } = await sb.from('articles').select('*', { count: 'exact', head: true }).eq('status', 'published').eq('section1', '뉴스/칼럼').in('section2', ['여행·맛집', '건강·헬스']);
         if(!countErr) totalItems = count || 0;
         
         const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE) || 1;
@@ -877,7 +877,7 @@
         const { data, error } = await sb.from('articles')
             .select('*, article_media!fk_rep_media(url)')
             .eq('status', 'published')
-            .eq('section1', '여행·건강·생활')
+            .eq('section1', '뉴스/칼럼').in('section2', ['여행·맛집', '건강·헬스'])
             .order('created_at', { ascending: false })
             .range(startIdx, endIdx);
             
@@ -1028,7 +1028,7 @@
         const { data, error } = await sb.from('articles')
             .select('id, title, view_count')
             .eq('status', 'published')
-            .eq('section1', '여행·건강·생활')
+            .eq('section1', '뉴스/칼럼').in('section2', ['여행·맛집', '건강·헬스'])
             .order('view_count', { ascending: false })
             .limit(5);
             
