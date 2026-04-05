@@ -1371,6 +1371,12 @@ window.showNewsDetail = async function(news) {
     const closeBtn = document.getElementById('btnCloseDetail');
     if (!detailView || !news) return;
 
+    // 포털 모드인 경우 옛날 포맷(인라인 뷰) 대신 정상 포맷인 news_read.html로 이동
+    if (document.body.classList.contains('portal-mode')) {
+        window.location.href = `news_read.html?article_id=${news.id || news.article_id}`;
+        return;
+    }
+
     // 기사 변경/열림 시 스크롤 최상단으로 리셋
     detailView.scrollTop = 0;
     if (document.body.classList.contains('portal-mode')) {
@@ -2438,10 +2444,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const sharedArticleId = urlParams.get('article_id');
         const sb = window.gongsiClient || supabaseClient;
         if (sharedArticleId && sb) {
-            // 일단 포털 모드로 강제 지정
-            if (!document.body.classList.contains('portal-mode')) {
-                document.body.classList.add('portal-mode');
-            }
             try {
                 const { data, error } = await sb.from('articles').select('*').eq('id', sharedArticleId).single();
                 if (data && !error) {
