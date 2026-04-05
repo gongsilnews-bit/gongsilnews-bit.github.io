@@ -2313,102 +2313,83 @@
             }
         });
 
-        // 커서 위치에 HTML을 삽입하는 함수
+        // 커서 위치에 HTML을 삽입하는 함수 (DOM 직접 삽입 - pasteHTML 미사용)
         window.insertNodeAtCursor = function(htmlString) {
             var $editor = $('#summernote');
             var editable = editorEditableEl || $editor.next('.note-editor').find('.note-editable')[0];
+            if (!editable) return;
 
-            // ★ 방법 1 (최우선): summernote 내장 restoreRange → pasteHTML
-            // saveRange로 저장된 커서 위치를 복원한 뒤 그 자리에 바로 삽입하는 공식 방법
-            try {
-                $editor.summernote('restoreRange');
-                $editor.summernote('focus');
-                $editor.summernote('pasteHTML', htmlString);
-                // 삽입 후 커서를 삽입된 내용 뒤로 이동
-                try {
-                    var editable2 = $editor.next('.note-editor').find('.note-editable')[0];
-                    if (editable2) {
-                        var lastBlock = editable2.lastElementChild;
-                        if (lastBlock && (lastBlock.tagName === 'FIGURE' || lastBlock.tagName === 'DIV' || lastBlock.tagName === 'IMG')) {
-                            var p = document.createElement('p');
-                            p.innerHTML = '<br>';
-                            editable2.appendChild(p);
-                            var r = document.createRange();
-                            r.setStart(p, 0); r.collapse(true);
-                            var s = window.getSelection();
-                            s.removeAllRanges(); s.addRange(r);
-                            savedNativeRange = r.cloneRange();
-                            $editor.summernote('saveRange');
-                        }
-                    }
-                } catch(e2) {}
-                return; // 성공 → 종료
-            } catch(e) {
-                console.warn('summernote restoreRange/pasteHTML 실패, DOM 폴백 사용:', e);
+            // ★ 1단계: summernote restoreRange + focus로 커서 위치만 복원
+            try { $editor.summernote('restoreRange'); $editor.summernote('focus'); } catch(e) {}
+
+            // 복원된 브라우저 selection을 savedNativeRange로 업데이트
+            var sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                var restored = sel.getRangeAt(0);
+                if (editable.contains(restored.startContainer)) {
+                    savedNativeRange = restored.cloneRange();
+                }
             }
 
-            // ★ 방법 2 (폴백): DOM 직접 조작
+            // ★ 2단계: HTML → DOM 파싱 후 직접 삽입 (pasteHTML 사용 안 함)
             var temp = document.createElement('div');
             temp.innerHTML = htmlString;
-            var nodesToInsert = Array.from(temp.childNodes);
-            var lastInsertedClone = null;
+            var nodes = Array.from(temp.childNodes);
+            var lastInserted = null;
 
             try {
-                if (savedNativeRange && editable && editable.contains(savedNativeRange.startContainer)) {
-                    var anchorNode = savedNativeRange.startContainer;
-                    while (anchorNode.parentNode && anchorNode.parentNode !== editable) {
-                        anchorNode = anchorNode.parentNode;
+                if (savedNativeRange && editable.contains(savedNativeRange.startContainer)) {
+                    // 커서가 속한 editable 직접 자식 블록 찾기
+                    var anchor = savedNativeRange.startContainer;
+                    while (anchor.parentNode && anchor.parentNode !== editable) {
+                        anchor = anchor.parentNode;
                     }
-                    var nextSib = anchorNode.nextSibling;
-                    var anchorIsEmpty = (anchorNode.textContent.trim() === '' &&
-                                        !anchorNode.querySelector('img, figure, video, iframe'));
-                    var insertBefore = anchorIsEmpty ? anchorNode : nextSib;
+                    // anchor가 빈 단락이면 그 자리에, 아니면 다음 위치에 삽입
+                    var anchorIsEmpty = anchor.textContent.trim() === '' &&
+                                       !anchor.querySelector('img,figure,video,iframe');
+                    var insertRef = anchorIsEmpty ? anchor : anchor.nextSibling;
 
-                    nodesToInsert.forEach(function(node) {
-                        var clone = node.cloneNode(true);
-                        editable.insertBefore(clone, insertBefore || null);
-                        lastInsertedClone = clone;
+                    nodes.forEach(function(n) {
+                        var c = n.cloneNode(true);
+                        editable.insertBefore(c, insertRef || null);
+                        lastInserted = c;
                     });
-                    if (anchorIsEmpty && anchorNode.parentNode === editable) {
-                        anchorNode.remove();
-                    }
+                    // 빈 anchor는 제거 (중복 빈 줄 방지)
+                    if (anchorIsEmpty && anchor.parentNode === editable) anchor.remove();
                 } else {
-                    nodesToInsert.forEach(function(node) {
-                        var clone = node.cloneNode(true);
-                        editable.appendChild(clone);
-                        lastInsertedClone = clone;
+                    // 커서 정보 없으면 맨 끝에 추가
+                    nodes.forEach(function(n) {
+                        var c = n.cloneNode(true);
+                        editable.appendChild(c);
+                        lastInserted = c;
                     });
                 }
 
-                // 커서를 삽입된 노드 바로 다음으로 이동
-                var cursorP = document.createElement('p');
-                cursorP.innerHTML = '<br>';
-                if (lastInsertedClone && lastInsertedClone.parentNode === editable) {
-                    if (lastInsertedClone.nextSibling) {
-                        editable.insertBefore(cursorP, lastInsertedClone.nextSibling);
+                // ★ 3단계: 커서 이동
+                // htmlString 마지막 노드가 <p>이면 그 안으로, 아니면 새 <p> 추가
+                var cursorEl = (lastInserted && lastInserted.tagName === 'P') ? lastInserted : null;
+                if (!cursorEl) {
+                    cursorEl = document.createElement('p');
+                    cursorEl.innerHTML = '<br>';
+                    if (lastInserted && lastInserted.nextSibling) {
+                        editable.insertBefore(cursorEl, lastInserted.nextSibling);
                     } else {
-                        editable.appendChild(cursorP);
+                        editable.appendChild(cursorEl);
                     }
-                } else {
-                    editable.appendChild(cursorP);
                 }
-
-                var range = document.createRange();
-                range.setStart(cursorP, 0);
-                range.collapse(true);
-                var sel = window.getSelection();
-                sel.removeAllRanges();
-                sel.addRange(range);
-                savedNativeRange = range.cloneRange();
+                var r = document.createRange();
+                r.setStart(cursorEl, 0); r.collapse(true);
+                var s2 = window.getSelection();
+                s2.removeAllRanges(); s2.addRange(r);
+                savedNativeRange = r.cloneRange();
                 try { $editor.summernote('saveRange'); } catch(e) {}
 
             } catch(e) {
-                console.error('에디터 DOM 삽입 오류:', e);
-                nodesToInsert.forEach(function(node) {
-                    editable.appendChild(node.cloneNode(true));
-                });
+                console.error('에디터 삽입 오류:', e);
+                nodes.forEach(function(n) { editable.appendChild(n.cloneNode(true)); });
             }
         }
+
 
 
         function insertLibraryImage(inputTarget) {
