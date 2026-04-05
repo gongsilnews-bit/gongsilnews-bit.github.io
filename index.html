@@ -1276,9 +1276,13 @@
     <!-- Index News Fetch Script -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            setTimeout(async () => {
-                const newsDb = window.gongsiClient;
-                if(!newsDb) return;
+            const initNews = async () => {
+                const newsDb = window.gongsiClient || window.supabaseClient;
+                if(!newsDb) {
+                    // If not ready, retry in 20ms without hardblocking
+                    setTimeout(initNews, 20);
+                    return;
+                }
                 
                 async function fetchAndRenderNews(targetId, sec1, sec2Array, limit=2) {
                 const target = document.getElementById(targetId);
@@ -1433,7 +1437,8 @@
                 
                 fetchAndRenderVideoNews();
                 
-}, 500); // end setTimeout
+            };
+            initNews();
         });
     </script>
 </body>
