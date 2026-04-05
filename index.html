@@ -1288,7 +1288,7 @@
                 const target = document.getElementById(targetId);
                 if(!target) return;
                 
-                let query = newsDb.from('articles_light').select('*')
+                let query = newsDb.from('articles').select('id, title, subtitle, created_at, section1, section2, status, content')
                                   .eq('status', 'published')
                                   .eq('section1', sec1);
                 
@@ -1315,16 +1315,16 @@
                 data.forEach(item => {
                     const timeStr = item.created_at ? item.created_at.substring(0, 10).replace(/-/g, '.') : '';
                     let desc = item.subtitle;
-                    const contentRaw = item.content_preview || item.content;
-                    if(!desc && contentRaw) {
-                        desc = contentRaw.replace(/<[^>]+>/g, '').substring(0, 100);
+                    if(!desc && item.content) {
+                        desc = item.content.replace(/<[^>]+>/g, '').substring(0, 100);
                     }
                     if(!desc) desc = '';
                     
                     let imgHtml = '';
                     let isVideo = false;
                     let thumbUrl = null;
-                    const contentStr = item.content_preview || item.content;
+                    let isVideo = false;
+                    const contentStr = item.content;
                     
                     if (contentStr) {
                         const ytMatch = contentStr.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
@@ -1380,7 +1380,7 @@
                     const target = document.getElementById('home-video-grid');
                     if(!target || !newsDb) return;
                     
-                    const {data, error} = await newsDb.from('articles_light')
+                    const {data, error} = await newsDb.from('articles')
                         .select('*')
                         .eq('status', 'published')
                         .eq('section1', '우리동네부동산')
@@ -1402,9 +1402,8 @@
                         if (videos.length >= 3) break;
                         
                         let vid = null;
-                        const checkContent = item.content_preview || item.content;
-                        if (checkContent) {
-                            const ytMatch = checkContent.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+                        if (item.content) {
+                            const ytMatch = item.content.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/);
                             if (ytMatch) vid = ytMatch[1];
                             else {
                                 const embedMatch = item.content.match(/youtube\.com\/embed\/([A-Za-z0-9_-]{11})/);
