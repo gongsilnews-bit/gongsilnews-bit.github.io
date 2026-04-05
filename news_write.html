@@ -1749,7 +1749,9 @@
     function forceInsertPhoto(url, photoId) {
         var imgId = 'photo_' + photoId;
         var combinedHtml = '<p><br></p><figure class="news-figure" draggable="true" data-type="lib-img" data-photo-id="' + imgId + '" style="text-align:center; margin:0 auto;"><img src="' + url + '" style="max-width:100%; display:block; width:100%;"><figcaption contenteditable="true"></figcaption></figure><p><br></p>';
-        if (typeof $ !== 'undefined' && $('#summernote').length) {
+        if (typeof window.insertNodeAtCursor === 'function') {
+            window.insertNodeAtCursor(combinedHtml);
+        } else if (typeof $ !== 'undefined' && $('#summernote').length) {
             try { $('#summernote').summernote('pasteHTML', combinedHtml); } catch(e) { }
         }
     }
@@ -2288,11 +2290,14 @@
         var savedNativeRange = null;
         var editorEditableEl = null;
 
-        $('#summernote').on('summernote.change summernote.keyup summernote.mouseup summernote.blur', function() {
+        $('#summernote').on('summernote.change summernote.keyup summernote.mouseup summernote.blur summernote.focus summernote.click', function() {
             var sel = window.getSelection();
             if (sel && sel.rangeCount > 0) {
                 savedNativeRange = sel.getRangeAt(0).cloneRange();
             }
+            // summernote 내장 saveRange도 함께 저장 (restoreRange 복원용)
+            try { $('#summernote').summernote('saveRange'); } catch(e) {}
+
             if (!editorEditableEl) {
                 editorEditableEl = $('#summernote').next('.note-editor').find('.note-editable')[0];
             }
@@ -2312,6 +2317,18 @@
         window.insertNodeAtCursor = function(htmlString) {
             var $editor = $('#summernote');
             var editable = editorEditableEl || $editor.next('.note-editor').find('.note-editable')[0];
+
+            // ★ summernote 내장 restoreRange로 커서 위치 먼저 복원 시도
+            try {
+                $editor.summernote('restoreRange');
+                var resSel = window.getSelection();
+                if (resSel && resSel.rangeCount > 0) {
+                    var restoredRange = resSel.getRangeAt(0).cloneRange();
+                    if (editable && editable.contains(restoredRange.startContainer)) {
+                        savedNativeRange = restoredRange;
+                    }
+                }
+            } catch(e) {}
 
             // ★ 삽입 전: 에디터 맨 앞의 빈 단락들 미리 제거 (초기 <p><br></p> 포함)
             if (editable) {
