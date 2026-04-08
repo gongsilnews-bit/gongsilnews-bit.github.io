@@ -1,17 +1,23 @@
 {
-  "name": "gongsilnews-scraper",
-  "version": "1.0.0",
-  "description": "RSS News scraper for Gongsil News Map",
-  "main": "ingest.js",
+  "name": "gongsil-next",
+  "version": "0.1.0",
+  "private": true,
   "scripts": {
-    "start": "node ingest.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.0",
-    "axios": "^1.14.0",
-    "cheerio": "^1.2.0",
-    "dotenv": "^16.3.1",
-    "rss-parser": "^3.13.0"
+    "@supabase/supabase-js": "^2.101.1",
+    "next": "16.2.2",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.2",
+    "tailwindcss": "^4"
   }
 }
